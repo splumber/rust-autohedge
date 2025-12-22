@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/.env.example">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/.env.example" />
+              <option name="updatedContent" value="# OpenAI Configuration&#10;# OPENAI_API_KEY=sk-your-openai-api-key-here&#10;# Optional: Set this if using a local LLM like Ollama or LM Studio&#10;OPENAI_BASE_URL=http://localhost:11434/v1&#10;LLM_MODEL=qwen3-coder:30b&#10;&#10;# Alpaca Configuration (Get these from https://alpaca.markets/)&#10;APCA_API_KEY_ID=your-alpaca-key-here&#10;APCA_API_SECRET_KEY=your-alpaca-secret-here&#10;# Default to paper trading&#10;APCA_API_BASE_URL=https://paper-api.alpaca.markets&#10;&#10;# Trading Configuration&#10;# Options: stocks, crypto&#10;# Note: Crypto uses &quot;gtc&quot; (Good Till Canceled) time_in_force, stocks use &quot;day&quot;&#10;TRADING_MODE=crypto&#10;# Comma-separated list of symbols to trade&#10;TRADING_SYMBOLS=DOGE/USD,XRP/USD,SHIB/USD,LTC/USD,DOT/USD,SOL/USD&#10;&#10;# Logging Level (info, debug, error)&#10;RUST_LOG=info&#10;&#10;# System Configuration&#10;# Max number of requests waiting in queue&#10;LLM_QUEUE_SIZE=100&#10;# Max number of parallel requests to LLM provider&#10;LLM_MAX_CONCURRENT=3&#10;# Number of candles to keep in memory for analysis&#10;MARKET_HISTORY_LIMIT=50&#10;# Minimum number of candles required before trading starts&#10;WARMUP_MIN_COUNT=50&#10;# Maximum dollar amount per trade (Risk Manager)&#10;MAX_ORDER_AMOUNT=100.0&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
