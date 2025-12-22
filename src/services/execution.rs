@@ -85,17 +85,29 @@ impl ExecutionEngine {
                         0.0
                     };
 
-                    let estimated_value = order.qty * estimated_price;
-                
-                    if estimated_value > config.max_order_amount {
-                         info!("⚠️ [RISK] Order value ${:.2} exceeds limit ${:.2}. Cap set.", estimated_value, config.max_order_amount);
-                         if estimated_price > 0.0 {
-                             order.qty = config.max_order_amount / estimated_price;
-                             info!("⚠️ [RISK] Quantity reduced to {:.4}", order.qty);
-                         }
+                    if estimated_price == 0.0 {
+                        error!("❌ [EXECUTION] Cannot estimate price for {}. No market data available.", req.symbol);
+                        return;
                     }
 
-                    info!("🚀 [ORDER] Submitting: {} {} {}", order.action, order.qty, req.symbol);
+                    let mut estimated_value = order.qty * estimated_price;
+
+                    // Alpaca requires minimum order value (configurable, default $10)
+                    if estimated_value < config.min_order_amount {
+                        info!("⚠️ [RISK] Order value ${:.2} is below minimum ${:.2}. Adjusting quantity.", estimated_value, config.min_order_amount);
+                        order.qty = config.min_order_amount / estimated_price;
+                        estimated_value = order.qty * estimated_price;
+                        info!("⚠️ [RISK] Quantity increased to {:.8} (value: ${:.2})", order.qty, estimated_value);
+                    }
+
+                    if estimated_value > config.max_order_amount {
+                         info!("⚠️ [RISK] Order value ${:.2} exceeds limit ${:.2}. Cap set.", estimated_value, config.max_order_amount);
+                         order.qty = config.max_order_amount / estimated_price;
+                         estimated_value = order.qty * estimated_price;
+                         info!("⚠️ [RISK] Quantity reduced to {:.8} (value: ${:.2})", order.qty, estimated_value);
+                    }
+
+                    info!("🚀 [ORDER] Submitting: {} {:.8} {} (Est. Value: ${:.2})", order.action, order.qty, req.symbol, estimated_value);
 
                     // Crypto requires "gtc" (Good Till Canceled), stocks can use "day"
                     let time_in_force = if config.trading_mode.to_lowercase() == "crypto" {
