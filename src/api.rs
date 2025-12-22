@@ -88,6 +88,9 @@ async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse 
 
         info!("Initializing EDA Services...");
 
+        // Create Position Tracker (shared between Execution and Monitor)
+        let position_tracker = crate::services::position_monitor::PositionTracker::new();
+
         // Start Strategy Engine
         let strategy_engine = crate::services::strategy::StrategyEngine::new(
             event_bus.clone(),
@@ -106,14 +109,23 @@ async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse 
         );
         risk_engine.start().await;
 
-        // Start Execution Engine
+        // Start Execution Engine (with position tracker)
         let execution_engine = crate::services::execution::ExecutionEngine::new(
             event_bus.clone(),
             alpaca.clone(),
             llm.clone(),
             config.clone(),
+            position_tracker.clone(),
         );
         execution_engine.start().await;
+
+        // Start Position Monitor (watches for stop loss / take profit)
+        let position_monitor = crate::services::position_monitor::PositionMonitor::new(
+            event_bus.clone(),
+            alpaca.clone(),
+            position_tracker.clone(),
+        );
+        position_monitor.start().await;
 
         info!("🚀 All EDA Services Started. Trading System Active.");
         

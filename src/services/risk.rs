@@ -75,38 +75,48 @@ impl RiskEngine {
              info!("🛡️ [RISK] Rejected trade for {}: {}", signal.symbol, risk_response);
              return;
         }
-        info!("🛡️ [RISK] Approved: {}", signal.symbol);
-
-        // Publish Order Request (Pre-Execution)
-        // Note: The actual quantity calculation usually happens in Execution Agent based on risk parameters.
-        // However, our previous flow had Execution Agent decide the quantity.
-        // We will stick to the previous flow: Risk approves -> Execution decides content.
         
+        // Parse risk response to extract stop_loss and take_profit
+        let (stop_loss, take_profit) = Self::parse_risk_parameters(&risk_response);
+        
+        info!("🛡️ [RISK] Approved: {} (SL: {:?}, TP: {:?})", signal.symbol, stop_loss, take_profit);
+
+        // Publish Order Request with risk parameters
         let order_req = OrderRequest {
-             symbol: signal.symbol,
-             action: "decide_in_execution".to_string(), // Execution Agent handles this
-             qty: 0.0,
+             symbol: signal.symbol.clone(),
+             action: signal.signal.clone(), // "buy" or "sell"
+             qty: 0.0, // Execution Agent will determine quantity
              order_type: "market".to_string(),
              limit_price: None,
+             stop_loss,
+             take_profit,
         };
-
-        // We need to pass the "Risk Analysis" text to Execution.
-        // But our OrderRequest struct is rigid. 
-        // Let's modify OrderRequest to optionally carry context or just let Execution run freely?
-        // Actually, the previous pipeline passed `risk_response` to Execution.
-        // To keep it clean, we should probably add `risk_analysis` to OrderRequest or make a new event.
-        // For now, let's assume Execution has enough context or we repurpose fields.
         
-        // Wait, the previous logic was:
-        // Execution Agent -> Output JSON -> Check Hard Limit -> Submit.
+        bus.publish(Event::Order(order_req)).ok();
+    }
+    
+    fn parse_risk_parameters(risk_response: &str) -> (Option<f64>, Option<f64>) {
+        // Try to extract JSON
+        let json_str = if let Some(start) = risk_response.find('{') {
+            if let Some(end) = risk_response.rfind('}') {
+                &risk_response[start..=end]
+            } else {
+                risk_response
+            }
+        } else {
+            risk_response
+        };
         
-        // So Risk Engine here mainly validates "Can we trade?". 
-        // The actual sizing logic was done by Execution Agent + Hard Limit Check.
+        // Attempt to parse JSON
+        if let Ok(json) = serde_json::from_str::<serde_json::Value>(json_str) {
+            let stop_loss = json.get("stop_loss")
+                .and_then(|v| v.as_f64());
+            let take_profit = json.get("take_profit")
+                .and_then(|v| v.as_f64());
+            
+            return (stop_loss, take_profit);
+        }
         
-        bus.publish(Event::Order(order_req)).ok(); 
-        
-        // ISSUE: Validating Hard Limits requires knowing Qty, which comes from Execution Agent.
-        // So the Hard Limit check must happen IN Execution Engine, not Risk Engine, or we need an intermediate step.
-        // I will move Hard Limit check to Execution Engine as it was in `api.rs`.
+        (None, None)
     }
 }

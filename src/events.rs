@@ -35,6 +35,8 @@ pub struct OrderRequest {
     pub qty: f64,
     pub order_type: String, // "market", "limit"
     pub limit_price: Option<f64>,
+    pub stop_loss: Option<f64>,
+    pub take_profit: Option<f64>,
 }
 
 #[derive(Clone, Debug)]
