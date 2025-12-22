@@ -10,6 +10,7 @@ pub struct AppConfig {
     pub max_order_amount: f64,
     pub llm_queue_size: usize,
     pub llm_max_concurrent: usize,
+    pub no_trade_cooldown_quotes: usize,
 }
 
 impl AppConfig {
@@ -52,6 +53,11 @@ impl AppConfig {
             .and_then(|v| v.parse().ok())
             .unwrap_or(100.0);
 
+        let no_trade_cooldown_quotes = env::var("NO_TRADE_COOLDOWN_QUOTES")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(10);
+
         Self {
             trading_mode,
             symbols,
@@ -61,6 +67,7 @@ impl AppConfig {
             max_order_amount,
             llm_queue_size,
             llm_max_concurrent,
+            no_trade_cooldown_quotes,
         }
     }
 }

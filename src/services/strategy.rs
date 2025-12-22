@@ -1,4 +1,4 @@
-use tracing::{info, error};
+use tracing::{info, error, warn};
 use crate::bus::EventBus;
 use crate::events::{Event, MarketEvent, AnalysisSignal};
 use crate::data::store::MarketStore;
@@ -6,6 +6,13 @@ use crate::llm::LLMQueue;
 use crate::agents::{Agent, director::DirectorAgent, quant::QuantAgent};
 use crate::config::AppConfig;
 use serde_json::Value;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+
+#[derive(Clone)]
+struct SymbolCooldown {
+    quotes_remaining: usize,
+}
 
 pub struct StrategyEngine {
     event_bus: EventBus,
@@ -31,8 +38,11 @@ impl StrategyEngine {
         let bus_clone = self.event_bus.clone();
         let config_clone = self.config.clone();
 
+        // Cooldown tracker: symbol -> quotes_remaining
+        let cooldowns: Arc<Mutex<HashMap<String, SymbolCooldown>>> = Arc::new(Mutex::new(HashMap::new()));
+
         tokio::spawn(async move {
-            info!("🧠 Strategy Engine Started");
+            info!("🧠 Strategy Engine Started (with no_trade cooldown)");
             while let Ok(event) = rx.recv().await {
                 if let Event::Market(market_event) = event {
                     let symbol = match &market_event {
@@ -40,22 +50,37 @@ impl StrategyEngine {
                         MarketEvent::Trade { symbol, .. } => symbol.clone(),
                     };
 
+                    // Check cooldown status
+                    let mut cooldowns_lock = cooldowns.lock().unwrap();
+                    if let Some(cooldown) = cooldowns_lock.get_mut(&symbol) {
+                        if cooldown.quotes_remaining > 0 {
+                            cooldown.quotes_remaining -= 1;
+                            if cooldown.quotes_remaining == 0 {
+                                info!("⏰ [COOLDOWN] {} cooldown expired. Ready for analysis.", symbol);
+                                cooldowns_lock.remove(&symbol);
+                            }
+                            drop(cooldowns_lock);
+                            continue;
+                        }
+                    }
+                    drop(cooldowns_lock);
+
                     // Warm-up Check
                     let history = store_clone.get_quote_history(&symbol);
                     if history.len() < config_clone.warmup_count {
                         continue;
                     }
 
-                    // Throttle/Debounce check could go here (omitted for now)
-
                     // Spawn Analysis Task (Parallel)
                     let store = store_clone.clone();
                     let llm = llm_clone.clone();
                     let bus = bus_clone.clone();
                     let symbol_clone = symbol.clone();
+                    let cooldowns_clone = cooldowns.clone();
+                    let config = config_clone.clone();
 
                     tokio::spawn(async move {
-                         Self::analyze_symbol(symbol_clone, store, llm, bus).await;
+                         Self::analyze_symbol(symbol_clone, store, llm, bus, cooldowns_clone, config).await;
                     });
                 }
             }
@@ -63,7 +88,14 @@ impl StrategyEngine {
         });
     }
 
-    async fn analyze_symbol(symbol: String, store: MarketStore, llm: LLMQueue, bus: EventBus) {
+    async fn analyze_symbol(
+        symbol: String,
+        store: MarketStore,
+        llm: LLMQueue,
+        bus: EventBus,
+        cooldowns: Arc<Mutex<HashMap<String, SymbolCooldown>>>,
+        config: AppConfig,
+    ) {
         // Prepare Data
         let history = store.get_quote_history(&symbol);
         let news = store.get_latest_news();
@@ -93,6 +125,15 @@ impl StrategyEngine {
 
         let lower_resp = director_response.to_lowercase();
         if lower_resp.contains("no_trade") || lower_resp.contains("no trade") || (!lower_resp.contains("trade") && !lower_resp.contains("opportunity")) {
+            // Set cooldown: wait for configured number of quotes before analyzing this symbol again
+            let mut cooldowns_lock = cooldowns.lock().unwrap();
+            cooldowns_lock.insert(symbol.clone(), SymbolCooldown {
+                quotes_remaining: config.no_trade_cooldown_quotes
+            });
+            drop(cooldowns_lock);
+
+            warn!("🔴 [STRATEGY] No trade opportunity for {}. Cooldown: {} quotes.",
+                  symbol, config.no_trade_cooldown_quotes);
             return;
         }
 
