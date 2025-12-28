@@ -33,6 +33,26 @@ pub struct TradeLogEntry {
     pub notes: Option<String>,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ClosedTrade {
+    pub symbol: String,
+    pub buy_time: String,
+    pub sell_time: String,
+    pub buy_price: f64,
+    pub sell_price: f64,
+    pub qty: f64,
+    pub pnl: f64,
+    pub pnl_percent: f64,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct OpenPosition {
+    pub symbol: String,
+    pub buy_time: String,
+    pub buy_price: f64,
+    pub qty: f64,
+}
+
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct PerformanceSummary {
     pub total_orders: u64,
@@ -48,6 +68,12 @@ pub struct PerformanceSummary {
 
     /// Per-symbol trade counts
     pub per_symbol: HashMap<String, u64>,
+
+    /// Detailed trade history grouped by symbol
+    pub history: HashMap<String, Vec<ClosedTrade>>,
+    
+    /// Currently open positions
+    pub open_positions: HashMap<String, OpenPosition>,
 }
 
 #[derive(Clone)]
@@ -128,15 +154,48 @@ impl TradeReporter {
         s.total_exec_reports += 1;
 
         let st = exec.status.to_lowercase();
-        if st.contains("fill") {
-            s.filled += 1;
-        }
-        if st.contains("reject") {
+        if st.contains("fill") || st == "new" || st == "accepted" {
+             // Assuming "new" or "accepted" means it will be filled for now, 
+             // as we don't get async fill updates in this architecture yet.
+             // Ideally we should wait for "filled".
+             // But ExecutionEngine sends "new" immediately after submit.
+             // We'll treat "new" as a fill for reporting purposes to track the lifecycle,
+             // acknowledging this is an estimation.
+             
+             if let (Some(qty), Some(price)) = (exec.qty, exec.price) {
+                 if exec.side.eq_ignore_ascii_case("buy") {
+                     s.buys += 1;
+                     s.open_positions.insert(exec.symbol.clone(), OpenPosition {
+                         symbol: exec.symbol.clone(),
+                         buy_time: Utc::now().to_rfc3339(),
+                         buy_price: price,
+                         qty,
+                     });
+                 } else if exec.side.eq_ignore_ascii_case("sell") {
+                     s.sells += 1;
+                     if let Some(open_pos) = s.open_positions.remove(&exec.symbol) {
+                         let pnl = (price - open_pos.buy_price) * qty;
+                         let pnl_percent = (price - open_pos.buy_price) / open_pos.buy_price * 100.0;
+                         
+                         let trade = ClosedTrade {
+                             symbol: exec.symbol.clone(),
+                             buy_time: open_pos.buy_time,
+                             sell_time: Utc::now().to_rfc3339(),
+                             buy_price: open_pos.buy_price,
+                             sell_price: price,
+                             qty,
+                             pnl,
+                             pnl_percent,
+                         };
+                         
+                         s.history.entry(exec.symbol.clone()).or_default().push(trade);
+                     }
+                 }
+                 s.total_notional += qty * price;
+             }
+             s.filled += 1;
+        } else if st.contains("reject") {
             s.rejected += 1;
-        }
-
-        if let (Some(q), Some(p)) = (exec.qty, exec.price) {
-            s.total_notional += q * p;
         }
 
         drop(s);
@@ -190,4 +249,3 @@ impl TradeReporter {
         Ok(())
     }
 }
-

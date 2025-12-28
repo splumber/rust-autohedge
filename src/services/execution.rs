@@ -157,6 +157,7 @@ impl ExecutionEngine {
                         symbol: req.symbol,
                         order_id: res.id,
                         status: res.status,
+                        side: "sell".to_string(),
                         price: Some(estimated_price),
                         qty: Some(qty),
                     };
@@ -282,9 +283,11 @@ impl ExecutionEngine {
                                 symbol: req.symbol,
                                 order_id: res.id,
                                 status: res.status,
+                                side: order.action.clone(),
                                 price: Some(estimated_price),
                                 qty: Some(order.qty),
                             };
+
                             bus.publish(Event::Execution(report)).ok();
                         }
                         Err(e) => error!("[FAILED] Order Submission: {}", e),

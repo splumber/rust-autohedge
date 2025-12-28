@@ -44,6 +44,7 @@ pub struct ExecutionReport {
     pub symbol: String,
     pub order_id: String,
     pub status: String, // "filled", "new", "rejected"
+    pub side: String,   // "buy", "sell"
     pub price: Option<f64>,
     pub qty: Option<f64>,
 }
