@@ -1,23 +1,24 @@
 use tracing::{info, error};
 use crate::bus::EventBus;
 use crate::events::{Event, AnalysisSignal, OrderRequest};
-use crate::data::alpaca::AlpacaClient;
 use crate::llm::LLMQueue;
 use crate::agents::{Agent, risk::RiskAgent};
 use crate::config::AppConfig;
+use std::sync::Arc;
+use crate::exchange::traits::TradingApi;
 
 pub struct RiskEngine {
     event_bus: EventBus,
-    alpaca: AlpacaClient,
+    exchange: Arc<dyn TradingApi>,
     llm: LLMQueue,
     config: AppConfig,
 }
 
 impl RiskEngine {
-    pub fn new(event_bus: EventBus, alpaca: AlpacaClient, llm: LLMQueue, config: AppConfig) -> Self {
+    pub fn new(event_bus: EventBus, exchange: Arc<dyn TradingApi>, llm: LLMQueue, config: AppConfig) -> Self {
         Self {
             event_bus,
-            alpaca,
+            exchange,
             llm,
             config,
         }
@@ -25,7 +26,7 @@ impl RiskEngine {
 
     pub async fn start(&self) {
         let mut rx = self.event_bus.subscribe();
-        let alpaca_clone = self.alpaca.clone();
+        let exchange_clone = self.exchange.clone();
         let llm_clone = self.llm.clone();
         let bus_clone = self.event_bus.clone();
         let config_clone = self.config.clone();
@@ -34,22 +35,22 @@ impl RiskEngine {
             info!("🛡️ Risk Engine Started");
             while let Ok(event) = rx.recv().await {
                 if let Event::Signal(signal) = event {
-                    let alpaca = alpaca_clone.clone();
+                    let exchange = exchange_clone.clone();
                     let llm = llm_clone.clone();
                     let bus = bus_clone.clone();
                     let config = config_clone.clone();
 
                     tokio::spawn(async move {
-                         Self::assess_risk(signal, alpaca, llm, bus, config).await;
+                        Self::assess_risk(signal, exchange, llm, bus, config).await;
                     });
                 }
             }
         });
     }
 
-    async fn assess_risk(signal: AnalysisSignal, alpaca: AlpacaClient, llm: LLMQueue, bus: EventBus, _config: AppConfig) {
+    async fn assess_risk(signal: AnalysisSignal, exchange: Arc<dyn TradingApi>, llm: LLMQueue, bus: EventBus, _config: AppConfig) {
         // Fetch Account
-        let account = match alpaca.get_account().await {
+        let account = match exchange.get_account().await {
             Ok(acc) => acc,
             Err(e) => {
                 error!("❌ Risk: Failed to fetch account for {}: {}", signal.symbol, e);
@@ -59,8 +60,11 @@ impl RiskEngine {
 
         let risk_agent = RiskAgent;
         let risk_input = format!(
-            "Asset: {}\nAccount Cash: {}\nPortfolio Value: {}\nThesis: {}\nQuant: N/A", // Simplifying input for now, Strategy signal could include Quant output
-            signal.symbol, account.cash, account.portfolio_value, signal.thesis
+            "Asset: {}\nAccount Cash: {:?}\nPortfolio Value: {:?}\nThesis: {}\nQuant: N/A", // Simplifying input for now, Strategy signal could include Quant output
+            signal.symbol,
+            account.cash,
+            account.portfolio_value,
+            signal.thesis
         );
 
         let risk_response = match risk_agent.run_high_priority(&risk_input, &llm).await {

@@ -1,15 +1,21 @@
+use std::sync::Arc;
 use tracing::{info, error};
 use crate::bus::EventBus;
 use crate::events::{Event, OrderRequest, ExecutionReport};
-use crate::data::alpaca::AlpacaClient;
 use crate::llm::LLMQueue;
 use crate::agents::{Agent, execution::ExecutionAgent};
 use crate::config::AppConfig;
 use crate::services::position_monitor::{PositionTracker, PositionInfo};
+use crate::exchange::{
+    traits::TradingApi,
+    types::{OrderType as ExOrderType, PlaceOrderRequest as ExPlaceOrderRequest, Side as ExSide, TimeInForce as ExTimeInForce},
+};
+use crate::data::store::MarketStore;
 
 pub struct ExecutionEngine {
     event_bus: EventBus,
-    alpaca: AlpacaClient,
+    exchange: Arc<dyn TradingApi>,
+    market_store: MarketStore,
     llm: LLMQueue,
     config: AppConfig,
     tracker: PositionTracker,
@@ -23,10 +29,18 @@ struct ExecutionOutput {
 }
 
 impl ExecutionEngine {
-    pub fn new(event_bus: EventBus, alpaca: AlpacaClient, llm: LLMQueue, config: AppConfig, tracker: PositionTracker) -> Self {
+    pub fn new(
+        event_bus: EventBus,
+        exchange: Arc<dyn TradingApi>,
+        market_store: MarketStore,
+        llm: LLMQueue,
+        config: AppConfig,
+        tracker: PositionTracker,
+    ) -> Self {
         Self {
             event_bus,
-            alpaca,
+            exchange,
+            market_store,
             llm,
             config,
             tracker,
@@ -35,7 +49,8 @@ impl ExecutionEngine {
 
     pub async fn start(&self) {
         let mut rx = self.event_bus.subscribe();
-        let alpaca_clone = self.alpaca.clone();
+        let exchange_clone = self.exchange.clone();
+        let store_clone = self.market_store.clone();
         let llm_clone = self.llm.clone();
         let bus_clone = self.event_bus.clone();
         let config_clone = self.config.clone();
@@ -43,20 +58,21 @@ impl ExecutionEngine {
 
         tokio::spawn(async move {
             info!("⚡ Execution Engine Started");
-            info!("[EXECUTION] Mode: {} | MinOrder=${:.2} MaxOrder=${:.2}", config_clone.trading_mode, config_clone.min_order_amount, config_clone.max_order_amount);
+            info!("[EXECUTION] Exchange: {} | Mode: {} | MinOrder=${:.2} MaxOrder=${:.2}", exchange_clone.name(), config_clone.trading_mode, config_clone.min_order_amount, config_clone.max_order_amount);
             while let Ok(event) = rx.recv().await {
                 if let Event::Order(req) = event {
                     info!("[EXECUTION] Received OrderRequest: symbol={} action={} order_type={} limit_price={:?} sl={:?} tp={:?}",
                           req.symbol, req.action, req.order_type, req.limit_price, req.stop_loss, req.take_profit);
 
-                    let alpaca = alpaca_clone.clone();
+                    let exchange = exchange_clone.clone();
+                    let store = store_clone.clone();
                     let llm = llm_clone.clone();
                     let bus = bus_clone.clone();
                     let config = config_clone.clone();
                     let tracker = tracker_clone.clone();
 
                     tokio::spawn(async move {
-                        Self::execute_order(req, alpaca, llm, bus, config, tracker).await;
+                        Self::execute_order(req, exchange, store, llm, bus, config, tracker).await;
                     });
                 }
             }
@@ -64,7 +80,15 @@ impl ExecutionEngine {
         });
     }
 
-    async fn execute_order(req: OrderRequest, alpaca: AlpacaClient, llm: LLMQueue, bus: EventBus, config: AppConfig, tracker: PositionTracker) {
+    async fn execute_order(
+        req: OrderRequest,
+        exchange: Arc<dyn TradingApi>,
+        store: MarketStore,
+        llm: LLMQueue,
+        bus: EventBus,
+        config: AppConfig,
+        tracker: PositionTracker,
+    ) {
         let is_crypto = config.trading_mode.to_lowercase() == "crypto";
         info!("[EXECUTION] Begin execute_order: symbol={} action={} (crypto={})", req.symbol, req.action, is_crypto);
 
@@ -72,15 +96,10 @@ impl ExecutionEngine {
         if req.action == "sell" {
             info!("[EXECUTION] SELL path (monitor-triggered) for {}", req.symbol);
 
-            // Get current price for the sell
-            let history = alpaca.market_store.get_quote_history(&req.symbol);
-            info!("[EXECUTION] Market history size for {}: {}", req.symbol, history.len());
-
-            let estimated_price = if let Some(latest) = history.last() {
-                latest.get("bp").and_then(|c| c.as_f64()).unwrap_or(0.0)
-            } else {
-                0.0
-            };
+            let estimated_price = store
+                .get_latest_quote(&req.symbol)
+                .and_then(|v| v.get("bp").and_then(|x| x.as_f64()))
+                .unwrap_or(0.0);
 
             info!("[EXECUTION] Estimated SELL price for {}: ${:.8}", req.symbol, estimated_price);
 
@@ -89,35 +108,21 @@ impl ExecutionEngine {
                 return;
             }
 
-            // Prefer local tracker qty; fall back to Alpaca positions as a safety net.
+            // Prefer local tracker qty; fall back to exchange positions as a safety net.
             let tracked_qty = tracker.get_position(&req.symbol).map(|p| p.qty);
             info!("[EXECUTION] Tracker qty for {}: {:?}", req.symbol, tracked_qty);
 
             let qty = if let Some(qty) = tracked_qty {
                 qty
             } else {
-                info!("[EXECUTION] Tracker missing qty for {}. Fetching positions from Alpaca...", req.symbol);
-                match alpaca.get_positions().await {
+                info!("[EXECUTION] Tracker missing qty for {}. Fetching positions from exchange...", req.symbol);
+                match exchange.get_positions().await {
                     Ok(positions) => {
-                        info!("[EXECUTION] Alpaca returned {} positions", positions.len());
-                        let position = positions.iter().find(|p| {
-                            p.get("symbol").and_then(|v| v.as_str()) == Some(&req.symbol)
-                        });
-
-                        if let Some(pos) = position {
-                            let qty = pos.get("qty")
-                                .and_then(|v| v.as_str())
-                                .and_then(|s| s.parse::<f64>().ok())
-                                .unwrap_or(0.0);
-                            info!("[EXECUTION] Alpaca position qty for {}: {:.8}", req.symbol, qty);
-                            qty
-                        } else {
-                            info!("[EXECUTION] No Alpaca position found for {}", req.symbol);
-                            0.0
-                        }
+                        let position = positions.into_iter().find(|p| p.symbol == req.symbol);
+                        position.map(|p| p.qty).unwrap_or(0.0)
                     }
                     Err(e) => {
-                        error!("[EXECUTION] Failed to fetch positions from Alpaca for sell {}: {}", req.symbol, e);
+                        error!("[EXECUTION] Failed to fetch positions for sell {}: {}", req.symbol, e);
                         0.0
                     }
                 }
@@ -128,31 +133,30 @@ impl ExecutionEngine {
                 return;
             }
 
-            let time_in_force = if is_crypto { "gtc".to_string() } else { "day".to_string() };
-            info!("[EXECUTION] time_in_force for {} sell: {}", req.symbol, time_in_force);
+            let time_in_force = if is_crypto { ExTimeInForce::Gtc } else { ExTimeInForce::Day };
 
-            let api_req = crate::data::alpaca::OrderRequest {
+            let api_req = ExPlaceOrderRequest {
                 symbol: req.symbol.clone(),
-                qty: Some(qty.to_string()),
+                qty: Some(qty),
                 notional: None,
-                side: "sell".to_string(),
-                type_: "market".to_string(),
+                side: ExSide::Sell,
+                order_type: ExOrderType::Market,
                 time_in_force,
             };
 
             info!("[ORDER] Submitting SELL: qty={:.8} symbol={} est_price=${:.8} est_value=${:.2}",
                   qty, req.symbol, estimated_price, qty * estimated_price);
 
-            match alpaca.submit_order(api_req, &config.trading_mode).await {
+            match exchange.submit_order(api_req).await {
                 Ok(res) => {
-                    info!("[SUCCESS] SELL Order Placed: {:?}", res);
+                    info!("[SUCCESS] SELL Order Placed: id={} status={}", res.id, res.status);
 
                     tracker.remove_position(&req.symbol);
 
                     let report = ExecutionReport {
                         symbol: req.symbol,
-                        order_id: "unknown".to_string(),
-                        status: "new".to_string(),
+                        order_id: res.id,
+                        status: res.status,
                         price: Some(estimated_price),
                         qty: Some(qty),
                     };
@@ -191,10 +195,7 @@ impl ExecutionEngine {
                       req.symbol, order.action, order.qty, order.order_type);
 
                 if order.action == "buy" || order.action == "sell" {
-                    // Hard Risk Limit Check
-                    let history = alpaca.market_store.get_quote_history(&req.symbol);
-                    info!("[EXECUTION] Market history size for {}: {}", req.symbol, history.len());
-
+                    let history = store.get_quote_history(&req.symbol);
                     let estimated_price = if let Some(latest) = history.last() {
                         latest.get("bp").and_then(|c| c.as_f64()).unwrap_or(0.0)
                     } else {
@@ -208,7 +209,7 @@ impl ExecutionEngine {
                         return;
                     }
 
-                    // For stocks, qty-based orders are fine. For crypto, notional orders reliably meet Alpaca's minimum order rules.
+                    // For stocks, qty-based orders are fine. For crypto, notional orders rely on exchange capabilities.
                     let is_crypto = config.trading_mode.to_lowercase() == "crypto";
 
                     // Estimate value from agent qty; tighten to min/max via config.
@@ -232,43 +233,41 @@ impl ExecutionEngine {
                     info!("[ORDER] Submitting: action={} qty={:.8} symbol={} est_value=${:.2} order_type={}",
                           order.action, order.qty, req.symbol, estimated_value, order.order_type);
 
-                    let time_in_force = if is_crypto { "gtc".to_string() } else { "day".to_string() };
-                    info!("[EXECUTION] time_in_force for {} {}: {}", req.symbol, order.action, time_in_force);
+                    let time_in_force = if is_crypto { ExTimeInForce::Gtc } else { ExTimeInForce::Day };
 
-                    // Build API request: crypto uses notional where possible (buy) to satisfy min cost basis.
-                    let (qty, notional) = if is_crypto && order.action == "buy" {
-                        info!("[EXECUTION] Crypto BUY => using notional=${:.2} (qty omitted)", estimated_value);
-                        (None, Some(format!("{:.2}", estimated_value)))
+                    let supports_notional = exchange.capabilities().supports_notional_market_buy;
+
+                    let (qty, notional) = if is_crypto && order.action == "buy" && supports_notional {
+                        (None, Some(estimated_value))
                     } else {
-                        info!("[EXECUTION] Using qty={:.8} (notional omitted)", order.qty);
-                        (Some(order.qty.to_string()), None)
+                        (Some(order.qty), None)
                     };
 
-                    let api_req = crate::data::alpaca::OrderRequest {
+                    let side = if order.action == "buy" { ExSide::Buy } else { ExSide::Sell };
+                    let order_type = if order.order_type.to_lowercase() == "limit" { ExOrderType::Limit } else { ExOrderType::Market };
+
+                    let api_req = ExPlaceOrderRequest {
                         symbol: req.symbol.clone(),
+                        side,
+                        order_type,
                         qty,
                         notional,
-                        side: order.action.clone(),
-                        type_: order.order_type,
                         time_in_force,
                     };
 
-                    info!("[EXECUTION] Submitting order to Alpaca for {} (side={})", req.symbol, api_req.side);
+                    info!("[EXECUTION] Submitting order to exchange {} for {}", exchange.name(), req.symbol);
 
-                    match alpaca.submit_order(api_req, &config.trading_mode).await {
+                    match exchange.submit_order(api_req).await {
                         Ok(res) => {
-                            info!("[SUCCESS] Order Placed: {:?}", res);
+                            info!("[SUCCESS] Order Placed: id={} status={}", res.id, res.status);
 
                             if order.action == "buy" {
-                                let stop_loss = req.stop_loss.unwrap_or(estimated_price * 0.995); // default -0.5%
-                                let take_profit = req.take_profit.unwrap_or(estimated_price * 1.01); // default +1%
-                                info!("[EXECUTION] Tracking new position for {} => entry=${:.8} qty≈{:.8} sl={:.8} tp={:.8}",
-                                      req.symbol, estimated_price, order.qty, stop_loss, take_profit);
+                                let stop_loss = req.stop_loss.unwrap_or(estimated_price * 0.995);
+                                let take_profit = req.take_profit.unwrap_or(estimated_price * 1.01);
 
                                 let position_info = PositionInfo {
                                     symbol: req.symbol.clone(),
                                     entry_price: estimated_price,
-                                    // For notional orders, we don't know filled qty yet; keep the computed qty as an estimate.
                                     qty: order.qty,
                                     stop_loss,
                                     take_profit,
@@ -276,26 +275,24 @@ impl ExecutionEngine {
                                     side: "buy".to_string(),
                                     is_closing: false,
                                 };
-
                                 tracker.add_position(position_info);
                             }
 
                             let report = ExecutionReport {
                                 symbol: req.symbol,
-                                order_id: "unknown".to_string(),
-                                status: "new".to_string(),
+                                order_id: res.id,
+                                status: res.status,
                                 price: Some(estimated_price),
                                 qty: Some(order.qty),
                             };
-                            info!("[EXECUTION] Publishing ExecutionReport for {}", report.symbol);
                             bus.publish(Event::Execution(report)).ok();
-                        },
+                        }
                         Err(e) => error!("[FAILED] Order Submission: {}", e),
                     }
                 } else {
                     info!("[EXECUTION] Invalid action '{}'", order.action);
                 }
-            },
+            }
             Err(e) => {
                 error!("[EXECUTION] JSON Parse Error: {}", e);
             }

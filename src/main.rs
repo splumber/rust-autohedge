@@ -6,10 +6,10 @@ mod config;
 mod events;
 mod bus;
 pub mod services;
+mod exchange;
 
 
 use config::AppConfig;
-use data::alpaca::AlpacaClient;
 use llm::{LLMClient, LLMQueue};
 use std::env;
 use std::sync::{Arc, Mutex};
@@ -35,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     }
 
     // Verify critical env vars
-    let critical_vars = ["OPENAI_API_KEY", "APCA_API_KEY_ID", "APCA_API_SECRET_KEY"];
+    let critical_vars = ["OPENAI_API_KEY"];
     for var in critical_vars {
         if env::var(var).is_err() {
             error!("CRITICAL: Environment variable {} is NOT set.", var);
@@ -65,13 +65,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     info!("📬 Initializing LLM Queue (max concurrent: {}, size: {})...", config.llm_max_concurrent, config.llm_queue_size);
     let llm_queue = LLMQueue::new(llm_client, config.llm_max_concurrent, config.llm_queue_size);
 
-    info!("Initializing Alpaca Client...");
-    let alpaca_client = AlpacaClient::new(config.history_limit);
-
     // Create App State
     let app_state = Arc::new(AppState {
         trading_handle: Mutex::new(None),
-        alpaca: alpaca_client,
+        exchange: Mutex::new(None),
         llm: llm_queue,
         config,
     });

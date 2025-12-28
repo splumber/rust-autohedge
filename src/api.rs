@@ -8,17 +8,18 @@ use axum::{
 use std::sync::{Arc, Mutex};
 use tokio::task::JoinHandle;
 use serde_json::json;
-use crate::data::alpaca::AlpacaClient;
 use crate::llm::LLMQueue;
-use crate::services::websocket_service::WebSocketService;
 use tracing::{info, error};
-use std::time::Duration;
 
 use crate::config::AppConfig;
+use crate::exchange::{factory::build_exchange, ws::GenericWsStream};
+use crate::exchange::ws::WsProvider;
+use crate::exchange::traits::{TradingApi, MarketDataStream};
+use crate::data::store::MarketStore;
 
 pub struct AppState {
     pub trading_handle: Mutex<Option<JoinHandle<()>>>,
-    pub alpaca: AlpacaClient,
+    pub exchange: Mutex<Option<Arc<dyn TradingApi>>>,
     pub llm: LLMQueue,
     pub config: AppConfig,
 }
@@ -43,48 +44,57 @@ struct AssetParams {
 }
 
 async fn get_assets(
-    State(state): State<Arc<AppState>>,
-    Query(params): Query<AssetParams>
+    State(_state): State<Arc<AppState>>,
+    Query(_params): Query<AssetParams>
 ) -> impl IntoResponse {
-    match state.alpaca.get_assets(params.class).await {
-        Ok(assets) => Json(assets).into_response(),
-        Err(e) => (
-            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Error fetching assets: {}", e),
-        ).into_response(),
-    }
+    (
+        axum::http::StatusCode::NOT_IMPLEMENTED,
+        "Assets endpoint is exchange-specific; implement via TradingApi extension per exchange.",
+    ).into_response()
 }
 
 async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     let mut handle_lock = state.trading_handle.lock().unwrap();
-    
+
     if handle_lock.is_some() {
         return Json(json!({"status": "already_running"})).into_response();
     }
 
-    let alpaca = state.alpaca.clone();
-    let llm = state.llm.clone(); 
+    let llm = state.llm.clone();
     let config = state.config.clone();
-    
+
     let handle = tokio::spawn(async move {
-        // Start Streaming
         let trading_mode = config.trading_mode.clone();
         let is_crypto = trading_mode.to_lowercase() == "crypto";
         info!("🔧 Trading Mode: {} (Crypto: {})", trading_mode, is_crypto);
-        
+
         let symbols = config.symbols.clone();
 
         // Create Event Bus
         let event_bus = crate::bus::EventBus::new(1000);
 
-        info!("Initializing Streaming via WebSocketService for {:?} (Crypto: {})", symbols, is_crypto);
-        let ws_service = WebSocketService::new(
-            alpaca.market_store.clone(),
-            symbols.clone(),
-            is_crypto,
-            event_bus.clone()
-        );
-        ws_service.start().await;
+        // Build exchange
+        let (exchange, maybe_store) = build_exchange(&config);
+
+        // Market store: if exchange doesn't provide one, make a local one.
+        let market_store = maybe_store.unwrap_or_else(|| MarketStore::new(config.history_limit));
+
+        // Start Streaming (provider-specific WS)
+        let ws_provider = match exchange.name() {
+            "alpaca" => {
+                let api_key = std::env::var("APCA_API_KEY_ID").unwrap_or_default();
+                let secret = std::env::var("APCA_API_SECRET_KEY").unwrap_or_default();
+                GenericWsStream::alpaca(api_key, secret, is_crypto)
+            }
+            "binance" => GenericWsStream::binance(),
+            "coinbase" => GenericWsStream::coinbase(),
+            "kraken" => GenericWsStream::kraken(),
+            _ => GenericWsStream { provider: WsProvider::AlpacaCrypto, api_key: None, api_secret: None },
+        };
+
+        if let Err(e) = ws_provider.start(market_store.clone(), symbols.clone(), event_bus.clone()).await {
+            error!("WS start failed: {}", e);
+        }
 
         info!("Initializing EDA Services...");
 
@@ -94,7 +104,7 @@ async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse 
         // Start Strategy Engine
         let strategy_engine = crate::services::strategy::StrategyEngine::new(
             event_bus.clone(),
-            alpaca.market_store.clone(),
+            market_store.clone(),
             llm.clone(),
             config.clone(),
         );
@@ -103,40 +113,34 @@ async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse 
         // Start Risk Engine
         let risk_engine = crate::services::risk::RiskEngine::new(
             event_bus.clone(),
-            alpaca.clone(),
+            exchange.clone(),
             llm.clone(),
             config.clone(),
         );
         risk_engine.start().await;
 
-        // Start Execution Engine (with position tracker)
+        // Start Execution Engine
         let execution_engine = crate::services::execution::ExecutionEngine::new(
             event_bus.clone(),
-            alpaca.clone(),
+            exchange.clone(),
+            market_store.clone(),
             llm.clone(),
             config.clone(),
             position_tracker.clone(),
         );
         execution_engine.start().await;
 
-        // Start Position Monitor (watches for stop loss / take profit)
+        // Start Position Monitor
         let position_monitor = crate::services::position_monitor::PositionMonitor::new(
             event_bus.clone(),
-            alpaca.clone(),
+            exchange.clone(),
             position_tracker.clone(),
             config.clone(),
         );
         position_monitor.start().await;
 
         info!("🚀 All EDA Services Started. Trading System Active.");
-        
-        // Spawn Monitor Loop (Account Balance)
-        let alpaca_monitor = alpaca.clone();
-        tokio::spawn(async move {
-             monitor_loop(alpaca_monitor).await;
-        });
 
-        // Keep task alive (prevents immediate exit)
         loop {
             tokio::time::sleep(std::time::Duration::from_secs(3600)).await;
         }
@@ -155,36 +159,5 @@ async fn stop_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse {
         Json(json!({"status": "stopped"})).into_response()
     } else {
         Json(json!({"status": "not_running"})).into_response()
-    }
-}
-
-async fn monitor_loop(alpaca: AlpacaClient) {
-    loop {
-        // Fetch Account
-        if let Ok(account) = alpaca.get_account().await {
-             // Fetch Positions
-             let positions = alpaca.get_positions().await.unwrap_or_default();
-             
-             // Log Account & Holdings Summary
-             info!("\n💰 Account Summary\n------------------\nCash: ${}\nPortfolio: ${}\n", account.cash, account.portfolio_value);
-             
-             if positions.is_empty() {
-                  info!("🎒 Current Holdings: None");
-             } else {
-                  let mut holdings_log = String::from("\n🎒 Current Holdings\n-------------------\n");
-                  for p in positions {
-                      let symbol = p.get("symbol").and_then(|v| v.as_str()).unwrap_or("UNKNOWN");
-                      let qty = p.get("qty").and_then(|v| v.as_str()).unwrap_or("0");
-                      let price = p.get("current_price").and_then(|v| v.as_str()).unwrap_or("0.00");
-                      let pl = p.get("unrealized_pl").and_then(|v| v.as_str()).unwrap_or("0.00");
-                      holdings_log.push_str(&format!("- {}: {} shares @ ${} (P/L: ${})\n", symbol, qty, price, pl));
-                  }
-                  info!("{}", holdings_log);
-             }
-        } else {
-            error!("Monitor: Failed to fetch account.");
-        }
-
-        tokio::time::sleep(Duration::from_secs(60)).await;
     }
 }
