@@ -16,6 +16,7 @@ use crate::exchange::{factory::build_exchange, ws::GenericWsStream};
 use crate::exchange::ws::WsProvider;
 use crate::exchange::traits::{TradingApi, MarketDataStream};
 use crate::data::store::MarketStore;
+use crate::services::reporting::TradeReporter;
 
 pub struct AppState {
     pub trading_handle: Mutex<Option<JoinHandle<()>>>,
@@ -29,6 +30,7 @@ pub async fn run_server(state: Arc<AppState>) {
         .route("/start", post(start_trading))
         .route("/stop", post(stop_trading))
         .route("/assets", get(get_assets))
+        .route("/report", get(get_report))
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
@@ -51,6 +53,18 @@ async fn get_assets(
         axum::http::StatusCode::NOT_IMPLEMENTED,
         "Assets endpoint is exchange-specific; implement via TradingApi extension per exchange.",
     ).into_response()
+}
+
+async fn get_report(State(_state): State<Arc<AppState>>) -> impl IntoResponse {
+    // Read the on-disk summary (best-effort) to avoid storing reporter in AppState.
+    let path = std::path::PathBuf::from("./data/trade_summary.json");
+    match std::fs::read_to_string(&path) {
+        Ok(txt) => (axum::http::StatusCode::OK, txt).into_response(),
+        Err(_) => (
+            axum::http::StatusCode::NOT_FOUND,
+            "No report found yet. Start trading first.",
+        ).into_response(),
+    }
 }
 
 async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse {
@@ -97,6 +111,10 @@ async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse 
         }
 
         info!("Initializing EDA Services...");
+
+        // Start Trade Reporter (writes JSONL + summary under ./data)
+        let reporter = TradeReporter::new(std::path::PathBuf::from("./data/trades.jsonl"));
+        reporter.start(event_bus.clone()).await;
 
         // Create Position Tracker (shared between Execution and Monitor)
         let position_tracker = crate::services::position_monitor::PositionTracker::new();
