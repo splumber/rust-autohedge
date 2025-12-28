@@ -124,6 +124,7 @@ async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse 
             event_bus.clone(),
             alpaca.clone(),
             position_tracker.clone(),
+            config.clone(),
         );
         position_monitor.start().await;
 
@@ -187,4 +188,3 @@ async fn monitor_loop(alpaca: AlpacaClient) {
         tokio::time::sleep(Duration::from_secs(60)).await;
     }
 }
-

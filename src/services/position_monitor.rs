@@ -1,7 +1,8 @@
 ﻿use tracing::{info, error, warn};
 use crate::bus::EventBus;
-use crate::events::{Event, AnalysisSignal};
+use crate::events::{Event, AnalysisSignal, MarketEvent};
 use crate::data::alpaca::AlpacaClient;
+use crate::config::AppConfig;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::time::{sleep, Duration};
@@ -16,6 +17,7 @@ pub struct PositionInfo {
     pub take_profit: f64,
     pub entry_time: String,
     pub side: String, // "buy" or "sell"
+    pub is_closing: bool, // New field to prevent double-sells
 }
 
 #[derive(Clone)]
@@ -30,11 +32,21 @@ impl PositionTracker {
         }
     }
 
-    pub fn add_position(&self, info: PositionInfo) {
+    pub fn add_position(&self, mut info: PositionInfo) {
         let mut positions = self.positions.lock().unwrap();
+        // Ensure is_closing is false initially
+        info.is_closing = false;
         info!("📊 [TRACKER] Added position: {} @ ${:.8} (SL: ${:.8}, TP: ${:.8})",
               info.symbol, info.entry_price, info.stop_loss, info.take_profit);
         positions.insert(info.symbol.clone(), info);
+    }
+
+    pub fn mark_closing(&self, symbol: &str) {
+        let mut positions = self.positions.lock().unwrap();
+        if let Some(pos) = positions.get_mut(symbol) {
+            pos.is_closing = true;
+            info!("📊 [TRACKER] Marked position {} as closing", symbol);
+        }
     }
 
     pub fn remove_position(&self, symbol: &str) -> Option<PositionInfo> {
@@ -67,26 +79,36 @@ pub struct PositionMonitor {
     alpaca: AlpacaClient,
     tracker: PositionTracker,
     check_interval_secs: u64,
+    config: AppConfig,
 }
 
 impl PositionMonitor {
-    pub fn new(event_bus: EventBus, alpaca: AlpacaClient, tracker: PositionTracker) -> Self {
+    pub fn new(event_bus: EventBus, alpaca: AlpacaClient, tracker: PositionTracker, config: AppConfig) -> Self {
         Self {
             event_bus,
             alpaca,
             tracker,
-            check_interval_secs: 10, // Check every 10 seconds
+            check_interval_secs: 10, // Check every 10 seconds (legacy)
+            config,
         }
     }
 
     pub async fn start(&self) {
+        if self.config.exit_on_quotes {
+            self.start_quote_driven().await;
+        } else {
+            self.start_polling().await;
+        }
+    }
+
+    async fn start_polling(&self) {
         let bus = self.event_bus.clone();
         let alpaca = self.alpaca.clone();
         let tracker = self.tracker.clone();
         let interval = self.check_interval_secs;
 
         tokio::spawn(async move {
-            info!("👁️  Position Monitor Started (checking every {}s)", interval);
+            info!("👁️  Position Monitor Started (polling every {}s)", interval);
 
             // Initial sync with Alpaca positions
             Self::sync_positions(&alpaca, &tracker).await;
@@ -104,13 +126,70 @@ impl PositionMonitor {
                     match Self::check_position(&position, &alpaca, &tracker, &bus).await {
                         Ok(should_exit) => {
                             if should_exit {
-                                // Position was closed, remove from tracker
                                 tracker.remove_position(&position.symbol);
                             }
                         }
                         Err(e) => {
                             error!("❌ [MONITOR] Error checking {}: {}", position.symbol, e);
                         }
+                    }
+                }
+            }
+        });
+    }
+
+    async fn start_quote_driven(&self) {
+        let bus = self.event_bus.clone();
+        let alpaca = self.alpaca.clone();
+        let tracker = self.tracker.clone();
+        let mut rx = self.event_bus.subscribe();
+        let config = self.config.clone();
+
+        tokio::spawn(async move {
+            info!("👁️  Position Monitor Started (quote-driven exits) | chatter={}", config.chatter_level);
+
+            // Initial sync with Alpaca positions
+            Self::sync_positions(&alpaca, &tracker).await;
+
+            while let Ok(event) = rx.recv().await {
+                let (symbol, current_price) = match event {
+                    Event::Market(MarketEvent::Quote { symbol, bid, .. }) => (symbol, bid),
+                    Event::Market(MarketEvent::Trade { symbol, price, .. }) => (symbol, price),
+                    _ => continue,
+                };
+
+                if current_price <= 0.0 {
+                    continue;
+                }
+
+                if let Some(position) = tracker.get_position(&symbol) {
+                    // Skip if already closing
+                    if position.is_closing {
+                        continue;
+                    }
+
+                    let pl_pct = ((current_price - position.entry_price) / position.entry_price) * 100.0;
+
+                    // In verbose mode, log a heartbeat of position evaluation.
+                    if config.chatter_level.to_lowercase() == "verbose" {
+                        info!("[MONITOR] Check {}: entry={:.8} current={:.8} pl={:.2}% sl={:.8} tp={:.8}",
+                              position.symbol, position.entry_price, current_price, pl_pct, position.stop_loss, position.take_profit);
+                    }
+
+                    if current_price >= position.take_profit {
+                        info!("[MONITOR] SELL trigger (TAKE PROFIT) for {}: entry={:.8} current={:.8} (+{:.2}%) tp={:.8}",
+                              position.symbol, position.entry_price, current_price, pl_pct, position.take_profit);
+                        Self::generate_exit_signal(&position, "take_profit", current_price, &bus).await;
+                        tracker.mark_closing(&position.symbol); // Mark as closing instead of removing
+                        continue;
+                    }
+
+                    if current_price <= position.stop_loss {
+                        warn!("[MONITOR] SELL trigger (STOP LOSS) for {}: entry={:.8} current={:.8} ({:.2}%) sl={:.8}",
+                              position.symbol, position.entry_price, current_price, pl_pct, position.stop_loss);
+                        Self::generate_exit_signal(&position, "stop_loss", current_price, &bus).await;
+                        tracker.mark_closing(&position.symbol); // Mark as closing instead of removing
+                        continue;
                     }
                 }
             }
@@ -152,6 +231,7 @@ impl PositionMonitor {
                             take_profit,
                             entry_time: chrono::Utc::now().to_rfc3339(),
                             side: "buy".to_string(),
+                            is_closing: false,
                         };
 
                         tracker.add_position(info);
@@ -267,4 +347,3 @@ impl PositionMonitor {
         }
     }
 }
-

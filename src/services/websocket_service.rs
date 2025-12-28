@@ -23,6 +23,10 @@ impl WebSocketService {
         let api_key = env::var("APCA_API_KEY_ID").expect("APCA_API_KEY_ID not set");
         let secret_key = env::var("APCA_API_SECRET_KEY").expect("APCA_API_SECRET_KEY not set");
 
+        if api_key.contains("your-alpaca-key") || secret_key.contains("your-alpaca-secret") {
+            error!("CRITICAL: Alpaca keys are still placeholders. Set APCA_API_KEY_ID and APCA_API_SECRET_KEY in .env.");
+        }
+
         Self {
             api_key,
             secret_key,
