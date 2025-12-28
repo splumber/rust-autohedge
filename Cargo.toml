@@ -20,3 +20,4 @@ uuid = { version = "1", features = ["v4"] }
 axum = "0.7.4"
 rand = "0.8"
 async-trait = "0.1"
+dashmap = "5.5"

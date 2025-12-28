@@ -98,7 +98,7 @@ impl ExecutionEngine {
 
             let estimated_price = store
                 .get_latest_quote(&req.symbol)
-                .and_then(|v| v.get("bp").and_then(|x| x.as_f64()))
+                .map(|q| q.bid_price)
                 .unwrap_or(0.0);
 
             info!("[EXECUTION] Estimated SELL price for {}: ${:.8}", req.symbol, estimated_price);
@@ -198,7 +198,7 @@ impl ExecutionEngine {
                 if order.action == "buy" || order.action == "sell" {
                     let history = store.get_quote_history(&req.symbol);
                     let estimated_price = if let Some(latest) = history.last() {
-                        latest.get("bp").and_then(|c| c.as_f64()).unwrap_or(0.0)
+                        latest.bid_price
                     } else {
                         0.0
                     };

@@ -7,7 +7,7 @@ use tracing::{error, info, warn};
 
 use crate::{
     bus::EventBus,
-    data::store::MarketStore,
+    data::store::{MarketStore, Quote, Trade},
     events::{Event, MarketEvent},
 };
 
@@ -122,20 +122,40 @@ impl GenericWsStream {
                         match t {
                             "t" => {
                                 if let Some(s) = item.get("S").and_then(|v| v.as_str()) {
-                                    store.update_trade(s.to_string(), item.clone());
                                     let price = item.get("p").and_then(|p| p.as_f64()).unwrap_or(0.0);
                                     let size = item.get("s").and_then(|sz| sz.as_f64()).unwrap_or(0.0);
                                     let timestamp = item.get("t").and_then(|t| t.as_str()).unwrap_or("").to_string();
-                                    bus.publish(Event::Market(MarketEvent::Trade { symbol: s.to_string(), price, size, timestamp, original: item.clone() })).ok();
+                                    let id = item.get("i").and_then(|i| i.as_u64());
+
+                                    let trade = Trade {
+                                        symbol: s.to_string(),
+                                        price,
+                                        size,
+                                        timestamp: timestamp.clone(),
+                                        id,
+                                    };
+                                    store.update_trade(s.to_string(), trade);
+                                    bus.publish(Event::Market(MarketEvent::Trade { symbol: s.to_string(), price, size, timestamp })).ok();
                                 }
                             }
                             "q" => {
                                 if let Some(s) = item.get("S").and_then(|v| v.as_str()) {
-                                    store.update_quote(s.to_string(), item.clone());
                                     let bid = item.get("bp").and_then(|v| v.as_f64()).unwrap_or(0.0);
                                     let ask = item.get("ap").and_then(|v| v.as_f64()).unwrap_or(0.0);
+                                    let bid_size = item.get("bs").and_then(|v| v.as_f64()).unwrap_or(0.0);
+                                    let ask_size = item.get("as").and_then(|v| v.as_f64()).unwrap_or(0.0);
                                     let timestamp = item.get("t").and_then(|t| t.as_str()).unwrap_or("").to_string();
-                                    bus.publish(Event::Market(MarketEvent::Quote { symbol: s.to_string(), bid, ask, timestamp, original: item.clone() })).ok();
+
+                                    let quote = Quote {
+                                        symbol: s.to_string(),
+                                        bid_price: bid,
+                                        ask_price: ask,
+                                        bid_size,
+                                        ask_size,
+                                        timestamp: timestamp.clone(),
+                                    };
+                                    store.update_quote(s.to_string(), quote);
+                                    bus.publish(Event::Market(MarketEvent::Quote { symbol: s.to_string(), bid, ask, timestamp })).ok();
                                 }
                             }
                             _ => {}
@@ -154,9 +174,18 @@ impl GenericWsStream {
                 let price = v.get("p").and_then(|x| x.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
                 let size = v.get("q").and_then(|x| x.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
                 let timestamp = v.get("T").and_then(|x| x.as_i64()).map(|t| t.to_string()).unwrap_or_default();
+                let id = v.get("t").and_then(|x| x.as_u64());
+
                 if !symbol.is_empty() {
-                    store.update_trade(symbol.clone(), v.clone());
-                    bus.publish(Event::Market(MarketEvent::Trade { symbol, price, size, timestamp, original: v.clone() })).ok();
+                    let trade = Trade {
+                        symbol: symbol.clone(),
+                        price,
+                        size,
+                        timestamp: timestamp.clone(),
+                        id,
+                    };
+                    store.update_trade(symbol.clone(), trade);
+                    bus.publish(Event::Market(MarketEvent::Trade { symbol, price, size, timestamp })).ok();
                 }
             }
             // bookTicker event
@@ -164,10 +193,21 @@ impl GenericWsStream {
                 let symbol = v.get("s").and_then(|x| x.as_str()).unwrap_or("").to_string();
                 let bid = v.get("b").and_then(|x| x.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
                 let ask = v.get("a").and_then(|x| x.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                let bid_size = v.get("B").and_then(|x| x.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                let ask_size = v.get("A").and_then(|x| x.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
                 let timestamp = v.get("E").and_then(|x| x.as_i64()).map(|t| t.to_string()).unwrap_or_default();
+
                 if !symbol.is_empty() {
-                    store.update_quote(symbol.clone(), v.clone());
-                    bus.publish(Event::Market(MarketEvent::Quote { symbol, bid, ask, timestamp, original: v.clone() })).ok();
+                    let quote = Quote {
+                        symbol: symbol.clone(),
+                        bid_price: bid,
+                        ask_price: ask,
+                        bid_size,
+                        ask_size,
+                        timestamp: timestamp.clone(),
+                    };
+                    store.update_quote(symbol.clone(), quote);
+                    bus.publish(Event::Market(MarketEvent::Quote { symbol, bid, ask, timestamp })).ok();
                 }
             }
         }
@@ -185,9 +225,18 @@ impl GenericWsStream {
                                 let price = tr.get("price").and_then(|x| x.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
                                 let size = tr.get("size").and_then(|x| x.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
                                 let timestamp = tr.get("time").and_then(|x| x.as_str()).unwrap_or("").to_string();
+                                let id = tr.get("trade_id").and_then(|x| x.as_str()).and_then(|s| s.parse::<u64>().ok());
+
                                 if price > 0.0 {
-                                    store.update_trade(symbol.clone(), tr.clone());
-                                    bus.publish(Event::Market(MarketEvent::Trade { symbol, price, size, timestamp, original: tr.clone() })).ok();
+                                    let trade = Trade {
+                                        symbol: symbol.clone(),
+                                        price,
+                                        size,
+                                        timestamp: timestamp.clone(),
+                                        id,
+                                    };
+                                    store.update_trade(symbol.clone(), trade);
+                                    bus.publish(Event::Market(MarketEvent::Trade { symbol, price, size, timestamp })).ok();
                                 }
                             }
                         }
@@ -217,8 +266,15 @@ impl GenericWsStream {
                                 let size = tarr.get(1).and_then(|x| x.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
                                 let timestamp = tarr.get(2).and_then(|x| x.as_str()).unwrap_or("").to_string();
                                 if price > 0.0 {
-                                    store.update_trade(symbol.clone(), v.clone());
-                                    bus.publish(Event::Market(MarketEvent::Trade { symbol: symbol.clone(), price, size, timestamp, original: v.clone() })).ok();
+                                    let trade = Trade {
+                                        symbol: symbol.clone(),
+                                        price,
+                                        size,
+                                        timestamp: timestamp.clone(),
+                                        id: None,
+                                    };
+                                    store.update_trade(symbol.clone(), trade);
+                                    bus.publish(Event::Market(MarketEvent::Trade { symbol: symbol.clone(), price, size, timestamp })).ok();
                                 }
                             }
                         }
@@ -230,10 +286,21 @@ impl GenericWsStream {
                     if let Some(obj) = arr.get(1) {
                         let bid = obj.get("b").and_then(|b| b.get(0)).and_then(|x| x.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
                         let ask = obj.get("a").and_then(|a| a.get(0)).and_then(|x| x.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                        let bid_size = obj.get("b").and_then(|b| b.get(2)).and_then(|x| x.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                        let ask_size = obj.get("a").and_then(|a| a.get(2)).and_then(|x| x.as_str()).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
                         let timestamp = chrono::Utc::now().to_rfc3339();
+
                         if bid > 0.0 && ask > 0.0 {
-                            store.update_quote(symbol.clone(), json!({"bp": bid, "ap": ask, "t": timestamp, "pair": pair}));
-                            bus.publish(Event::Market(MarketEvent::Quote { symbol, bid, ask, timestamp, original: v.clone() })).ok();
+                            let quote = Quote {
+                                symbol: symbol.clone(),
+                                bid_price: bid,
+                                ask_price: ask,
+                                bid_size,
+                                ask_size,
+                                timestamp: timestamp.clone(),
+                            };
+                            store.update_quote(symbol.clone(), quote);
+                            bus.publish(Event::Market(MarketEvent::Quote { symbol, bid, ask, timestamp })).ok();
                         }
                     }
                 }

@@ -1,13 +1,13 @@
 use tracing::{info, error, warn};
 use crate::bus::EventBus;
 use crate::events::{Event, MarketEvent, AnalysisSignal};
-use crate::data::store::MarketStore;
+use crate::data::store::{MarketStore, Quote};
 use crate::llm::LLMQueue;
 use crate::agents::{Agent, director::DirectorAgent, quant::QuantAgent};
 use crate::config::AppConfig;
-use serde_json::Value;
-use std::collections::{HashMap, VecDeque};
-use std::sync::{Arc, Mutex};
+use std::collections::VecDeque;
+use std::sync::Arc;
+use dashmap::DashMap;
 
 #[derive(Clone)]
 struct SymbolCooldown {
@@ -54,13 +54,13 @@ impl StrategyEngine {
         let config_clone = self.config.clone();
 
         // Cooldown tracking for LLM mode: symbol -> quotes_remaining
-        let cooldowns: Arc<Mutex<HashMap<String, SymbolCooldown>>> = Arc::new(Mutex::new(HashMap::new()));
+        let cooldowns: Arc<DashMap<String, SymbolCooldown>> = Arc::new(DashMap::new());
 
         // Per-symbol state for HFT mode
-        let hft_state: Arc<Mutex<HashMap<String, HftSymbolState>>> = Arc::new(Mutex::new(HashMap::new()));
+        let hft_state: Arc<DashMap<String, HftSymbolState>> = Arc::new(DashMap::new());
 
         // Per-symbol gate state for HYBRID mode
-        let hybrid_gate: Arc<Mutex<HashMap<String, HybridGateState>>> = Arc::new(Mutex::new(HashMap::new()));
+        let hybrid_gate: Arc<DashMap<String, HybridGateState>> = Arc::new(DashMap::new());
 
         tokio::spawn(async move {
             info!("🧠 Strategy Engine Started (mode: {})", config_clone.strategy_mode);
@@ -99,19 +99,28 @@ impl StrategyEngine {
                     // Default: LLM pipeline ("llm" or anything else)
 
                     // Check cooldown status
-                    let mut cooldowns_lock = cooldowns.lock().unwrap();
-                    if let Some(cooldown) = cooldowns_lock.get_mut(&symbol) {
+                    if let Some(mut cooldown) = cooldowns.get_mut(&symbol) {
                         if cooldown.quotes_remaining > 0 {
                             cooldown.quotes_remaining -= 1;
                             if cooldown.quotes_remaining == 0 {
                                 info!("⏰ [COOLDOWN] {} cooldown expired. Ready for analysis.", symbol);
-                                cooldowns_lock.remove(&symbol);
+                                // DashMap doesn't need explicit remove here if we just check > 0
+                                // But to clean up memory we can remove.
+                                // However, get_mut holds a lock shard.
+                                // We can't remove while holding a reference.
+                                // We can just set to 0.
                             }
-                            drop(cooldowns_lock);
+                            // drop(cooldown) happens automatically
                             continue;
                         }
                     }
-                    drop(cooldowns_lock);
+                    // Cleanup expired cooldowns lazily or just leave them as 0.
+                    // Or use remove_if.
+                    if let Some(cooldown) = cooldowns.get(&symbol) {
+                         if cooldown.quotes_remaining == 0 {
+                             cooldowns.remove(&symbol);
+                         }
+                    }
 
                     // Warm-up Check
                     let history = store_clone.get_quote_history(&symbol);
@@ -141,7 +150,7 @@ impl StrategyEngine {
         store: MarketStore,
         llm: LLMQueue,
         bus: EventBus,
-        cooldowns: Arc<Mutex<HashMap<String, SymbolCooldown>>>,
+        cooldowns: Arc<DashMap<String, SymbolCooldown>>,
         config: AppConfig,
     ) {
         // Prepare Data
@@ -181,14 +190,12 @@ impl StrategyEngine {
             || (!lower_resp.contains("trade") && !lower_resp.contains("opportunity"))
         {
             // Set cooldown: wait for configured number of quotes before analyzing this symbol again
-            let mut cooldowns_lock = cooldowns.lock().unwrap();
-            cooldowns_lock.insert(
+            cooldowns.insert(
                 symbol.clone(),
                 SymbolCooldown {
                     quotes_remaining: config.no_trade_cooldown_quotes,
                 },
             );
-            drop(cooldowns_lock);
 
             warn!(
                 "🔴 [STRATEGY] No trade opportunity for {}. Cooldown: {} quotes.",
@@ -230,7 +237,7 @@ impl StrategyEngine {
         bid: f64,
         ask: f64,
         bus: EventBus,
-        state: Arc<Mutex<HashMap<String, HftSymbolState>>>,
+        state: Arc<DashMap<String, HftSymbolState>>,
         config: AppConfig,
     ) {
         if bid <= 0.0 || ask <= 0.0 || ask < bid {
@@ -250,8 +257,7 @@ impl StrategyEngine {
             return;
         }
 
-        let mut lock = state.lock().unwrap();
-        let entry = lock.entry(symbol.clone()).or_insert_with(|| HftSymbolState {
+        let mut entry = state.entry(symbol.clone()).or_insert_with(|| HftSymbolState {
             quotes_since_eval: 0,
             last_mid: None,
             mids: VecDeque::with_capacity(64),
@@ -286,7 +292,7 @@ impl StrategyEngine {
         let edge_bps = ((mid - past) / past) * 10_000.0;
 
         entry.last_mid = Some(mid);
-        drop(lock);
+        // drop(entry); // DashMap RefMut is dropped here
 
         if edge_bps < config.hft_min_edge_bps {
             if config.chatter_level.to_lowercase() == "verbose" {
@@ -331,8 +337,8 @@ impl StrategyEngine {
         bus: EventBus,
         store: MarketStore,
         llm: LLMQueue,
-        hft_state: Arc<Mutex<HashMap<String, HftSymbolState>>>,
-        gate: Arc<Mutex<HashMap<String, HybridGateState>>>,
+        hft_state: Arc<DashMap<String, HftSymbolState>>,
+        gate: Arc<DashMap<String, HybridGateState>>,
         config: AppConfig,
     ) {
         if bid <= 0.0 || ask <= 0.0 || ask < bid {
@@ -347,8 +353,7 @@ impl StrategyEngine {
         let mut currently_allowed;
 
         {
-            let mut lock = gate.lock().unwrap();
-            let entry = lock.entry(symbol.clone()).or_insert_with(|| HybridGateState {
+            let mut entry = gate.entry(symbol.clone()).or_insert_with(|| HybridGateState {
                 quotes_until_refresh: config.hybrid_gate_refresh_quotes,
                 cooldown_quotes_remaining: 0,
                 allowed: true,
@@ -395,8 +400,7 @@ impl StrategyEngine {
                             || lower.contains("no trade")
                             || (!lower.contains("trade") && !lower.contains("opportunity")));
 
-                        let mut lock = gate.lock().unwrap();
-                        let entry = lock.entry(symbol.clone()).or_default();
+                        let mut entry = gate.entry(symbol.clone()).or_default();
                         entry.allowed = allowed;
                         entry.last_reason = Some(resp.clone());
 
@@ -427,8 +431,7 @@ impl StrategyEngine {
 
         // Re-check gate after potential refresh
         {
-            let lock = gate.lock().unwrap();
-            if let Some(s) = lock.get(&symbol) {
+            if let Some(s) = gate.get(&symbol) {
                 currently_allowed = s.allowed && s.cooldown_quotes_remaining == 0;
             }
         }
@@ -440,14 +443,14 @@ impl StrategyEngine {
         Self::evaluate_hft(symbol, bid, ask, bus, hft_state, config).await;
     }
 
-    fn format_quote_history_table(history: &[Value]) -> String {
+    fn format_quote_history_table(history: &[Quote]) -> String {
         let mut table = String::from("Recent Quote History (Last 50 Quotes):\nTime | Bid | BidSz | Ask | AskSz\n");
         for quote in history {
-            let t = quote.get("t").and_then(|v| v.as_str()).unwrap_or("?");
-            let bp = quote.get("bp").and_then(|v| v.as_f64()).unwrap_or(0.0);
-            let bs = quote.get("bs").and_then(|v| v.as_f64()).unwrap_or(0.0);
-            let ap = quote.get("ap").and_then(|v| v.as_f64()).unwrap_or(0.0);
-            let as_ = quote.get("as").and_then(|v| v.as_f64()).unwrap_or(0.0);
+            let t = &quote.timestamp;
+            let bp = quote.bid_price;
+            let bs = quote.bid_size;
+            let ap = quote.ask_price;
+            let as_ = quote.ask_size;
 
             let time_short = if t.len() > 11 { &t[11..23] } else { t };
             table.push_str(&format!(

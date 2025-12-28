@@ -4,8 +4,7 @@ use tokio::net::TcpStream;
 use tokio_tungstenite::{connect_async, MaybeTlsStream, tungstenite::protocol::Message, WebSocketStream};
 use serde_json::{Value, json};
 use tracing::{info, error, warn};
-use crate::data::store::MarketStore;
-// use tokio::sync::mpsc::Sender; // REMOVED
+use crate::data::store::{MarketStore, Trade, Quote, Bar};
 use crate::bus::EventBus;
 use crate::events::{Event, MarketEvent};
 
@@ -168,17 +167,42 @@ impl WebSocketService {
                          match t {
                              "b" => { // Bar
                                  if let Some(s) = item.get("S").and_then(|v| v.as_str()) {
-                                     store.update_bar(s.to_string(), item.clone());
-                                     let close = item.get("c").and_then(|c| c.as_f64()).unwrap_or(0.0);
+                                     let open = item.get("o").and_then(|v| v.as_f64()).unwrap_or(0.0);
+                                     let high = item.get("h").and_then(|v| v.as_f64()).unwrap_or(0.0);
+                                     let low = item.get("l").and_then(|v| v.as_f64()).unwrap_or(0.0);
+                                     let close = item.get("c").and_then(|v| v.as_f64()).unwrap_or(0.0);
+                                     let volume = item.get("v").and_then(|v| v.as_f64()).unwrap_or(0.0);
+                                     let timestamp = item.get("t").and_then(|t| t.as_str()).unwrap_or("").to_string();
+
+                                     let bar = Bar {
+                                         symbol: s.to_string(),
+                                         open,
+                                         high,
+                                         low,
+                                         close,
+                                         volume,
+                                         timestamp,
+                                     };
+                                     store.update_bar(s.to_string(), bar);
+                                     
                                      info!("📊 Bar: {} Close: ${:.2}", s, close);
                                  }
                              },
                              "t" => { // Trade
                                  if let Some(s) = item.get("S").and_then(|v| v.as_str()) {
-                                     store.update_trade(s.to_string(), item.clone());
                                      let price = item.get("p").and_then(|p| p.as_f64()).unwrap_or(0.0);
                                      let size = item.get("s").and_then(|sz| sz.as_f64()).unwrap_or(0.0);
                                      let timestamp = item.get("t").and_then(|t| t.as_str()).unwrap_or("").to_string();
+                                     let id = item.get("i").and_then(|i| i.as_u64());
+
+                                     let trade = Trade {
+                                         symbol: s.to_string(),
+                                         price,
+                                         size,
+                                         timestamp: timestamp.clone(),
+                                         id,
+                                     };
+                                     store.update_trade(s.to_string(), trade);
                                      
                                      info!("🤝 Trade: {} Price: ${:.8} Size: {:.4}", s, price, size);
                                      
@@ -187,17 +211,27 @@ impl WebSocketService {
                                          price, 
                                          size, 
                                          timestamp, 
-                                         original: item.clone() 
                                      };
                                      event_bus.publish(Event::Market(event)).ok();
                                  }
                              },
                              "q" => { // Quote
                                  if let Some(s) = item.get("S").and_then(|v| v.as_str()) {
-                                     store.update_quote(s.to_string(), item.clone());
                                      let bid = item.get("bp").and_then(|v| v.as_f64()).unwrap_or(0.0);
                                      let ask = item.get("ap").and_then(|v| v.as_f64()).unwrap_or(0.0);
+                                     let bid_size = item.get("bs").and_then(|v| v.as_f64()).unwrap_or(0.0);
+                                     let ask_size = item.get("as").and_then(|v| v.as_f64()).unwrap_or(0.0);
                                      let timestamp = item.get("t").and_then(|t| t.as_str()).unwrap_or("").to_string();
+
+                                     let quote = Quote {
+                                         symbol: s.to_string(),
+                                         bid_price: bid,
+                                         ask_price: ask,
+                                         bid_size,
+                                         ask_size,
+                                         timestamp: timestamp.clone(),
+                                     };
+                                     store.update_quote(s.to_string(), quote);
                                      
                                      info!("📊 Quote: {} Bid: ${:.8} Ask: ${:.8}", s, bid, ask);
                                      
@@ -206,7 +240,6 @@ impl WebSocketService {
                                          bid, 
                                          ask, 
                                          timestamp, 
-                                         original: item.clone() 
                                      };
                                      event_bus.publish(Event::Market(event)).ok();
                                  }

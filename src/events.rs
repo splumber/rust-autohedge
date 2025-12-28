@@ -1,5 +1,3 @@
-use serde_json::Value;
-
 #[derive(Clone, Debug)]
 pub enum MarketEvent {
     Quote {
@@ -7,14 +5,12 @@ pub enum MarketEvent {
         bid: f64,
         ask: f64,
         timestamp: String,
-        original: Value,
     },
     Trade {
         symbol: String,
         price: f64,
         size: f64,
         timestamp: String,
-        original: Value,
     },
     // We can add Bar later if needed
 }
