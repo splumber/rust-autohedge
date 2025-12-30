@@ -77,6 +77,26 @@ impl TradingApi for AlpacaExchange {
         Ok(out)
     }
 
+    async fn get_order(&self, order_id: &str) -> ExchangeResult<OrderAck> {
+        let raw = self.inner.get_order(order_id).await?;
+        let id = raw
+            .get("id")
+            .and_then(|v| v.as_str())
+            .unwrap_or("unknown")
+            .to_string();
+        let status = raw
+            .get("status")
+            .and_then(|v| v.as_str())
+            .unwrap_or("unknown")
+            .to_string();
+        Ok(OrderAck { id, status, raw })
+    }
+
+    async fn cancel_order(&self, order_id: &str) -> ExchangeResult<()> {
+        self.inner.cancel_order(order_id).await?;
+        Ok(())
+    }
+
     async fn submit_order(&self, order: PlaceOrderRequest) -> ExchangeResult<OrderAck> {
         let side = match order.side {
             Side::Buy => "buy",
@@ -96,10 +116,11 @@ impl TradingApi for AlpacaExchange {
         let api_req = AlpacaOrderRequest {
             symbol: order.symbol,
             qty: order.qty.map(|q| q.to_string()),
-            notional: order.notional.map(|n| format!("{:.2}", n)),
+            notional: order.notional.map(|n| n.to_string()),
             side: side.to_string(),
             type_: type_.to_string(),
             time_in_force: time_in_force.to_string(),
+            limit_price: order.limit_price.map(|p| p.to_string()),
         };
 
         let raw: Value = self.inner.submit_order(api_req, &self.trading_mode).await?;
@@ -125,4 +146,3 @@ impl TradingApi for AlpacaExchange {
         }
     }
 }
-

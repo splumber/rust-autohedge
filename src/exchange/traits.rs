@@ -16,6 +16,8 @@ pub trait TradingApi: Send + Sync {
 
     async fn get_account(&self) -> ExchangeResult<AccountSummary>;
     async fn get_positions(&self) -> ExchangeResult<Vec<Position>>;
+    async fn get_order(&self, order_id: &str) -> ExchangeResult<OrderAck>;
+    async fn cancel_order(&self, order_id: &str) -> ExchangeResult<()>;
     async fn submit_order(&self, order: PlaceOrderRequest) -> ExchangeResult<OrderAck>;
 
     /// Optional helper for strategy warmup/backfill.
@@ -28,4 +30,3 @@ pub trait TradingApi: Send + Sync {
 pub trait MarketDataStream: Send + Sync {
     async fn start(&self, store: MarketStore, symbols: Vec<String>, event_bus: EventBus) -> ExchangeResult<()>;
 }
-

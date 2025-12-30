@@ -126,7 +126,40 @@ impl AlpacaClient {
         Ok(data)
     }
 
+    pub async fn get_order(&self, order_id: &str) -> Result<Value, Box<dyn Error + Send + Sync>> {
+        let url = format!("{}/v2/orders/{}", self.base_url, order_id);
+        let resp = self.client.get(&url)
+            .header("APCA-API-KEY-ID", &self.api_key)
+            .header("APCA-API-SECRET-KEY", &self.secret_key)
+            .send()
+            .await?;
 
+        let status = resp.status();
+        let body = resp.text().await?;
+        if !status.is_success() {
+            return Err(format!("Alpaca get_order failed ({}): {}", status, body).into());
+        }
+
+        let order: Value = serde_json::from_str(&body)
+            .map_err(|e| format!("Alpaca get_order decode failed: {} (body: {})", e, body))?;
+        Ok(order)
+    }
+
+    pub async fn cancel_order(&self, order_id: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
+        let url = format!("{}/v2/orders/{}", self.base_url, order_id);
+        let resp = self.client.delete(&url)
+            .header("APCA-API-KEY-ID", &self.api_key)
+            .header("APCA-API-SECRET-KEY", &self.secret_key)
+            .send()
+            .await?;
+
+        let status = resp.status();
+        if !status.is_success() {
+            let body = resp.text().await?;
+            return Err(format!("Alpaca cancel_order failed ({}): {}", status, body).into());
+        }
+        Ok(())
+    }
 }
 
 
@@ -143,6 +176,8 @@ pub struct OrderRequest {
     #[serde(rename = "type")]
     pub type_: String,
     pub time_in_force: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub limit_price: Option<String>,
 }
 
 impl AlpacaClient {

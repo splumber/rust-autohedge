@@ -54,7 +54,16 @@ impl TradingApi for KrakenExchange {
     }
 
     async fn get_positions(&self) -> ExchangeResult<Vec<Position>> {
+        // Placeholder
         Ok(vec![])
+    }
+
+    async fn get_order(&self, _order_id: &str) -> ExchangeResult<OrderAck> {
+        Err("Kraken get_order not implemented".into())
+    }
+
+    async fn cancel_order(&self, _order_id: &str) -> ExchangeResult<()> {
+        Err("Kraken cancel_order not implemented".into())
     }
 
     async fn submit_order(&self, order: PlaceOrderRequest) -> ExchangeResult<OrderAck> {
@@ -79,4 +88,3 @@ impl TradingApi for KrakenExchange {
         Ok(Value::Null)
     }
 }
-

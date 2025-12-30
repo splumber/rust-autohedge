@@ -55,7 +55,16 @@ impl TradingApi for BinanceExchange {
     }
 
     async fn get_positions(&self) -> ExchangeResult<Vec<Position>> {
+        // Placeholder
         Ok(vec![])
+    }
+
+    async fn get_order(&self, _order_id: &str) -> ExchangeResult<OrderAck> {
+        Err("Binance get_order not implemented".into())
+    }
+
+    async fn cancel_order(&self, _order_id: &str) -> ExchangeResult<()> {
+        Err("Binance cancel_order not implemented".into())
     }
 
     async fn submit_order(&self, order: PlaceOrderRequest) -> ExchangeResult<OrderAck> {
@@ -91,4 +100,3 @@ impl TradingApi for BinanceExchange {
         Ok(Value::Null)
     }
 }
-

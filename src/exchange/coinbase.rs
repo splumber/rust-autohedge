@@ -60,8 +60,16 @@ impl TradingApi for CoinbaseExchange {
     }
 
     async fn get_positions(&self) -> ExchangeResult<Vec<Position>> {
-        // Positions are best modeled via balances; keep empty for now.
+        // Placeholder
         Ok(vec![])
+    }
+
+    async fn get_order(&self, _order_id: &str) -> ExchangeResult<OrderAck> {
+        Err("Coinbase get_order not implemented".into())
+    }
+
+    async fn cancel_order(&self, _order_id: &str) -> ExchangeResult<()> {
+        Err("Coinbase cancel_order not implemented".into())
     }
 
     async fn submit_order(&self, order: PlaceOrderRequest) -> ExchangeResult<OrderAck> {
@@ -128,4 +136,3 @@ impl TradingApi for CoinbaseExchange {
         Ok(Value::Null)
     }
 }
-

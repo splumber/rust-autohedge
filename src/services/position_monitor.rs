@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::time::{sleep, Duration};
 use crate::exchange::traits::TradingApi;
+use crate::exchange::types::{PlaceOrderRequest as ExPlaceOrderRequest, Side as ExSide, OrderType as ExOrderType, TimeInForce as ExTimeInForce};
 
 #[derive(Clone, Debug)]
 pub struct PositionInfo {
@@ -17,18 +18,49 @@ pub struct PositionInfo {
     pub entry_time: String,
     pub side: String, // "buy" or "sell"
     pub is_closing: bool, // New field to prevent double-sells
+    pub open_order_id: Option<String>, // For Take Profit Limit Order
+}
+
+#[derive(Clone, Debug)]
+pub struct PendingOrder {
+    pub order_id: String,
+    pub symbol: String,
+    pub side: String,
+    pub limit_price: f64,
+    pub qty: f64,
+    pub created_at: String,
+    pub stop_loss: Option<f64>,
+    pub take_profit: Option<f64>,
 }
 
 #[derive(Clone)]
 pub struct PositionTracker {
     positions: Arc<Mutex<HashMap<String, PositionInfo>>>,
+    pending_orders: Arc<Mutex<HashMap<String, PendingOrder>>>,
 }
 
 impl PositionTracker {
     pub fn new() -> Self {
         Self {
             positions: Arc::new(Mutex::new(HashMap::new())),
+            pending_orders: Arc::new(Mutex::new(HashMap::new())),
         }
+    }
+
+    pub fn add_pending_order(&self, order: PendingOrder) {
+        let mut pending = self.pending_orders.lock().unwrap();
+        info!("📊 [TRACKER] Added pending order: {} {} @ ${:.8}", order.side, order.symbol, order.limit_price);
+        pending.insert(order.order_id.clone(), order);
+    }
+
+    pub fn remove_pending_order(&self, order_id: &str) -> Option<PendingOrder> {
+        let mut pending = self.pending_orders.lock().unwrap();
+        pending.remove(order_id)
+    }
+
+    pub fn get_all_pending_orders(&self) -> Vec<PendingOrder> {
+        let pending = self.pending_orders.lock().unwrap();
+        pending.values().cloned().collect()
     }
 
     pub fn add_position(&self, mut info: PositionInfo) {
@@ -172,9 +204,61 @@ impl PositionMonitor {
                     continue;
                 }
 
+                // Check Pending Orders
+                let pending_orders = tracker.get_all_pending_orders();
+                for order in pending_orders {
+                    if order.symbol == symbol {
+                        if order.side == "buy" {
+                             // Check if filled (Price <= Limit)
+                             if current_price <= order.limit_price {
+                                 Self::check_pending_buy_order(&order, &*exchange, &tracker).await;
+                             }
+                        } else if order.side == "sell" {
+                             // Take Profit Limit Order
+                             // Check if filled (Price >= Limit)
+                             if current_price >= order.limit_price {
+                                 Self::check_pending_sell_order(&order, &*exchange, &tracker).await;
+                             }
+
+                             // Check Stop Loss condition
+                             if let Some(sl) = order.stop_loss {
+                                 if current_price <= sl {
+                                     warn!("[MONITOR] Price dropped to ${:.2} (SL ${:.2}). Cancelling Limit Sell and exiting.", current_price, sl);
+                                     // Cancel Limit Order
+                                     if let Err(e) = exchange.cancel_order(&order.order_id).await {
+                                         error!("Failed to cancel order {}: {}", order.order_id, e);
+                                     }
+                                     tracker.remove_pending_order(&order.order_id);
+
+                                     // Trigger Market Sell (Exit Signal)
+                                     let pos_info = PositionInfo {
+                                         symbol: order.symbol.clone(),
+                                         entry_price: order.limit_price, // Approximate
+                                         qty: order.qty,
+                                         stop_loss: sl,
+                                         take_profit: order.limit_price,
+                                         entry_time: order.created_at.clone(),
+                                         side: "buy".to_string(),
+                                         is_closing: true,
+                                         open_order_id: None,
+                                     };
+                                     Self::generate_exit_signal(&pos_info, "stop_loss_limit_cancel", current_price, &bus).await;
+                                 }
+                             }
+                        }
+                    }
+                }
+
                 if let Some(position) = tracker.get_position(&symbol) {
                     // Skip if already closing
                     if position.is_closing {
+                        continue;
+                    }
+
+                    // If we have an open Limit Sell (TP), we don't need to check TP here,
+                    // but we DO need to check SL (which is handled above if we track it as PendingOrder).
+                    // If we have open_order_id, we assume it's being tracked as PendingOrder.
+                    if position.open_order_id.is_some() {
                         continue;
                     }
 
@@ -233,6 +317,7 @@ impl PositionMonitor {
                             entry_time: chrono::Utc::now().to_rfc3339(),
                             side: "buy".to_string(),
                             is_closing: false,
+                            open_order_id: None,
                         };
 
                         tracker.add_position(info);
@@ -286,6 +371,93 @@ impl PositionMonitor {
             Err(e) => {
                 error!("❌ [MONITOR] Failed to publish exit signal: {}", e);
             }
+        }
+    }
+
+    async fn check_pending_buy_order(order: &PendingOrder, exchange: &dyn TradingApi, tracker: &PositionTracker) {
+        match exchange.get_order(&order.order_id).await {
+            Ok(ack) => {
+                if ack.status.eq_ignore_ascii_case("filled") {
+                    info!("✅ [MONITOR] Pending BUY filled: {} @ ${:.2}", order.symbol, order.limit_price);
+                    tracker.remove_pending_order(&order.order_id);
+
+                    // Create Position
+                    let mut pos_info = PositionInfo {
+                        symbol: order.symbol.clone(),
+                        entry_price: order.limit_price,
+                        qty: order.qty,
+                        stop_loss: order.stop_loss.unwrap_or(order.limit_price * 0.99),
+                        take_profit: order.take_profit.unwrap_or(order.limit_price * 1.01),
+                        entry_time: chrono::Utc::now().to_rfc3339(),
+                        side: "buy".to_string(),
+                        is_closing: false,
+                        open_order_id: None,
+                    };
+
+                    // Submit Limit Sell (TP)
+                    let tp_req = ExPlaceOrderRequest {
+                        symbol: order.symbol.clone(),
+                        side: ExSide::Sell,
+                        order_type: ExOrderType::Limit,
+                        qty: Some(order.qty),
+                        notional: None,
+                        limit_price: Some(pos_info.take_profit),
+                        time_in_force: ExTimeInForce::Gtc, // Crypto usually GTC
+                    };
+
+                    info!("🚀 [MONITOR] Submitting Take Profit Limit Sell for {} @ ${:.2}", order.symbol, pos_info.take_profit);
+                    match exchange.submit_order(tp_req).await {
+                        Ok(res) => {
+                            info!("✅ [MONITOR] TP Limit Sell Placed: {}", res.id);
+                            pos_info.open_order_id = Some(res.id.clone());
+
+                            // Add TP to Pending Orders
+                            let tp_pending = PendingOrder {
+                                order_id: res.id,
+                                symbol: order.symbol.clone(),
+                                side: "sell".to_string(),
+                                limit_price: pos_info.take_profit,
+                                qty: order.qty,
+                                created_at: chrono::Utc::now().to_rfc3339(),
+                                stop_loss: Some(pos_info.stop_loss),
+                                take_profit: None,
+                            };
+                            tracker.add_pending_order(tp_pending);
+                        }
+                        Err(e) => {
+                            error!("❌ [MONITOR] Failed to place TP Limit Sell: {}", e);
+                        }
+                    }
+
+                    tracker.add_position(pos_info);
+                } else if ack.status.eq_ignore_ascii_case("canceled") || ack.status.eq_ignore_ascii_case("expired") {
+                    info!("❌ [MONITOR] Pending BUY canceled/expired: {}", order.symbol);
+                    tracker.remove_pending_order(&order.order_id);
+                }
+            }
+            Err(e) => error!("❌ [MONITOR] Failed to check order status: {}", e),
+        }
+    }
+
+    async fn check_pending_sell_order(order: &PendingOrder, exchange: &dyn TradingApi, tracker: &PositionTracker) {
+        match exchange.get_order(&order.order_id).await {
+            Ok(ack) => {
+                if ack.status.eq_ignore_ascii_case("filled") {
+                    info!("💰 [MONITOR] Take Profit Limit Sell FILLED: {} @ ${:.2}", order.symbol, order.limit_price);
+                    tracker.remove_pending_order(&order.order_id);
+                    tracker.remove_position(&order.symbol);
+                } else if ack.status.eq_ignore_ascii_case("canceled") || ack.status.eq_ignore_ascii_case("expired") {
+                    info!("⚠️ [MONITOR] TP Limit Sell canceled/expired: {}", order.symbol);
+                    tracker.remove_pending_order(&order.order_id);
+                    // Position remains open, but without TP order.
+                    // We should probably clear open_order_id in position.
+                    if let Some(mut pos) = tracker.get_position(&order.symbol) {
+                        pos.open_order_id = None;
+                        tracker.add_position(pos); // Update
+                    }
+                }
+            }
+            Err(e) => error!("❌ [MONITOR] Failed to check sell order status: {}", e),
         }
     }
 }

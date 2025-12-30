@@ -142,6 +142,7 @@ impl ExecutionEngine {
                 side: ExSide::Sell,
                 order_type: ExOrderType::Market,
                 time_in_force,
+                limit_price: None,
             };
 
             info!("[ORDER] Submitting SELL: qty={:.8} symbol={} est_price=${:.8} est_value=${:.2}",
@@ -210,6 +211,25 @@ impl ExecutionEngine {
                         return;
                     }
 
+                    // Balance Check
+                    if order.action == "buy" {
+                        match exchange.get_account().await {
+                            Ok(account) => {
+                                let buying_power = account.buying_power.or(account.cash).unwrap_or(0.0);
+                                // Estimate cost (using ask price would be safer, but we have bid here. Add buffer?)
+                                let cost_estimate = order.qty * estimated_price;
+                                if buying_power < cost_estimate {
+                                     error!("[EXECUTION] Insufficient funds. Required: ${:.2}, Available: ${:.2}", cost_estimate, buying_power);
+                                     return;
+                                }
+                            },
+                            Err(e) => {
+                                 error!("[EXECUTION] Failed to fetch account balance: {}", e);
+                                 return;
+                            }
+                        }
+                    }
+
                     // For stocks, qty-based orders are fine. For crypto, notional orders rely on exchange capabilities.
                     let is_crypto = config.trading_mode.to_lowercase() == "crypto";
 
@@ -231,29 +251,42 @@ impl ExecutionEngine {
                         info!("[RISK] Adjusted qty for max cap => qty={:.8} est_value=${:.2}", order.qty, estimated_value);
                     }
 
-                    info!("[ORDER] Submitting: action={} qty={:.8} symbol={} est_value=${:.2} order_type={}",
-                          order.action, order.qty, req.symbol, estimated_value, order.order_type);
+                    // Force Limit Order for Buy
+                    let mut order_type_enum = if order.order_type.to_lowercase() == "limit" { ExOrderType::Limit } else { ExOrderType::Market };
+                    if order.action == "buy" {
+                        order_type_enum = ExOrderType::Limit;
+                    }
+
+                    info!("[ORDER] Submitting: action={} qty={:.8} symbol={} est_value=${:.2} order_type={:?}",
+                          order.action, order.qty, req.symbol, estimated_value, order_type_enum);
 
                     let time_in_force = if is_crypto { ExTimeInForce::Gtc } else { ExTimeInForce::Day };
 
                     let supports_notional = exchange.capabilities().supports_notional_market_buy;
 
-                    let (qty, notional) = if is_crypto && order.action == "buy" && supports_notional {
+                    // For Limit orders, we usually need Qty, not Notional.
+                    let (qty, notional) = if is_crypto && order.action == "buy" && supports_notional && matches!(order_type_enum, ExOrderType::Market) {
                         (None, Some(estimated_value))
                     } else {
                         (Some(order.qty), None)
                     };
 
                     let side = if order.action == "buy" { ExSide::Buy } else { ExSide::Sell };
-                    let order_type = if order.order_type.to_lowercase() == "limit" { ExOrderType::Limit } else { ExOrderType::Market };
+                    
+                    let limit_price = if matches!(order_type_enum, ExOrderType::Limit) {
+                        Some(estimated_price)
+                    } else {
+                        None
+                    };
 
                     let api_req = ExPlaceOrderRequest {
                         symbol: req.symbol.clone(),
                         side,
-                        order_type,
+                        order_type: order_type_enum,
                         qty,
                         notional,
                         time_in_force,
+                        limit_price,
                     };
 
                     info!("[EXECUTION] Submitting order to exchange {} for {}", exchange.name(), req.symbol);
@@ -266,17 +299,32 @@ impl ExecutionEngine {
                                 let stop_loss = req.stop_loss.unwrap_or(estimated_price * 0.995);
                                 let take_profit = req.take_profit.unwrap_or(estimated_price * 1.01);
 
-                                let position_info = PositionInfo {
-                                    symbol: req.symbol.clone(),
-                                    entry_price: estimated_price,
-                                    qty: order.qty,
-                                    stop_loss,
-                                    take_profit,
-                                    entry_time: chrono::Utc::now().to_rfc3339(),
-                                    side: "buy".to_string(),
-                                    is_closing: false,
-                                };
-                                tracker.add_position(position_info);
+                                if matches!(order_type_enum, ExOrderType::Limit) {
+                                    let pending = crate::services::position_monitor::PendingOrder {
+                                        order_id: res.id.clone(),
+                                        symbol: req.symbol.clone(),
+                                        side: "buy".to_string(),
+                                        limit_price: estimated_price,
+                                        qty: order.qty,
+                                        created_at: chrono::Utc::now().to_rfc3339(),
+                                        stop_loss: Some(stop_loss),
+                                        take_profit: Some(take_profit),
+                                    };
+                                    tracker.add_pending_order(pending);
+                                } else {
+                                    let position_info = PositionInfo {
+                                        symbol: req.symbol.clone(),
+                                        entry_price: estimated_price,
+                                        qty: order.qty,
+                                        stop_loss,
+                                        take_profit,
+                                        entry_time: chrono::Utc::now().to_rfc3339(),
+                                        side: "buy".to_string(),
+                                        is_closing: false,
+                                        open_order_id: None,
+                                    };
+                                    tracker.add_position(position_info);
+                                }
                             }
 
                             let report = ExecutionReport {

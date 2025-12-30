@@ -15,21 +15,21 @@ pub struct Position {
     pub avg_entry_price: Option<f64>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Side {
     Buy,
     Sell,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum OrderType {
     Market,
     Limit,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum TimeInForce {
     Day,
@@ -45,6 +45,7 @@ pub struct PlaceOrderRequest {
     pub qty: Option<f64>,
     /// Notional in quote currency. If qty is set, notional may be None.
     pub notional: Option<f64>,
+    pub limit_price: Option<f64>,
     pub time_in_force: TimeInForce,
 }
 
@@ -80,4 +81,3 @@ pub struct ExchangeCapabilities {
     pub supports_ws_trades: bool,
     pub supports_news: bool,
 }
-
