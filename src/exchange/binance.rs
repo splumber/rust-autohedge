@@ -3,7 +3,6 @@
 use async_trait::async_trait;
 use reqwest::Client;
 use serde_json::Value;
-use std::env;
 
 use super::{
     traits::{ExchangeResult, TradingApi},
@@ -12,6 +11,8 @@ use super::{
         Side, TimeInForce,
     },
 };
+
+use crate::config::BinanceConfig;
 
 #[derive(Clone)]
 pub struct BinanceExchange {
@@ -22,11 +23,13 @@ pub struct BinanceExchange {
 }
 
 impl BinanceExchange {
-    pub fn new() -> Self {
-        let base_url = env::var("BINANCE_API_BASE_URL").unwrap_or_else(|_| "https://api.binance.com".to_string());
-        let api_key = env::var("BINANCE_API_KEY").unwrap_or_default();
-        let api_secret = env::var("BINANCE_API_SECRET").unwrap_or_default();
-        Self { client: Client::new(), base_url, api_key, api_secret }
+    pub fn new(config: BinanceConfig) -> Self {
+        Self {
+            client: Client::new(),
+            base_url: config.base_url,
+            api_key: config.api_key,
+            api_secret: config.secret_key
+        }
     }
 
     fn auth_headers(&self, req: reqwest::RequestBuilder) -> reqwest::RequestBuilder {

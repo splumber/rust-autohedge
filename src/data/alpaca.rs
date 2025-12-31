@@ -1,4 +1,3 @@
-use std::env;
 use std::error::Error;
 use reqwest::Client;
 use serde::Deserialize;
@@ -6,7 +5,7 @@ use serde_json::Value;
 
 use crate::data::store::MarketStore;
 // use tracing::{info, error}; // Keep for other logs if needed, but ws logs are gone.
-
+use crate::config::AlpacaConfig;
 
 #[derive(Clone)]
 pub struct AlpacaClient {
@@ -24,12 +23,13 @@ pub struct Account {
     pub portfolio_value: String,
 }
 
+
 impl AlpacaClient {
-    pub fn new(history_limit: usize) -> Self {
-        let api_key = env::var("APCA_API_KEY_ID").expect("CRITICAL: APCA_API_KEY_ID not set");
-        let secret_key = env::var("APCA_API_SECRET_KEY").expect("CRITICAL: APCA_API_SECRET_KEY not set");
-        let base_url = env::var("APCA_API_BASE_URL").unwrap_or_else(|_| "https://paper-api.alpaca.markets".to_string());
-        
+    pub fn new(config: AlpacaConfig, history_limit: usize) -> Self {
+        let api_key = config.api_key;
+        let secret_key = config.secret_key;
+        let base_url = config.base_url;
+
         println!("Alpaca Client config: Base URL = {}", base_url); 
 
         Self {

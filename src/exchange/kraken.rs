@@ -1,13 +1,14 @@
 use async_trait::async_trait;
 use reqwest::Client;
 use serde_json::Value;
-use std::env;
 
 use super::{
     symbols::to_kraken_pair,
     traits::{ExchangeResult, TradingApi},
     types::{AccountSummary, ExchangeCapabilities, OrderAck, PlaceOrderRequest, Position},
 };
+
+use crate::config::KrakenConfig;
 
 /// Kraken Spot adapter.
 ///
@@ -22,11 +23,13 @@ pub struct KrakenExchange {
 }
 
 impl KrakenExchange {
-    pub fn new() -> Self {
-        let base_url = env::var("KRAKEN_API_BASE_URL").unwrap_or_else(|_| "https://api.kraken.com".to_string());
-        let api_key = env::var("KRAKEN_API_KEY").unwrap_or_default();
-        let api_secret = env::var("KRAKEN_API_SECRET").unwrap_or_default();
-        Self { client: Client::new(), base_url, api_key, api_secret }
+    pub fn new(config: KrakenConfig) -> Self {
+        Self {
+            client: Client::new(),
+            base_url: config.base_url,
+            api_key: config.api_key,
+            api_secret: config.secret_key
+        }
     }
 
     fn auth_headers(&self, req: reqwest::RequestBuilder) -> reqwest::RequestBuilder {

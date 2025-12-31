@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use reqwest::Client;
 use serde_json::{json, Value};
-use std::env;
 
 use super::{
     symbols::to_coinbase_product_id,
@@ -11,6 +10,8 @@ use super::{
         TimeInForce,
     },
 };
+
+use crate::config::CoinbaseConfig;
 
 /// Coinbase Advanced Trade adapter.
 ///
@@ -25,11 +26,13 @@ pub struct CoinbaseExchange {
 }
 
 impl CoinbaseExchange {
-    pub fn new() -> Self {
-        let base_url = env::var("COINBASE_API_BASE_URL").unwrap_or_else(|_| "https://api.coinbase.com".to_string());
-        let api_key = env::var("COINBASE_API_KEY").unwrap_or_default();
-        let api_secret = env::var("COINBASE_API_SECRET").unwrap_or_default();
-        Self { client: Client::new(), base_url, api_key, api_secret }
+    pub fn new(config: CoinbaseConfig) -> Self {
+        Self {
+            client: Client::new(),
+            base_url: config.base_url,
+            api_key: config.api_key,
+            api_secret: config.secret_key
+        }
     }
 
     fn auth_headers(&self, req: reqwest::RequestBuilder) -> reqwest::RequestBuilder {

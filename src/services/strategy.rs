@@ -249,10 +249,10 @@ impl StrategyEngine {
 
         let mid = (bid + ask) / 2.0;
         let spread_bps = ((ask - bid) / mid) * 10_000.0;
-        if spread_bps > config.hft_max_spread_bps {
+        if spread_bps > config.hft.max_spread_bps {
             if config.chatter_level.to_lowercase() == "verbose" {
                 info!("[HFT] Skip {}: spread_bps={:.2} > max_spread_bps={:.2} (bid={:.8} ask={:.8})",
-                      symbol, spread_bps, config.hft_max_spread_bps, bid, ask);
+                      symbol, spread_bps, config.hft.max_spread_bps, bid, ask);
             }
             return;
         }
@@ -269,10 +269,10 @@ impl StrategyEngine {
             entry.mids.pop_front();
         }
 
-        if entry.quotes_since_eval < config.hft_evaluate_every_quotes {
+        if entry.quotes_since_eval < config.hft.evaluate_every_quotes {
             if config.chatter_level.to_lowercase() == "verbose" {
                 info!("[HFT] Debounce {}: {}/{} quotes collected (mid={:.8})",
-                      symbol, entry.quotes_since_eval, config.hft_evaluate_every_quotes, mid);
+                      symbol, entry.quotes_since_eval, config.hft.evaluate_every_quotes, mid);
             }
             entry.last_mid = Some(mid);
             return;
@@ -294,24 +294,24 @@ impl StrategyEngine {
         entry.last_mid = Some(mid);
         // drop(entry); // DashMap RefMut is dropped here
 
-        if edge_bps < config.hft_min_edge_bps {
+        if edge_bps < config.hft.min_edge_bps {
             if config.chatter_level.to_lowercase() == "verbose" {
                 info!("[HFT] Skip {}: edge_bps={:.2} < min_edge_bps={:.2} (mid={:.8} past={:.8})",
-                      symbol, edge_bps, config.hft_min_edge_bps, mid, past);
+                      symbol, edge_bps, config.hft.min_edge_bps, mid, past);
             }
             return;
         }
 
         // If momentum is positive and spread is acceptable, emit a buy signal.
-        let tp = mid * (1.0 + config.hft_take_profit_bps / 10_000.0);
-        let sl = mid * (1.0 - config.hft_stop_loss_bps / 10_000.0);
+        let tp = mid * (1.0 + config.hft.take_profit_bps / 10_000.0);
+        let sl = mid * (1.0 - config.hft.stop_loss_bps / 10_000.0);
 
         // This is the key "when HFT will buy" log.
         // - In normal: only log on entry.
         // - In verbose: include more details.
         if config.chatter_level.to_lowercase() != "low" {
             info!("[HFT] BUY trigger {}: edge_bps={:.2} >= min_edge_bps={:.2}, spread_bps={:.2} <= max_spread_bps={:.2} | entry(mid)={:.8} tp={:.8} sl={:.8}",
-                  symbol, edge_bps, config.hft_min_edge_bps, spread_bps, config.hft_max_spread_bps, mid, tp, sl);
+                  symbol, edge_bps, config.hft.min_edge_bps, spread_bps, config.hft.max_spread_bps, mid, tp, sl);
         }
 
         let thesis = format!(
@@ -354,7 +354,7 @@ impl StrategyEngine {
 
         {
             let mut entry = gate.entry(symbol.clone()).or_insert_with(|| HybridGateState {
-                quotes_until_refresh: config.hybrid_gate_refresh_quotes,
+                quotes_until_refresh: config.hybrid.gate_refresh_quotes,
                 cooldown_quotes_remaining: 0,
                 allowed: true,
                 last_reason: None,
@@ -371,7 +371,7 @@ impl StrategyEngine {
 
             if entry.quotes_until_refresh == 0 && entry.cooldown_quotes_remaining == 0 {
                 should_refresh = true;
-                entry.quotes_until_refresh = config.hybrid_gate_refresh_quotes;
+                entry.quotes_until_refresh = config.hybrid.gate_refresh_quotes;
             }
 
             currently_allowed = entry.allowed && entry.cooldown_quotes_remaining == 0;
@@ -405,8 +405,8 @@ impl StrategyEngine {
                         entry.last_reason = Some(resp.clone());
 
                         if !allowed {
-                            entry.cooldown_quotes_remaining = config.hybrid_no_trade_cooldown_quotes;
-                            warn!("[HYBRID] Gate CLOSED for {} by director. Cooldown {} quotes.", symbol, config.hybrid_no_trade_cooldown_quotes);
+                            entry.cooldown_quotes_remaining = config.hybrid.no_trade_cooldown_quotes;
+                            warn!("[HYBRID] Gate CLOSED for {} by director. Cooldown {} quotes.", symbol, config.hybrid.no_trade_cooldown_quotes);
                             if config.chatter_level.to_lowercase() == "verbose" {
                                 warn!("[HYBRID] Director response (no_trade) for {}: {}", symbol, resp);
                             }

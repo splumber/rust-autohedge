@@ -148,12 +148,13 @@ impl PositionMonitor {
         let exchange = self.exchange.clone();
         let tracker = self.tracker.clone();
         let interval = self.check_interval_secs;
+        let config = self.config.clone();
 
         tokio::spawn(async move {
             info!("👁️  Position Monitor Started (polling every {}s)", interval);
 
             // Initial sync with exchange positions
-            Self::sync_positions(&*exchange, &tracker).await;
+            Self::sync_positions(&*exchange, &tracker, &config).await;
 
             loop {
                 sleep(Duration::from_secs(interval)).await;
@@ -191,7 +192,7 @@ impl PositionMonitor {
             info!("👁️  Position Monitor Started (quote-driven exits) | chatter={}", config.chatter_level);
 
             // Initial sync with exchange positions
-            Self::sync_positions(&*exchange, &tracker).await;
+            Self::sync_positions(&*exchange, &tracker, &config).await;
 
             while let Ok(event) = rx.recv().await {
                 let (symbol, current_price) = match event {
@@ -211,7 +212,7 @@ impl PositionMonitor {
                         if order.side == "buy" {
                              // Check if filled (Price <= Limit)
                              if current_price <= order.limit_price {
-                                 Self::check_pending_buy_order(&order, &*exchange, &tracker).await;
+                                 Self::check_pending_buy_order(&order, &*exchange, &tracker, &config).await;
                              }
                         } else if order.side == "sell" {
                              // Take Profit Limit Order
@@ -290,7 +291,7 @@ impl PositionMonitor {
         });
     }
 
-    async fn sync_positions(exchange: &dyn TradingApi, tracker: &PositionTracker) {
+    async fn sync_positions(exchange: &dyn TradingApi, tracker: &PositionTracker, config: &AppConfig) {
         info!("🔄 [MONITOR] Syncing positions with exchange {}...", exchange.name());
 
         match exchange.get_positions().await {
@@ -305,8 +306,9 @@ impl PositionMonitor {
                     let qty = pos.qty;
 
                     if avg_entry > 0.0 {
-                        let stop_loss = avg_entry * 0.95;
-                        let take_profit = avg_entry * 1.10;
+                        let (tp_pct, sl_pct) = config.get_symbol_params(&symbol);
+                        let stop_loss = avg_entry * (1.0 - sl_pct / 100.0);
+                        let take_profit = avg_entry * (1.0 + tp_pct / 100.0);
 
                         let info = PositionInfo {
                             symbol: symbol.clone(),
@@ -321,7 +323,7 @@ impl PositionMonitor {
                         };
 
                         tracker.add_position(info);
-                        warn!("⚠️  [MONITOR] Added existing position {} (defaults: SL -5%, TP +10%)", symbol);
+                        warn!("⚠️  [MONITOR] Added existing position {} (defaults: SL -{:.2}%, TP +{:.2}%)", symbol, sl_pct, tp_pct);
                     }
                 }
                 info!("✅ [MONITOR] Position sync complete");
@@ -374,20 +376,24 @@ impl PositionMonitor {
         }
     }
 
-    async fn check_pending_buy_order(order: &PendingOrder, exchange: &dyn TradingApi, tracker: &PositionTracker) {
+    async fn check_pending_buy_order(order: &PendingOrder, exchange: &dyn TradingApi, tracker: &PositionTracker, config: &AppConfig) {
         match exchange.get_order(&order.order_id).await {
             Ok(ack) => {
                 if ack.status.eq_ignore_ascii_case("filled") {
                     info!("✅ [MONITOR] Pending BUY filled: {} @ ${:.2}", order.symbol, order.limit_price);
                     tracker.remove_pending_order(&order.order_id);
 
+                    let (tp_pct, sl_pct) = config.get_symbol_params(&order.symbol);
+                    let default_sl = order.limit_price * (1.0 - sl_pct / 100.0);
+                    let default_tp = order.limit_price * (1.0 + tp_pct / 100.0);
+
                     // Create Position
                     let mut pos_info = PositionInfo {
                         symbol: order.symbol.clone(),
                         entry_price: order.limit_price,
                         qty: order.qty,
-                        stop_loss: order.stop_loss.unwrap_or(order.limit_price * 0.99),
-                        take_profit: order.take_profit.unwrap_or(order.limit_price * 1.01),
+                        stop_loss: order.stop_loss.unwrap_or(default_sl),
+                        take_profit: order.take_profit.unwrap_or(default_tp),
                         entry_time: chrono::Utc::now().to_rfc3339(),
                         side: "buy".to_string(),
                         is_closing: false,

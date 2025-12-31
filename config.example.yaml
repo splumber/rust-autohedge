@@ -1,0 +1,64 @@
+﻿trading_mode: "crypto"
+exchange: "alpaca"
+symbols:
+  - "BTC/USD"
+  - "ETH/USD"
+  - "SOL/USD"
+
+defaults:
+  take_profit_pct: 1.0
+  stop_loss_pct: 0.5
+  min_order_amount: 10.0
+  max_order_amount: 100.0
+
+symbol_overrides:
+  "BTC/USD":
+    take_profit_pct: 2.0
+    stop_loss_pct: 1.0
+
+history_limit: 50
+warmup_count: 50
+llm_queue_size: 100
+llm_max_concurrent: 3
+no_trade_cooldown_quotes: 10
+strategy_mode: "llm"
+chatter_level: "normal"
+
+hft:
+  evaluate_every_quotes: 5
+  min_edge_bps: 15.0
+  take_profit_bps: 100.0
+  stop_loss_bps: 50.0
+  max_spread_bps: 50.0
+
+hybrid:
+  gate_refresh_quotes: 50
+  no_trade_cooldown_quotes: 10
+
+exit_on_quotes: true
+
+llm:
+  api_key: "sk-..."
+  base_url: "https://api.openai.com/v1"
+  model: "gpt-4-turbo-preview"
+
+alpaca:
+  api_key: "your-alpaca-key"
+  secret_key: "your-alpaca-secret"
+  base_url: "https://paper-api.alpaca.markets"
+
+# binance:
+#   api_key: "your-binance-key"
+#   secret_key: "your-binance-secret"
+#   base_url: "https://api.binance.com"
+
+# coinbase:
+#   api_key: "your-coinbase-key"
+#   secret_key: "your-coinbase-secret"
+#   base_url: "https://api.coinbase.com"
+
+# kraken:
+#   api_key: "your-kraken-key"
+#   secret_key: "your-kraken-secret"
+#   base_url: "https://api.kraken.com"
+

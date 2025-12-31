@@ -14,25 +14,28 @@ use super::{
 };
 
 pub fn build_exchange(config: &AppConfig) -> (Arc<dyn TradingApi>, Option<crate::data::store::MarketStore>) {
-    let exchange = std::env::var("EXCHANGE").unwrap_or_else(|_| "alpaca".to_string());
+    let exchange = &config.exchange;
 
     match exchange.to_lowercase().as_str() {
         "alpaca" => {
-            let alpaca_client = AlpacaClient::new(config.history_limit);
+            let alpaca_client = AlpacaClient::new(config.alpaca.clone(), config.history_limit);
             let alpaca = AlpacaExchange::new(alpaca_client.clone(), config.trading_mode.clone());
             let store = Some(alpaca.market_store());
             (Arc::new(alpaca), store)
         }
         "binance" => {
-            let ex = BinanceExchange::new();
+            let config = config.binance.clone().expect("Binance config missing");
+            let ex = BinanceExchange::new(config);
             (Arc::new(ex), None)
         }
         "coinbase" => {
-            let ex = CoinbaseExchange::new();
+            let config = config.coinbase.clone().expect("Coinbase config missing");
+            let ex = CoinbaseExchange::new(config);
             (Arc::new(ex), None)
         }
         "kraken" => {
-            let ex = KrakenExchange::new();
+            let config = config.kraken.clone().expect("Kraken config missing");
+            let ex = KrakenExchange::new(config);
             (Arc::new(ex), None)
         }
         other => {

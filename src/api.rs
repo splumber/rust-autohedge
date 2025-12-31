@@ -96,8 +96,8 @@ async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse 
         // Start Streaming (provider-specific WS)
         let ws_provider = match exchange.name() {
             "alpaca" => {
-                let api_key = std::env::var("APCA_API_KEY_ID").unwrap_or_default();
-                let secret = std::env::var("APCA_API_SECRET_KEY").unwrap_or_default();
+                let api_key = config.alpaca.api_key.clone();
+                let secret = config.alpaca.secret_key.clone();
                 GenericWsStream::alpaca(api_key, secret, is_crypto)
             }
             "binance" => GenericWsStream::binance(),

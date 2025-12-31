@@ -58,7 +58,7 @@ impl ExecutionEngine {
 
         tokio::spawn(async move {
             info!("⚡ Execution Engine Started");
-            info!("[EXECUTION] Exchange: {} | Mode: {} | MinOrder=${:.2} MaxOrder=${:.2}", exchange_clone.name(), config_clone.trading_mode, config_clone.min_order_amount, config_clone.max_order_amount);
+            info!("[EXECUTION] Exchange: {} | Mode: {} | MinOrder=${:.2} MaxOrder=${:.2}", exchange_clone.name(), config_clone.trading_mode, config_clone.defaults.min_order_amount, config_clone.defaults.max_order_amount);
             while let Ok(event) = rx.recv().await {
                 if let Event::Order(req) = event {
                     info!("[EXECUTION] Received OrderRequest: symbol={} action={} order_type={} limit_price={:?} sl={:?} tp={:?}",
@@ -237,16 +237,16 @@ impl ExecutionEngine {
                     let mut estimated_value = order.qty * estimated_price;
                     info!("[EXECUTION] Initial sizing for {} => qty={:.8} est_value=${:.2}", req.symbol, order.qty, estimated_value);
 
-                    if estimated_value < config.min_order_amount {
-                        info!("[RISK] Order value ${:.2} is below minimum ${:.2}. Adjusting.", estimated_value, config.min_order_amount);
-                        estimated_value = config.min_order_amount;
+                    if estimated_value < config.defaults.min_order_amount {
+                        info!("[RISK] Order value ${:.2} is below minimum ${:.2}. Adjusting.", estimated_value, config.defaults.min_order_amount);
+                        estimated_value = config.defaults.min_order_amount;
                         order.qty = estimated_value / estimated_price;
                         info!("[RISK] Adjusted qty for min order => qty={:.8} est_value=${:.2}", order.qty, estimated_value);
                     }
 
-                    if estimated_value > config.max_order_amount {
-                        info!("[RISK] Order value ${:.2} exceeds limit ${:.2}. Capping.", estimated_value, config.max_order_amount);
-                        estimated_value = config.max_order_amount;
+                    if estimated_value > config.defaults.max_order_amount {
+                        info!("[RISK] Order value ${:.2} exceeds limit ${:.2}. Capping.", estimated_value, config.defaults.max_order_amount);
+                        estimated_value = config.defaults.max_order_amount;
                         order.qty = estimated_value / estimated_price;
                         info!("[RISK] Adjusted qty for max cap => qty={:.8} est_value=${:.2}", order.qty, estimated_value);
                     }
@@ -272,7 +272,7 @@ impl ExecutionEngine {
                     };
 
                     let side = if order.action == "buy" { ExSide::Buy } else { ExSide::Sell };
-                    
+
                     let limit_price = if matches!(order_type_enum, ExOrderType::Limit) {
                         Some(estimated_price)
                     } else {
@@ -296,8 +296,9 @@ impl ExecutionEngine {
                             info!("[SUCCESS] Order Placed: id={} status={}", res.id, res.status);
 
                             if order.action == "buy" {
-                                let stop_loss = req.stop_loss.unwrap_or(estimated_price * 0.995);
-                                let take_profit = req.take_profit.unwrap_or(estimated_price * 1.01);
+                                let (tp_pct, sl_pct) = config.get_symbol_params(&req.symbol);
+                                let stop_loss = req.stop_loss.unwrap_or(estimated_price * (1.0 - sl_pct / 100.0));
+                                let take_profit = req.take_profit.unwrap_or(estimated_price * (1.0 + tp_pct / 100.0));
 
                                 if matches!(order_type_enum, ExOrderType::Limit) {
                                     let pending = crate::services::position_monitor::PendingOrder {

@@ -11,9 +11,8 @@ mod exchange;
 
 use config::AppConfig;
 use llm::{LLMClient, LLMQueue};
-use std::env;
 use std::sync::{Arc, Mutex};
-use tracing::{info, error};
+use tracing::info;
 use api::{run_server, AppState};
 
 
@@ -28,35 +27,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
     info!("Starting AutoHedge Rust...");
 
-    // Load .env
-    match dotenvy::dotenv() {
-        Ok(path) => info!("Loaded .env file from: {:?}", path),
-        Err(e) => info!("Could not load .env file: {} (Using system env vars or defaults)", e),
-    }
-
-    // Verify critical env vars
-    let critical_vars = ["OPENAI_API_KEY"];
-    for var in critical_vars {
-        if env::var(var).is_err() {
-            error!("CRITICAL: Environment variable {} is NOT set.", var);
-        } else {
-            info!("Environment variable {} is present.", var);
-        }
-    }
-
     // Load Configuration
-    let config = AppConfig::from_env();
+    let config = AppConfig::load();
     info!("Loaded Configuration: {:?}", config);
 
     // Initialize Clients
     info!("Initializing AI Clients...");
-    let api_key = env::var("OPENAI_API_KEY").unwrap_or_default();
-    let base_url = env::var("OPENAI_BASE_URL").ok();
+    let api_key = config.llm.api_key.clone().unwrap_or_default();
+    let base_url = config.llm.base_url.clone();
     if let Some(url) = &base_url {
         info!("Using Custom OpenAI Base URL: {}", url);
     }
     
-    let model = env::var("LLM_MODEL").unwrap_or_else(|_| "gpt-4-turbo-preview".to_string());
+    let model = config.llm.model.clone();
     info!("Using LLM Model: {}", model);
     
     let llm_client = LLMClient::new(api_key, base_url, model);
