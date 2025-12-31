@@ -31,6 +31,7 @@ pub struct PendingOrder {
     pub created_at: String,
     pub stop_loss: Option<f64>,
     pub take_profit: Option<f64>,
+    pub last_check_time: Option<std::time::Instant>,
 }
 
 #[derive(Clone)]
@@ -47,10 +48,18 @@ impl PositionTracker {
         }
     }
 
-    pub fn add_pending_order(&self, order: PendingOrder) {
+    pub fn add_pending_order(&self, mut order: PendingOrder) {
         let mut pending = self.pending_orders.lock().unwrap();
+        order.last_check_time = Some(std::time::Instant::now());
         info!("📊 [TRACKER] Added pending order: {} {} @ ${:.8}", order.side, order.symbol, order.limit_price);
         pending.insert(order.order_id.clone(), order);
+    }
+
+    pub fn update_pending_order_check_time(&self, order_id: &str) {
+        let mut pending = self.pending_orders.lock().unwrap();
+        if let Some(order) = pending.get_mut(order_id) {
+            order.last_check_time = Some(std::time::Instant::now());
+        }
     }
 
     pub fn remove_pending_order(&self, order_id: &str) -> Option<PendingOrder> {
@@ -209,15 +218,24 @@ impl PositionMonitor {
                 let pending_orders = tracker.get_all_pending_orders();
                 for order in pending_orders {
                     if order.symbol == symbol {
+                        // Rate limit checks: only check every 2 seconds per order
+                        if let Some(last_check) = order.last_check_time {
+                            if last_check.elapsed() < Duration::from_secs(2) {
+                                continue;
+                            }
+                        }
+
                         if order.side == "buy" {
                              // Check if filled (Price <= Limit)
                              if current_price <= order.limit_price {
+                                 tracker.update_pending_order_check_time(&order.order_id);
                                  Self::check_pending_buy_order(&order, &*exchange, &tracker, &config).await;
                              }
                         } else if order.side == "sell" {
                              // Take Profit Limit Order
                              // Check if filled (Price >= Limit)
                              if current_price >= order.limit_price {
+                                 tracker.update_pending_order_check_time(&order.order_id);
                                  Self::check_pending_sell_order(&order, &*exchange, &tracker).await;
                              }
 
@@ -427,6 +445,7 @@ impl PositionMonitor {
                                 created_at: chrono::Utc::now().to_rfc3339(),
                                 stop_loss: Some(pos_info.stop_loss),
                                 take_profit: None,
+                                last_check_time: None,
                             };
                             tracker.add_pending_order(tp_pending);
                         }

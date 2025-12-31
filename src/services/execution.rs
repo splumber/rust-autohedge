@@ -310,6 +310,7 @@ impl ExecutionEngine {
                                         created_at: chrono::Utc::now().to_rfc3339(),
                                         stop_loss: Some(stop_loss),
                                         take_profit: Some(take_profit),
+                                        last_check_time: None,
                                     };
                                     tracker.add_pending_order(pending);
                                 } else {
