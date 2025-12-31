@@ -1,4 +1,3 @@
-use std::env;
 use futures_util::{stream::SplitSink, StreamExt, SinkExt};
 use tokio::net::TcpStream;
 use tokio_tungstenite::{connect_async, MaybeTlsStream, tungstenite::protocol::Message, WebSocketStream};
@@ -7,6 +6,7 @@ use tracing::{info, error, warn};
 use crate::data::store::{MarketStore, Trade, Quote, Bar};
 use crate::bus::EventBus;
 use crate::events::{Event, MarketEvent};
+use crate::config::AlpacaConfig;
 
 pub struct WebSocketService {
     api_key: String,
@@ -18,12 +18,12 @@ pub struct WebSocketService {
 }
 
 impl WebSocketService {
-    pub fn new(market_store: MarketStore, symbols: Vec<String>, is_crypto: bool, event_bus: EventBus) -> Self {
-        let api_key = env::var("APCA_API_KEY_ID").expect("APCA_API_KEY_ID not set");
-        let secret_key = env::var("APCA_API_SECRET_KEY").expect("APCA_API_SECRET_KEY not set");
+    pub fn new(config: AlpacaConfig, market_store: MarketStore, symbols: Vec<String>, is_crypto: bool, event_bus: EventBus) -> Self {
+        let api_key = config.api_key;
+        let secret_key = config.secret_key;
 
         if api_key.contains("your-alpaca-key") || secret_key.contains("your-alpaca-secret") {
-            error!("CRITICAL: Alpaca keys are still placeholders. Set APCA_API_KEY_ID and APCA_API_SECRET_KEY in .env.");
+            error!("CRITICAL: Alpaca keys are still placeholders. Set keys in config.yaml.");
         }
 
         Self {

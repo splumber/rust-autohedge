@@ -100,9 +100,30 @@ async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse 
                 let secret = config.alpaca.secret_key.clone();
                 GenericWsStream::alpaca(api_key, secret, is_crypto)
             }
-            "binance" => GenericWsStream::binance(),
-            "coinbase" => GenericWsStream::coinbase(),
-            "kraken" => GenericWsStream::kraken(),
+            "binance" => {
+                let (key, secret) = if let Some(c) = &config.binance {
+                    (Some(c.api_key.clone()), Some(c.secret_key.clone()))
+                } else {
+                    (None, None)
+                };
+                GenericWsStream::binance(key, secret)
+            },
+            "coinbase" => {
+                let (key, secret) = if let Some(c) = &config.coinbase {
+                    (Some(c.api_key.clone()), Some(c.secret_key.clone()))
+                } else {
+                    (None, None)
+                };
+                GenericWsStream::coinbase(key, secret)
+            },
+            "kraken" => {
+                let (key, secret) = if let Some(c) = &config.kraken {
+                    (Some(c.api_key.clone()), Some(c.secret_key.clone()))
+                } else {
+                    (None, None)
+                };
+                GenericWsStream::kraken(key, secret)
+            },
             _ => GenericWsStream { provider: WsProvider::AlpacaCrypto, api_key: None, api_secret: None },
         };
 

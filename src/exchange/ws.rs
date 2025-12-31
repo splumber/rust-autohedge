@@ -38,16 +38,16 @@ impl GenericWsStream {
         }
     }
 
-    pub fn binance() -> Self {
-        Self { provider: WsProvider::Binance, api_key: None, api_secret: None }
+    pub fn binance(api_key: Option<String>, api_secret: Option<String>) -> Self {
+        Self { provider: WsProvider::Binance, api_key, api_secret }
     }
 
-    pub fn coinbase() -> Self {
-        Self { provider: WsProvider::Coinbase, api_key: None, api_secret: None }
+    pub fn coinbase(api_key: Option<String>, api_secret: Option<String>) -> Self {
+        Self { provider: WsProvider::Coinbase, api_key, api_secret }
     }
 
-    pub fn kraken() -> Self {
-        Self { provider: WsProvider::Kraken, api_key: None, api_secret: None }
+    pub fn kraken(api_key: Option<String>, api_secret: Option<String>) -> Self {
+        Self { provider: WsProvider::Kraken, api_key, api_secret }
     }
 
     fn ws_url(&self) -> &'static str {
