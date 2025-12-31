@@ -218,6 +218,22 @@ impl PositionMonitor {
                 let pending_orders = tracker.get_all_pending_orders();
                 for order in pending_orders {
                     if order.symbol == symbol {
+                        // Check for expiration
+                        if let Some(days) = config.defaults.limit_order_expiration_days {
+                            if let Ok(created_at) = chrono::DateTime::parse_from_rfc3339(&order.created_at) {
+                                let now = chrono::Utc::now();
+                                let age = now.signed_duration_since(created_at);
+                                if age.num_days() >= days as i64 {
+                                    warn!("[MONITOR] Order {} expired (age: {} days). Cancelling.", order.order_id, age.num_days());
+                                    if let Err(e) = exchange.cancel_order(&order.order_id).await {
+                                        error!("Failed to cancel expired order {}: {}", order.order_id, e);
+                                    }
+                                    tracker.remove_pending_order(&order.order_id);
+                                    continue;
+                                }
+                            }
+                        }
+
                         // Rate limit checks: only check every 2 seconds per order
                         if let Some(last_check) = order.last_check_time {
                             if last_check.elapsed() < Duration::from_secs(2) {

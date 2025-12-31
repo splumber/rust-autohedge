@@ -8,6 +8,7 @@ pub struct Defaults {
     pub stop_loss_pct: f64,
     pub min_order_amount: f64,
     pub max_order_amount: f64,
+    pub limit_order_expiration_days: Option<u64>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
