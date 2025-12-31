@@ -75,6 +75,10 @@ impl TradingApi for CoinbaseExchange {
         Err("Coinbase cancel_order not implemented".into())
     }
 
+    async fn cancel_all_orders(&self) -> ExchangeResult<()> {
+        Err("Coinbase cancel_all_orders not implemented".into())
+    }
+
     async fn submit_order(&self, order: PlaceOrderRequest) -> ExchangeResult<OrderAck> {
         let endpoint = format!("{}/api/v3/brokerage/orders", self.base_url);
 

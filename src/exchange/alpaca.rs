@@ -97,6 +97,11 @@ impl TradingApi for AlpacaExchange {
         Ok(())
     }
 
+    async fn cancel_all_orders(&self) -> ExchangeResult<()> {
+        self.inner.cancel_all_orders().await?;
+        Ok(())
+    }
+
     async fn submit_order(&self, order: PlaceOrderRequest) -> ExchangeResult<OrderAck> {
         let side = match order.side {
             Side::Buy => "buy",

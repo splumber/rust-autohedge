@@ -18,6 +18,7 @@ pub trait TradingApi: Send + Sync {
     async fn get_positions(&self) -> ExchangeResult<Vec<Position>>;
     async fn get_order(&self, order_id: &str) -> ExchangeResult<OrderAck>;
     async fn cancel_order(&self, order_id: &str) -> ExchangeResult<()>;
+    async fn cancel_all_orders(&self) -> ExchangeResult<()>;
     async fn submit_order(&self, order: PlaceOrderRequest) -> ExchangeResult<OrderAck>;
 
     /// Optional helper for strategy warmup/backfill.

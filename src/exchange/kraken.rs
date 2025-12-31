@@ -69,6 +69,10 @@ impl TradingApi for KrakenExchange {
         Err("Kraken cancel_order not implemented".into())
     }
 
+    async fn cancel_all_orders(&self) -> ExchangeResult<()> {
+        Err("Kraken cancel_all_orders not implemented".into())
+    }
+
     async fn submit_order(&self, order: PlaceOrderRequest) -> ExchangeResult<OrderAck> {
         // Kraken private endpoint: /0/private/AddOrder. Requires nonce + signature.
         // We keep a stub request that returns an error if not configured.

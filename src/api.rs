@@ -31,6 +31,7 @@ pub async fn run_server(state: Arc<AppState>) {
         .route("/stop", post(stop_trading))
         .route("/assets", get(get_assets))
         .route("/report", get(get_report))
+        .route("/cancel_all", post(cancel_all_orders))
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
@@ -77,6 +78,13 @@ async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse 
     let llm = state.llm.clone();
     let config = state.config.clone();
 
+    // Build exchange synchronously and store in state
+    let (exchange, maybe_store) = build_exchange(&config);
+    {
+        let mut exchange_lock = state.exchange.lock().unwrap();
+        *exchange_lock = Some(exchange.clone());
+    }
+
     let handle = tokio::spawn(async move {
         let trading_mode = config.trading_mode.clone();
         let is_crypto = trading_mode.to_lowercase() == "crypto";
@@ -87,8 +95,6 @@ async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse 
         // Create Event Bus
         let event_bus = crate::bus::EventBus::new(1000);
 
-        // Build exchange
-        let (exchange, maybe_store) = build_exchange(&config);
 
         // Market store: if exchange doesn't provide one, make a local one.
         let market_store = maybe_store.unwrap_or_else(|| MarketStore::new(config.history_limit));
@@ -198,5 +204,27 @@ async fn stop_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse {
         Json(json!({"status": "stopped"})).into_response()
     } else {
         Json(json!({"status": "not_running"})).into_response()
+    }
+}
+
+async fn cancel_all_orders(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    let exchange = {
+        let exchange_lock = state.exchange.lock().unwrap();
+        exchange_lock.clone()
+    };
+
+    if let Some(exchange) = exchange {
+        match exchange.cancel_all_orders().await {
+            Ok(_) => Json(json!({"status": "success", "message": "All orders cancelled"})).into_response(),
+            Err(e) => (
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Failed to cancel all orders: {}", e),
+            ).into_response(),
+        }
+    } else {
+        (
+            axum::http::StatusCode::BAD_REQUEST,
+            "Exchange not initialized. Start trading first.",
+        ).into_response()
     }
 }

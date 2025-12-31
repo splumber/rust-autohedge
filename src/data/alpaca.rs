@@ -23,6 +23,21 @@ pub struct Account {
     pub portfolio_value: String,
 }
 
+#[derive(serde::Serialize, Debug)]
+pub struct OrderRequest {
+    pub symbol: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub qty: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub notional: Option<String>,
+    pub side: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+    pub time_in_force: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub limit_price: Option<String>,
+}
+
 
 impl AlpacaClient {
     pub fn new(config: AlpacaConfig, history_limit: usize) -> Self {
@@ -160,28 +175,22 @@ impl AlpacaClient {
         }
         Ok(())
     }
-}
 
+    pub async fn cancel_all_orders(&self) -> Result<(), Box<dyn Error + Send + Sync>> {
+        let url = format!("{}/v2/orders", self.base_url);
+        let resp = self.client.delete(&url)
+            .header("APCA-API-KEY-ID", &self.api_key)
+            .header("APCA-API-SECRET-KEY", &self.secret_key)
+            .send()
+            .await?;
 
-#[derive(serde::Serialize, Debug)]
-pub struct OrderRequest {
-    pub symbol: String,
-    /// Quantity in base units (e.g. shares, BTC). Optional when using notional.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub qty: Option<String>,
-    /// Notional in quote currency (USD). Use this to guarantee minimum order value.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub notional: Option<String>,
-    pub side: String,
-    #[serde(rename = "type")]
-    pub type_: String,
-    pub time_in_force: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit_price: Option<String>,
-}
-
-impl AlpacaClient {
-    // ...existing code...
+        let status = resp.status();
+        if !status.is_success() {
+            let body = resp.text().await?;
+            return Err(format!("Alpaca cancel_all_orders failed ({}): {}", status, body).into());
+        }
+        Ok(())
+    }
 
     pub async fn submit_order(&self, order: OrderRequest, trading_mode: &str) -> Result<Value, Box<dyn Error + Send + Sync>> {
         let is_crypto = trading_mode.eq_ignore_ascii_case("crypto");

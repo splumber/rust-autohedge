@@ -70,6 +70,10 @@ impl TradingApi for BinanceExchange {
         Err("Binance cancel_order not implemented".into())
     }
 
+    async fn cancel_all_orders(&self) -> ExchangeResult<()> {
+        Err("Binance cancel_all_orders not implemented".into())
+    }
+
     async fn submit_order(&self, order: PlaceOrderRequest) -> ExchangeResult<OrderAck> {
         // Minimal placeholder. Real Binance endpoint is POST /api/v3/order with signed query.
         let endpoint = format!("{}/api/v3/order", self.base_url);
