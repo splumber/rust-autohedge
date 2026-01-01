@@ -1,1 +1,22 @@
 /target
+*.pdb
+**/*.rs.bk
+
+# Environment files
+.env
+config.yaml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/

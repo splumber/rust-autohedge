@@ -1,5 +1,9 @@
 ﻿# autohedge Rust Algorithmic Trading Bot
 
+[![CI](https://github.com/splumber/rust-autohedge/workflows/CI/badge.svg)](https://github.com/splumber/rust-autohedge/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/splumber/rust-autohedge/workflows/CodeQL%20Security%20Scan/badge.svg)](https://github.com/splumber/rust-autohedge/actions/workflows/codeql.yml)
+[![Docker](https://github.com/splumber/rust-autohedge/workflows/Docker/badge.svg)](https://github.com/splumber/rust-autohedge/actions/workflows/docker.yml)
+
 ## Overview
 
 **autohedge** is a high-frequency, event-driven trading bot written in Rust. It supports both deterministic HFT (high-frequency trading) and hybrid LLM-gated strategies for stocks and crypto, with robust risk management, position monitoring, and real-time logging. The system is highly configurable via environment variables and is designed for extensibility and operational safety.
