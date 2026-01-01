@@ -3,6 +3,14 @@ name = "rust_autohedge"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "rust_autohedge"
+path = "src/lib.rs"
+
+[[bin]]
+name = "rust_autohedge"
+path = "src/main.rs"
+
 [dependencies]
 tokio = { version = "1.0", features = ["full"] }
 async-openai = "0.26.0"
