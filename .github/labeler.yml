@@ -1,0 +1,51 @@
+# Automatically label PRs based on file changes
+
+# Documentation
+documentation:
+  - changed-files:
+    - any-glob-to-any-file: ['**/*.md', 'docs/**']
+
+# Rust code
+rust:
+  - changed-files:
+    - any-glob-to-any-file: ['**/*.rs', 'Cargo.toml', 'Cargo.lock']
+
+# Tests
+tests:
+  - changed-files:
+    - any-glob-to-any-file: ['tests/**', '**/*_test.rs', '**/*_tests.rs']
+
+# CI/CD
+ci-cd:
+  - changed-files:
+    - any-glob-to-any-file: ['.github/**', 'Dockerfile', '.dockerignore']
+
+# Configuration
+configuration:
+  - changed-files:
+    - any-glob-to-any-file: ['*.yaml', '*.yml', '*.toml', '.env*', 'config*']
+
+# Dependencies
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file: ['Cargo.toml', 'Cargo.lock']
+
+# Strategy
+strategy:
+  - changed-files:
+    - any-glob-to-any-file: ['src/services/strategy.rs', 'src/agents/**']
+
+# Risk Management
+risk:
+  - changed-files:
+    - any-glob-to-any-file: ['src/services/risk.rs']
+
+# Execution
+execution:
+  - changed-files:
+    - any-glob-to-any-file: ['src/services/execution.rs', 'src/services/execution_utils.rs']
+
+# API/Integration
+api:
+  - changed-files:
+    - any-glob-to-any-file: ['src/api.rs', 'src/data/alpaca.rs', 'src/exchange/**']
