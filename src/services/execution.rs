@@ -171,35 +171,50 @@ impl ExecutionEngine {
             return;
         }
 
-        // Handle buy orders (original logic with ExecutionAgent)
-        info!("[EXECUTION] BUY path (agent-driven) for {}", req.symbol);
+        // Handle buy orders (original logic with ExecutionAgent) or HFT fast path
+        let mut order = if req.order_type == "hft_buy" {
+            info!("[EXECUTION] HFT Fast Path for {}", req.symbol);
+            ExecutionOutput {
+                action: "buy".to_string(),
+                qty: 0.0, // Will be sized to min_order_amount by logic below
+                order_type: "limit".to_string(),
+            }
+        } else {
+            info!("[EXECUTION] BUY path (agent-driven) for {}", req.symbol);
 
-        let execution_agent = ExecutionAgent;
-        let exec_input = format!("Symbol: {}\nRisk Analysis: Approved\nAction: Create Order JSON", req.symbol);
-        info!("[EXECUTION] Calling ExecutionAgent for {}", req.symbol);
+            let execution_agent = ExecutionAgent;
+            let exec_input = format!("Symbol: {}\nRisk Analysis: Approved\nAction: Create Order JSON", req.symbol);
+            info!("[EXECUTION] Calling ExecutionAgent for {}", req.symbol);
 
-        let order_response = match execution_agent.run_high_priority(&exec_input, &llm).await {
-            Ok(res) => res,
-            Err(e) => {
-                error!("Execution Agent Failed: {}", e);
-                return;
+            let order_response = match execution_agent.run_high_priority(&exec_input, &llm).await {
+                Ok(res) => res,
+                Err(e) => {
+                    error!("Execution Agent Failed: {}", e);
+                    return;
+                }
+            };
+
+            info!("[EXECUTION] Agent Output (raw) for {}: {}", req.symbol, order_response);
+
+            let json_str = Self::extract_json(&order_response).unwrap_or(&order_response);
+            info!("[EXECUTION] Agent Output (json_str) for {}: {}", req.symbol, json_str);
+
+            match serde_json::from_str::<ExecutionOutput>(json_str) {
+                Ok(o) => o,
+                Err(e) => {
+                    error!("[EXECUTION] JSON Parse Error: {}", e);
+                    return;
+                }
             }
         };
 
-        info!("[EXECUTION] Agent Output (raw) for {}: {}", req.symbol, order_response);
-
-        let json_str = Self::extract_json(&order_response).unwrap_or(&order_response);
-        info!("[EXECUTION] Agent Output (json_str) for {}: {}", req.symbol, json_str);
-
-        match serde_json::from_str::<ExecutionOutput>(json_str) {
-            Ok(mut order) => {
-                info!("[EXECUTION] Parsed agent output for {} => action={} qty={:.8} order_type={}",
-                      req.symbol, order.action, order.qty, order.order_type);
+        info!("[EXECUTION] Processing order: action={} qty={:.8} order_type={}",
+              order.action, order.qty, order.order_type);
 
                 if order.action == "buy" || order.action == "sell" {
                     let history = store.get_quote_history(&req.symbol);
                     let estimated_price = if let Some(latest) = history.last() {
-                        latest.bid_price
+                        if order.action == "buy" { latest.ask_price } else { latest.bid_price }
                     } else {
                         0.0
                     };
@@ -210,28 +225,6 @@ impl ExecutionEngine {
                         error!("[EXECUTION] Cannot estimate price for {}. No market data available.", req.symbol);
                         return;
                     }
-
-                    // Balance Check
-                    if order.action == "buy" {
-                        match exchange.get_account().await {
-                            Ok(account) => {
-                                let buying_power = account.buying_power.or(account.cash).unwrap_or(0.0);
-                                // Estimate cost (using ask price would be safer, but we have bid here. Add buffer?)
-                                let cost_estimate = order.qty * estimated_price;
-                                if buying_power < cost_estimate {
-                                     error!("[EXECUTION] Insufficient funds. Required: ${:.2}, Available: ${:.2}", cost_estimate, buying_power);
-                                     return;
-                                }
-                            },
-                            Err(e) => {
-                                 error!("[EXECUTION] Failed to fetch account balance: {}", e);
-                                 return;
-                            }
-                        }
-                    }
-
-                    // For stocks, qty-based orders are fine. For crypto, notional orders rely on exchange capabilities.
-                    let is_crypto = config.trading_mode.to_lowercase() == "crypto";
 
                     // Estimate value from agent qty; tighten to min/max via config.
                     let mut estimated_value = order.qty * estimated_price;
@@ -249,6 +242,32 @@ impl ExecutionEngine {
                         estimated_value = config.defaults.max_order_amount;
                         order.qty = estimated_value / estimated_price;
                         info!("[RISK] Adjusted qty for max cap => qty={:.8} est_value=${:.2}", order.qty, estimated_value);
+                    }
+
+                    // Balance Check (Post-Adjustment)
+                    if order.action == "buy" {
+                        match exchange.get_account().await {
+                            Ok(account) => {
+                                let buying_power = account.buying_power.or(account.cash).unwrap_or(0.0);
+                                let required_funds = estimated_value; // No buffer here, exact check against value
+
+                                if buying_power < required_funds {
+                                     let max_affordable = buying_power * 0.99; // 1% buffer for fees
+                                     if max_affordable < config.defaults.min_order_amount {
+                                         error!("[EXECUTION] Insufficient funds. Available: ${:.2}, Min Required: ${:.2}", buying_power, config.defaults.min_order_amount);
+                                         return;
+                                     }
+
+                                     info!("[EXECUTION] Capping order to affordable amount: ${:.2} (Available: ${:.2})", max_affordable, buying_power);
+                                     estimated_value = max_affordable;
+                                     order.qty = estimated_value / estimated_price;
+                                }
+                            },
+                            Err(e) => {
+                                 error!("[EXECUTION] Failed to fetch account balance: {}", e);
+                                 return;
+                            }
+                        }
                     }
 
                     // Force Limit Order for Buy
@@ -345,11 +364,6 @@ impl ExecutionEngine {
                 } else {
                     info!("[EXECUTION] Invalid action '{}'", order.action);
                 }
-            }
-            Err(e) => {
-                error!("[EXECUTION] JSON Parse Error: {}", e);
-            }
-        }
     }
 
     fn extract_json(text: &str) -> Option<&str> {

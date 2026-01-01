@@ -49,6 +49,41 @@ impl RiskEngine {
     }
 
     async fn assess_risk(signal: AnalysisSignal, exchange: Arc<dyn TradingApi>, llm: LLMQueue, bus: EventBus, _config: AppConfig) {
+        // HFT Fast Path
+        if signal.thesis.starts_with("HFT") {
+            // Parse TP/SL from market_context "tp=..., sl=..."
+            let mut stop_loss = None;
+            let mut take_profit = None;
+            
+            for part in signal.market_context.split(',') {
+                let part = part.trim();
+                if part.starts_with("tp=") {
+                    if let Ok(val) = part["tp=".len()..].parse::<f64>() {
+                        take_profit = Some(val);
+                    }
+                } else if part.starts_with("sl=") {
+                    if let Ok(val) = part["sl=".len()..].parse::<f64>() {
+                        stop_loss = Some(val);
+                    }
+                }
+            }
+
+            info!("🛡️ [RISK] HFT Fast-Approve: {} (SL: {:?}, TP: {:?})", signal.symbol, stop_loss, take_profit);
+
+            let order_req = OrderRequest {
+                 symbol: signal.symbol.clone(),
+                 action: signal.signal.clone(),
+                 qty: 0.0, // Execution Agent will determine quantity
+                 order_type: "hft_buy".to_string(), // Signal for fast execution
+                 limit_price: None, 
+                 stop_loss,
+                 take_profit,
+            };
+            
+            bus.publish(Event::Order(order_req)).ok();
+            return;
+        }
+
         // Fetch Account
         let account = match exchange.get_account().await {
             Ok(acc) => acc,

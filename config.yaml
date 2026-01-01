@@ -1,0 +1,55 @@
+﻿trading_mode: "crypto"
+exchange: "alpaca"
+symbols:
+  - "SOL/USD"
+  - "DOT/USD"
+  - "LTC/USD"
+  - "SHIB/USD"
+  - "XRP/USD"
+  - "DOGE/USD"
+
+defaults:
+  take_profit_pct: 0.1
+  stop_loss_pct: 0.05
+  min_order_amount: 1.0
+  max_order_amount: 100.0
+  limit_order_expiration_days: 1
+
+symbol_overrides:
+  "XRP/USD":
+    take_profit_pct: 0.2
+    stop_loss_pct: 0.1
+  "SOL/USD":
+    take_profit_pct: 0.2
+    stop_loss_pct: 0.1
+
+history_limit: 50
+warmup_count: 50
+llm_queue_size: 100
+llm_max_concurrent: 3
+no_trade_cooldown_quotes: 10
+strategy_mode: "hft"
+chatter_level: "verbose"
+
+hft:
+  evaluate_every_quotes: 1
+  min_edge_bps: 1.0
+  take_profit_bps: 10.0
+  stop_loss_bps: 5.0
+  max_spread_bps: 50.0
+
+hybrid:
+  gate_refresh_quotes: 50
+  no_trade_cooldown_quotes: 10
+
+exit_on_quotes: true
+
+llm:
+  api_key: null
+  base_url: "http://localhost:11434/v1"
+  model: "qwen3-coder:30b"
+
+alpaca:
+  api_key: "PKIMBBIMMBJKMDUIBSRJWWB5HG"
+  secret_key: "D7amdWhVsrXQgabtk1NdGpNN8uZqGNm3dRHKFas4aCzM"
+  base_url: "https://paper-api.alpaca.markets"

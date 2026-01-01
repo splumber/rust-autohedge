@@ -208,23 +208,23 @@ async fn stop_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse {
 }
 
 async fn cancel_all_orders(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    // Attempt to get the exchange from state, or build a temporary one if not initialized
     let exchange = {
         let exchange_lock = state.exchange.lock().unwrap();
-        exchange_lock.clone()
+        if let Some(ex) = exchange_lock.clone() {
+            ex
+        } else {
+            info!("Exchange not initialized in state, building temporary instance for cancellation...");
+            let (ex, _) = build_exchange(&state.config);
+            ex
+        }
     };
 
-    if let Some(exchange) = exchange {
-        match exchange.cancel_all_orders().await {
-            Ok(_) => Json(json!({"status": "success", "message": "All orders cancelled"})).into_response(),
-            Err(e) => (
-                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Failed to cancel all orders: {}", e),
-            ).into_response(),
-        }
-    } else {
-        (
-            axum::http::StatusCode::BAD_REQUEST,
-            "Exchange not initialized. Start trading first.",
-        ).into_response()
+    match exchange.cancel_all_orders().await {
+        Ok(_) => Json(json!({"status": "success", "message": "All orders cancelled"})).into_response(),
+        Err(e) => (
+            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Failed to cancel all orders: {}", e),
+        ).into_response(),
     }
 }
