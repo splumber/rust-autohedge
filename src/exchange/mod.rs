@@ -1,6 +1,6 @@
-pub mod types;
-pub mod traits;
 pub mod factory;
+pub mod traits;
+pub mod types;
 
 pub mod symbols;
 
@@ -12,4 +12,3 @@ pub mod ws;
 
 #[cfg(test)]
 mod types_tests;
-

@@ -6,8 +6,8 @@ use super::{
     symbols::to_coinbase_product_id,
     traits::{ExchangeResult, TradingApi},
     types::{
-        AccountSummary, ExchangeCapabilities, OrderAck, OrderType, PlaceOrderRequest, Position, Side,
-        TimeInForce,
+        AccountSummary, ExchangeCapabilities, OrderAck, OrderType, PlaceOrderRequest, Position,
+        Side, TimeInForce,
     },
 };
 
@@ -31,7 +31,7 @@ impl CoinbaseExchange {
             client: Client::new(),
             base_url: config.base_url,
             api_key: config.api_key,
-            api_secret: config.secret_key
+            api_secret: config.secret_key,
         }
     }
 
@@ -59,7 +59,11 @@ impl TradingApi for CoinbaseExchange {
 
     async fn get_account(&self) -> ExchangeResult<AccountSummary> {
         // Coinbase exposes balances per account.
-        Ok(AccountSummary { buying_power: None, cash: None, portfolio_value: None })
+        Ok(AccountSummary {
+            buying_power: None,
+            cash: None,
+            portfolio_value: None,
+        })
     }
 
     async fn get_positions(&self) -> ExchangeResult<Vec<Position>> {
@@ -82,8 +86,15 @@ impl TradingApi for CoinbaseExchange {
     async fn submit_order(&self, order: PlaceOrderRequest) -> ExchangeResult<OrderAck> {
         let endpoint = format!("{}/api/v3/brokerage/orders", self.base_url);
 
-        let side = match order.side { Side::Buy => "BUY", Side::Sell => "SELL" };
-        let _tif = match order.time_in_force { TimeInForce::Day => "DAY", TimeInForce::Gtc => "GTC", TimeInForce::Ioc => "IOC" };
+        let side = match order.side {
+            Side::Buy => "BUY",
+            Side::Sell => "SELL",
+        };
+        let _tif = match order.time_in_force {
+            TimeInForce::Day => "DAY",
+            TimeInForce::Gtc => "GTC",
+            TimeInForce::Ioc => "IOC",
+        };
 
         let product_id = to_coinbase_product_id(&order.symbol);
 
@@ -113,15 +124,23 @@ impl TradingApi for CoinbaseExchange {
             }),
         };
 
-        let resp = self.auth_headers(self.client.post(&endpoint)).json(&body).send().await?;
+        let resp = self
+            .auth_headers(self.client.post(&endpoint))
+            .json(&body)
+            .send()
+            .await?;
         let status = resp.status();
         let text = resp.text().await?;
         if !status.is_success() {
             return Err(format!("Coinbase submit_order failed ({}): {}", status, text).into());
         }
 
-        let raw: Value = serde_json::from_str(&text)
-            .map_err(|e| format!("Coinbase submit_order decode failed: {} (body: {})", e, text))?;
+        let raw: Value = serde_json::from_str(&text).map_err(|e| {
+            format!(
+                "Coinbase submit_order decode failed: {} (body: {})",
+                e, text
+            )
+        })?;
 
         let id = raw
             .pointer("/order_id")
@@ -136,7 +155,11 @@ impl TradingApi for CoinbaseExchange {
             .unwrap_or("unknown")
             .to_string();
 
-        Ok(OrderAck { id, status: status_s, raw })
+        Ok(OrderAck {
+            id,
+            status: status_s,
+            raw,
+        })
     }
 
     async fn get_historical_bars(&self, _symbol: &str, _timeframe: &str) -> ExchangeResult<Value> {

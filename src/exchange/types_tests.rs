@@ -289,4 +289,3 @@ mod symbols_tests {
         assert!(result.chars().all(|c| c.is_lowercase() || c.is_numeric()));
     }
 }
-

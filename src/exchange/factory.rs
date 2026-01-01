@@ -1,19 +1,15 @@
 use std::sync::Arc;
 
-use crate::{
-    config::AppConfig,
-    data::alpaca::AlpacaClient,
-};
+use crate::{config::AppConfig, data::alpaca::AlpacaClient};
 
 use super::{
-    alpaca::AlpacaExchange,
-    binance::BinanceExchange,
-    coinbase::CoinbaseExchange,
-    kraken::KrakenExchange,
-    traits::TradingApi,
+    alpaca::AlpacaExchange, binance::BinanceExchange, coinbase::CoinbaseExchange,
+    kraken::KrakenExchange, traits::TradingApi,
 };
 
-pub fn build_exchange(config: &AppConfig) -> (Arc<dyn TradingApi>, Option<crate::data::store::MarketStore>) {
+pub fn build_exchange(
+    config: &AppConfig,
+) -> (Arc<dyn TradingApi>, Option<crate::data::store::MarketStore>) {
     let exchange = &config.exchange;
 
     match exchange.to_lowercase().as_str() {
@@ -39,7 +35,10 @@ pub fn build_exchange(config: &AppConfig) -> (Arc<dyn TradingApi>, Option<crate:
             (Arc::new(ex), None)
         }
         other => {
-            panic!("Unknown EXCHANGE='{}' (expected alpaca|binance|coinbase|kraken)", other)
+            panic!(
+                "Unknown EXCHANGE='{}' (expected alpaca|binance|coinbase|kraken)",
+                other
+            )
         }
     }
 }

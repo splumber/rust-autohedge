@@ -2,10 +2,10 @@
 //! These tests verify that components work together correctly.
 
 use rust_autohedge::bus::EventBus;
-use rust_autohedge::events::{Event, MarketEvent, AnalysisSignal, OrderRequest, ExecutionReport};
 use rust_autohedge::data::store::{MarketStore, Quote};
-use rust_autohedge::services::position_monitor::{PositionTracker, PositionInfo, PendingOrder};
-use rust_autohedge::services::execution_utils::{compute_order_sizing, aggressive_limit_price};
+use rust_autohedge::events::{AnalysisSignal, Event, ExecutionReport, MarketEvent, OrderRequest};
+use rust_autohedge::services::execution_utils::{aggressive_limit_price, compute_order_sizing};
+use rust_autohedge::services::position_monitor::{PendingOrder, PositionInfo, PositionTracker};
 
 /// Test the complete flow from market data to signal generation
 #[tokio::test]
@@ -179,7 +179,8 @@ fn test_order_sizing_integration() {
         10.0,    // min order
         100.0,   // max order
         0.05,    // 5% of balance
-    ).unwrap();
+    )
+    .unwrap();
 
     assert!(sizing.notional >= 10.0);
     assert!(sizing.notional <= 100.0);
@@ -252,8 +253,8 @@ async fn test_multi_symbol_flow() {
 #[test]
 fn test_tp_sl_calculation() {
     let entry_price = 100.0;
-    let tp_pct = 1.0;  // 1%
-    let sl_pct = 0.5;  // 0.5%
+    let tp_pct = 1.0; // 1%
+    let sl_pct = 0.5; // 0.5%
 
     let take_profit = entry_price * (1.0 + tp_pct / 100.0);
     let stop_loss = entry_price * (1.0 - sl_pct / 100.0);
@@ -386,4 +387,3 @@ fn test_position_lifecycle() {
     assert!(!tracker.has_position("XRP/USD"));
     assert!(tracker.get_all_pending_orders().is_empty());
 }
-

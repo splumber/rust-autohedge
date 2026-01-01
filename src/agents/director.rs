@@ -1,6 +1,5 @@
 use crate::agents::Agent;
 
-
 pub struct DirectorAgent;
 
 impl Agent for DirectorAgent {
@@ -36,5 +35,3 @@ EXAMPLES:
 "#
     }
 }
-
-

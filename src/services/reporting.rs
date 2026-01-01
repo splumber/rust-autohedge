@@ -1,4 +1,8 @@
-use std::{collections::HashMap, path::PathBuf, sync::{Arc, Mutex}};
+use std::{
+    collections::HashMap,
+    path::PathBuf,
+    sync::{Arc, Mutex},
+};
 
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
@@ -72,7 +76,7 @@ pub struct PerformanceSummary {
 
     /// Detailed trade history grouped by symbol
     pub history: HashMap<String, Vec<ClosedTrade>>,
-    
+
     /// Currently open positions
     pub open_positions: HashMap<String, OpenPosition>,
 
@@ -100,7 +104,7 @@ pub struct ComputedStats {
     pub trades_per_hour: f64,
     pub win_rate_pct: f64,
     pub avg_profit_per_trade: f64,
-    pub profit_factor: f64,  // total_profit / total_loss
+    pub profit_factor: f64, // total_profit / total_loss
     pub total_closed_trades: u64,
     pub open_position_count: usize,
 }
@@ -111,7 +115,8 @@ impl PerformanceSummary {
         let runtime_minutes = if let Some(ref start) = self.start_time {
             if let Ok(start_dt) = chrono::DateTime::parse_from_rfc3339(start) {
                 let now = Utc::now();
-                (now.signed_duration_since(start_dt.with_timezone(&Utc))).num_seconds() as f64 / 60.0
+                (now.signed_duration_since(start_dt.with_timezone(&Utc))).num_seconds() as f64
+                    / 60.0
             } else {
                 0.0
             }
@@ -181,7 +186,10 @@ impl TradeReporter {
         let reporter = self.clone();
 
         tokio::spawn(async move {
-            info!("📈 TradeReporter started (log: {})", reporter.log_path.display());
+            info!(
+                "📈 TradeReporter started (log: {})",
+                reporter.log_path.display()
+            );
 
             while let Ok(event) = rx.recv().await {
                 match event {
@@ -225,8 +233,17 @@ impl TradeReporter {
             status: "order_created".to_string(),
             qty: Some(order.qty).filter(|q| *q > 0.0),
             price: order.limit_price,
-            notional: order.limit_price.and_then(|p| if order.qty > 0.0 { Some(p * order.qty) } else { None }),
-            notes: Some(format!("type={} sl={:?} tp={:?}", order.order_type, order.stop_loss, order.take_profit)),
+            notional: order.limit_price.and_then(|p| {
+                if order.qty > 0.0 {
+                    Some(p * order.qty)
+                } else {
+                    None
+                }
+            }),
+            notes: Some(format!(
+                "type={} sl={:?} tp={:?}",
+                order.order_type, order.stop_loss, order.take_profit
+            )),
         };
         let _ = self.append_jsonl(&entry);
     }
@@ -243,55 +260,61 @@ impl TradeReporter {
 
         let st = exec.status.to_lowercase();
         if st.contains("fill") || st == "new" || st == "accepted" {
-             // Assuming "new" or "accepted" means it will be filled for now, 
-             // as we don't get async fill updates in this architecture yet.
-             // Ideally we should wait for "filled".
-             // But ExecutionEngine sends "new" immediately after submit.
-             // We'll treat "new" as a fill for reporting purposes to track the lifecycle,
-             // acknowledging this is an estimation.
-             
-             if let (Some(qty), Some(price)) = (exec.qty, exec.price) {
-                 if exec.side.eq_ignore_ascii_case("buy") {
-                     s.buys += 1;
-                     s.open_positions.insert(exec.symbol.clone(), OpenPosition {
-                         symbol: exec.symbol.clone(),
-                         buy_time: Utc::now().to_rfc3339(),
-                         buy_price: price,
-                         qty,
-                     });
-                 } else if exec.side.eq_ignore_ascii_case("sell") {
-                     s.sells += 1;
-                     if let Some(open_pos) = s.open_positions.remove(&exec.symbol) {
-                         let pnl = (price - open_pos.buy_price) * qty;
-                         let pnl_percent = (price - open_pos.buy_price) / open_pos.buy_price * 100.0;
-                         
-                         // Track win/loss metrics
-                         s.total_realized_pnl += pnl;
-                         if pnl > 0.0 {
-                             s.winning_trades += 1;
-                             s.total_profit += pnl;
-                         } else {
-                             s.losing_trades += 1;
-                             s.total_loss += pnl.abs();
-                         }
+            // Assuming "new" or "accepted" means it will be filled for now,
+            // as we don't get async fill updates in this architecture yet.
+            // Ideally we should wait for "filled".
+            // But ExecutionEngine sends "new" immediately after submit.
+            // We'll treat "new" as a fill for reporting purposes to track the lifecycle,
+            // acknowledging this is an estimation.
 
-                         let trade = ClosedTrade {
-                             symbol: exec.symbol.clone(),
-                             buy_time: open_pos.buy_time,
-                             sell_time: Utc::now().to_rfc3339(),
-                             buy_price: open_pos.buy_price,
-                             sell_price: price,
-                             qty,
-                             pnl,
-                             pnl_percent,
-                         };
-                         
-                         s.history.entry(exec.symbol.clone()).or_default().push(trade);
-                     }
-                 }
-                 s.total_notional += qty * price;
-             }
-             s.filled += 1;
+            if let (Some(qty), Some(price)) = (exec.qty, exec.price) {
+                if exec.side.eq_ignore_ascii_case("buy") {
+                    s.buys += 1;
+                    s.open_positions.insert(
+                        exec.symbol.clone(),
+                        OpenPosition {
+                            symbol: exec.symbol.clone(),
+                            buy_time: Utc::now().to_rfc3339(),
+                            buy_price: price,
+                            qty,
+                        },
+                    );
+                } else if exec.side.eq_ignore_ascii_case("sell") {
+                    s.sells += 1;
+                    if let Some(open_pos) = s.open_positions.remove(&exec.symbol) {
+                        let pnl = (price - open_pos.buy_price) * qty;
+                        let pnl_percent = (price - open_pos.buy_price) / open_pos.buy_price * 100.0;
+
+                        // Track win/loss metrics
+                        s.total_realized_pnl += pnl;
+                        if pnl > 0.0 {
+                            s.winning_trades += 1;
+                            s.total_profit += pnl;
+                        } else {
+                            s.losing_trades += 1;
+                            s.total_loss += pnl.abs();
+                        }
+
+                        let trade = ClosedTrade {
+                            symbol: exec.symbol.clone(),
+                            buy_time: open_pos.buy_time,
+                            sell_time: Utc::now().to_rfc3339(),
+                            buy_price: open_pos.buy_price,
+                            sell_price: price,
+                            qty,
+                            pnl,
+                            pnl_percent,
+                        };
+
+                        s.history
+                            .entry(exec.symbol.clone())
+                            .or_default()
+                            .push(trade);
+                    }
+                }
+                s.total_notional += qty * price;
+            }
+            s.filled += 1;
         } else if st.contains("reject") {
             s.rejected += 1;
         }
@@ -316,7 +339,10 @@ impl TradeReporter {
         let _ = self.append_jsonl(&entry);
     }
 
-    fn append_jsonl(&self, entry: &TradeLogEntry) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    fn append_jsonl(
+        &self,
+        entry: &TradeLogEntry,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         use std::io::Write;
 
         if let Some(parent) = self.log_path.parent() {
@@ -334,13 +360,9 @@ impl TradeReporter {
     }
 
     fn flush_summary(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let summary_path = self
-            .log_path
-            .with_file_name("trade_summary.json");
+        let summary_path = self.log_path.with_file_name("trade_summary.json");
 
-        let stats_path = self
-            .log_path
-            .with_file_name("trade_stats.json");
+        let stats_path = self.log_path.with_file_name("trade_stats.json");
 
         if let Some(parent) = summary_path.parent() {
             std::fs::create_dir_all(parent)?;
@@ -348,10 +370,10 @@ impl TradeReporter {
 
         let s = self.summary.lock().unwrap().clone();
         let stats = s.compute_stats();
-        
+
         // Write full summary
         std::fs::write(&summary_path, serde_json::to_vec_pretty(&s)?)?;
-        
+
         // Write computed stats (smaller, easier to read)
         let stats_output = serde_json::json!({
             "runtime_minutes": format!("{:.1}", stats.runtime_minutes),
@@ -367,7 +389,7 @@ impl TradeReporter {
             "total_notional_traded": format!("${:.2}", s.total_notional),
         });
         std::fs::write(&stats_path, serde_json::to_vec_pretty(&stats_output)?)?;
-        
+
         Ok(())
     }
 }

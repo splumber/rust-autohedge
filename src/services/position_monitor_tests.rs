@@ -2,7 +2,7 @@
 
 #[cfg(test)]
 mod position_tracker_tests {
-    use crate::services::position_monitor::{PositionTracker, PositionInfo, PendingOrder};
+    use crate::services::position_monitor::{PendingOrder, PositionInfo, PositionTracker};
 
     // ============= PositionTracker Basic Tests =============
 
@@ -448,4 +448,3 @@ mod position_tracker_tests {
         assert_eq!(orders.len(), 10);
     }
 }
-

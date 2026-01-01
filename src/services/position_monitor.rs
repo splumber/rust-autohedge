@@ -1,12 +1,15 @@
-﻿use tracing::{info, error, warn};
 use crate::bus::EventBus;
-use crate::events::{Event, AnalysisSignal, MarketEvent};
 use crate::config::AppConfig;
+use crate::events::{AnalysisSignal, Event, MarketEvent};
+use crate::exchange::traits::TradingApi;
+use crate::exchange::types::{
+    OrderType as ExOrderType, PlaceOrderRequest as ExPlaceOrderRequest, Side as ExSide,
+    TimeInForce as ExTimeInForce,
+};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use tokio::time::{sleep, Duration};
-use crate::exchange::traits::TradingApi;
-use crate::exchange::types::{PlaceOrderRequest as ExPlaceOrderRequest, Side as ExSide, OrderType as ExOrderType, TimeInForce as ExTimeInForce};
+use tracing::{error, info, warn};
 
 #[derive(Clone, Debug)]
 pub struct PositionInfo {
@@ -16,8 +19,8 @@ pub struct PositionInfo {
     pub stop_loss: f64,
     pub take_profit: f64,
     pub entry_time: String,
-    pub side: String, // "buy" or "sell"
-    pub is_closing: bool, // New field to prevent double-sells
+    pub side: String,                  // "buy" or "sell"
+    pub is_closing: bool,              // New field to prevent double-sells
     pub open_order_id: Option<String>, // For Take Profit Limit Order
 }
 
@@ -51,7 +54,10 @@ impl PositionTracker {
     pub fn add_pending_order(&self, mut order: PendingOrder) {
         let mut pending = self.pending_orders.lock().unwrap();
         order.last_check_time = Some(std::time::Instant::now());
-        info!("📊 [TRACKER] Added pending order: {} {} @ ${:.8}", order.side, order.symbol, order.limit_price);
+        info!(
+            "📊 [TRACKER] Added pending order: {} {} @ ${:.8}",
+            order.side, order.symbol, order.limit_price
+        );
         pending.insert(order.order_id.clone(), order);
     }
 
@@ -76,8 +82,10 @@ impl PositionTracker {
         let mut positions = self.positions.lock().unwrap();
         // Ensure is_closing is false initially
         info.is_closing = false;
-        info!("📊 [TRACKER] Added position: {} @ ${:.8} (SL: ${:.8}, TP: ${:.8})",
-              info.symbol, info.entry_price, info.stop_loss, info.take_profit);
+        info!(
+            "📊 [TRACKER] Added position: {} @ ${:.8} (SL: ${:.8}, TP: ${:.8})",
+            info.symbol, info.entry_price, info.stop_loss, info.take_profit
+        );
         positions.insert(info.symbol.clone(), info);
     }
 
@@ -134,7 +142,12 @@ pub struct PositionMonitor {
 }
 
 impl PositionMonitor {
-    pub fn new(event_bus: EventBus, exchange: Arc<dyn TradingApi>, tracker: PositionTracker, config: AppConfig) -> Self {
+    pub fn new(
+        event_bus: EventBus,
+        exchange: Arc<dyn TradingApi>,
+        tracker: PositionTracker,
+        config: AppConfig,
+    ) -> Self {
         Self {
             event_bus,
             exchange,
@@ -198,7 +211,10 @@ impl PositionMonitor {
         let config = self.config.clone();
 
         tokio::spawn(async move {
-            info!("👁️  Position Monitor Started (quote-driven exits) | chatter={}", config.chatter_level);
+            info!(
+                "👁️  Position Monitor Started (quote-driven exits) | chatter={}",
+                config.chatter_level
+            );
 
             // Initial sync with exchange positions
             Self::sync_positions(&*exchange, &tracker, &config).await;
@@ -220,13 +236,22 @@ impl PositionMonitor {
                     if order.symbol == symbol {
                         // Check for expiration
                         if let Some(days) = config.defaults.limit_order_expiration_days {
-                            if let Ok(created_at) = chrono::DateTime::parse_from_rfc3339(&order.created_at) {
+                            if let Ok(created_at) =
+                                chrono::DateTime::parse_from_rfc3339(&order.created_at)
+                            {
                                 let now = chrono::Utc::now();
                                 let age = now.signed_duration_since(created_at);
                                 if age.num_days() >= days as i64 {
-                                    warn!("[MONITOR] Order {} expired (age: {} days). Cancelling.", order.order_id, age.num_days());
+                                    warn!(
+                                        "[MONITOR] Order {} expired (age: {} days). Cancelling.",
+                                        order.order_id,
+                                        age.num_days()
+                                    );
                                     if let Err(e) = exchange.cancel_order(&order.order_id).await {
-                                        error!("Failed to cancel expired order {}: {}", order.order_id, e);
+                                        error!(
+                                            "Failed to cancel expired order {}: {}",
+                                            order.order_id, e
+                                        );
                                     }
                                     tracker.remove_pending_order(&order.order_id);
                                     continue;
@@ -242,44 +267,53 @@ impl PositionMonitor {
                         }
 
                         if order.side == "buy" {
-                             // Check if filled (Price <= Limit)
-                             if current_price <= order.limit_price {
-                                 tracker.update_pending_order_check_time(&order.order_id);
-                                 Self::check_pending_buy_order(&order, &*exchange, &tracker, &config).await;
-                             }
+                            // Check if filled (Price <= Limit)
+                            if current_price <= order.limit_price {
+                                tracker.update_pending_order_check_time(&order.order_id);
+                                Self::check_pending_buy_order(
+                                    &order, &*exchange, &tracker, &config,
+                                )
+                                .await;
+                            }
                         } else if order.side == "sell" {
-                             // Take Profit Limit Order
-                             // Check if filled (Price >= Limit)
-                             if current_price >= order.limit_price {
-                                 tracker.update_pending_order_check_time(&order.order_id);
-                                 Self::check_pending_sell_order(&order, &*exchange, &tracker).await;
-                             }
+                            // Take Profit Limit Order
+                            // Check if filled (Price >= Limit)
+                            if current_price >= order.limit_price {
+                                tracker.update_pending_order_check_time(&order.order_id);
+                                Self::check_pending_sell_order(&order, &*exchange, &tracker).await;
+                            }
 
-                             // Check Stop Loss condition
-                             if let Some(sl) = order.stop_loss {
-                                 if current_price <= sl {
-                                     warn!("[MONITOR] Price dropped to ${:.2} (SL ${:.2}). Cancelling Limit Sell and exiting.", current_price, sl);
-                                     // Cancel Limit Order
-                                     if let Err(e) = exchange.cancel_order(&order.order_id).await {
-                                         error!("Failed to cancel order {}: {}", order.order_id, e);
-                                     }
-                                     tracker.remove_pending_order(&order.order_id);
+                            // Check Stop Loss condition
+                            if let Some(sl) = order.stop_loss {
+                                if current_price <= sl {
+                                    warn!("[MONITOR] Price dropped to ${:.2} (SL ${:.2}). Cancelling Limit Sell and exiting.", current_price, sl);
+                                    // Cancel Limit Order
+                                    if let Err(e) = exchange.cancel_order(&order.order_id).await {
+                                        error!("Failed to cancel order {}: {}", order.order_id, e);
+                                    }
+                                    tracker.remove_pending_order(&order.order_id);
 
-                                     // Trigger Market Sell (Exit Signal)
-                                     let pos_info = PositionInfo {
-                                         symbol: order.symbol.clone(),
-                                         entry_price: order.limit_price, // Approximate
-                                         qty: order.qty,
-                                         stop_loss: sl,
-                                         take_profit: order.limit_price,
-                                         entry_time: order.created_at.clone(),
-                                         side: "buy".to_string(),
-                                         is_closing: true,
-                                         open_order_id: None,
-                                     };
-                                     Self::generate_exit_signal(&pos_info, "stop_loss_limit_cancel", current_price, &bus).await;
-                                 }
-                             }
+                                    // Trigger Market Sell (Exit Signal)
+                                    let pos_info = PositionInfo {
+                                        symbol: order.symbol.clone(),
+                                        entry_price: order.limit_price, // Approximate
+                                        qty: order.qty,
+                                        stop_loss: sl,
+                                        take_profit: order.limit_price,
+                                        entry_time: order.created_at.clone(),
+                                        side: "buy".to_string(),
+                                        is_closing: true,
+                                        open_order_id: None,
+                                    };
+                                    Self::generate_exit_signal(
+                                        &pos_info,
+                                        "stop_loss_limit_cancel",
+                                        current_price,
+                                        &bus,
+                                    )
+                                    .await;
+                                }
+                            }
                         }
                     }
                 }
@@ -297,7 +331,8 @@ impl PositionMonitor {
                         continue;
                     }
 
-                    let pl_pct = ((current_price - position.entry_price) / position.entry_price) * 100.0;
+                    let pl_pct =
+                        ((current_price - position.entry_price) / position.entry_price) * 100.0;
 
                     // In verbose mode, log a heartbeat of position evaluation.
                     if config.chatter_level.to_lowercase() == "verbose" {
@@ -308,7 +343,8 @@ impl PositionMonitor {
                     if current_price >= position.take_profit {
                         info!("[MONITOR] SELL trigger (TAKE PROFIT) for {}: entry={:.8} current={:.8} (+{:.2}%) tp={:.8}",
                               position.symbol, position.entry_price, current_price, pl_pct, position.take_profit);
-                        Self::generate_exit_signal(&position, "take_profit", current_price, &bus).await;
+                        Self::generate_exit_signal(&position, "take_profit", current_price, &bus)
+                            .await;
                         tracker.mark_closing(&position.symbol); // Mark as closing instead of removing
                         continue;
                     }
@@ -316,7 +352,8 @@ impl PositionMonitor {
                     if current_price <= position.stop_loss {
                         warn!("[MONITOR] SELL trigger (STOP LOSS) for {}: entry={:.8} current={:.8} ({:.2}%) sl={:.8}",
                               position.symbol, position.entry_price, current_price, pl_pct, position.stop_loss);
-                        Self::generate_exit_signal(&position, "stop_loss", current_price, &bus).await;
+                        Self::generate_exit_signal(&position, "stop_loss", current_price, &bus)
+                            .await;
                         tracker.mark_closing(&position.symbol); // Mark as closing instead of removing
                         continue;
                     }
@@ -325,8 +362,15 @@ impl PositionMonitor {
         });
     }
 
-    async fn sync_positions(exchange: &dyn TradingApi, tracker: &PositionTracker, config: &AppConfig) {
-        info!("🔄 [MONITOR] Syncing positions with exchange {}...", exchange.name());
+    async fn sync_positions(
+        exchange: &dyn TradingApi,
+        tracker: &PositionTracker,
+        config: &AppConfig,
+    ) {
+        info!(
+            "🔄 [MONITOR] Syncing positions with exchange {}...",
+            exchange.name()
+        );
 
         match exchange.get_positions().await {
             Ok(positions) => {
@@ -410,11 +454,19 @@ impl PositionMonitor {
         }
     }
 
-    async fn check_pending_buy_order(order: &PendingOrder, exchange: &dyn TradingApi, tracker: &PositionTracker, config: &AppConfig) {
+    async fn check_pending_buy_order(
+        order: &PendingOrder,
+        exchange: &dyn TradingApi,
+        tracker: &PositionTracker,
+        config: &AppConfig,
+    ) {
         match exchange.get_order(&order.order_id).await {
             Ok(ack) => {
                 if ack.status.eq_ignore_ascii_case("filled") {
-                    info!("✅ [MONITOR] Pending BUY filled: {} @ ${:.2}", order.symbol, order.limit_price);
+                    info!(
+                        "✅ [MONITOR] Pending BUY filled: {} @ ${:.2}",
+                        order.symbol, order.limit_price
+                    );
                     tracker.remove_pending_order(&order.order_id);
 
                     let (tp_pct, sl_pct) = config.get_symbol_params(&order.symbol);
@@ -452,7 +504,10 @@ impl PositionMonitor {
                         time_in_force: ExTimeInForce::Gtc, // Crypto usually GTC
                     };
 
-                    info!("🚀 [MONITOR] Submitting Take Profit Limit Sell for {} @ ${:.2}", order.symbol, pos_info.take_profit);
+                    info!(
+                        "🚀 [MONITOR] Submitting Take Profit Limit Sell for {} @ ${:.2}",
+                        order.symbol, pos_info.take_profit
+                    );
                     match exchange.submit_order(tp_req).await {
                         Ok(res) => {
                             info!("✅ [MONITOR] TP Limit Sell Placed: {}", res.id);
@@ -481,8 +536,13 @@ impl PositionMonitor {
                     }
 
                     tracker.add_position(pos_info);
-                } else if ack.status.eq_ignore_ascii_case("canceled") || ack.status.eq_ignore_ascii_case("expired") {
-                    info!("❌ [MONITOR] Pending BUY canceled/expired: {}", order.symbol);
+                } else if ack.status.eq_ignore_ascii_case("canceled")
+                    || ack.status.eq_ignore_ascii_case("expired")
+                {
+                    info!(
+                        "❌ [MONITOR] Pending BUY canceled/expired: {}",
+                        order.symbol
+                    );
                     tracker.remove_pending_order(&order.order_id);
                 }
             }
@@ -490,15 +550,27 @@ impl PositionMonitor {
         }
     }
 
-    async fn check_pending_sell_order(order: &PendingOrder, exchange: &dyn TradingApi, tracker: &PositionTracker) {
+    async fn check_pending_sell_order(
+        order: &PendingOrder,
+        exchange: &dyn TradingApi,
+        tracker: &PositionTracker,
+    ) {
         match exchange.get_order(&order.order_id).await {
             Ok(ack) => {
                 if ack.status.eq_ignore_ascii_case("filled") {
-                    info!("💰 [MONITOR] Take Profit Limit Sell FILLED: {} @ ${:.2}", order.symbol, order.limit_price);
+                    info!(
+                        "💰 [MONITOR] Take Profit Limit Sell FILLED: {} @ ${:.2}",
+                        order.symbol, order.limit_price
+                    );
                     tracker.remove_pending_order(&order.order_id);
                     tracker.remove_position(&order.symbol);
-                } else if ack.status.eq_ignore_ascii_case("canceled") || ack.status.eq_ignore_ascii_case("expired") {
-                    info!("⚠️ [MONITOR] TP Limit Sell canceled/expired: {}", order.symbol);
+                } else if ack.status.eq_ignore_ascii_case("canceled")
+                    || ack.status.eq_ignore_ascii_case("expired")
+                {
+                    info!(
+                        "⚠️ [MONITOR] TP Limit Sell canceled/expired: {}",
+                        order.symbol
+                    );
                     tracker.remove_pending_order(&order.order_id);
                     // Position remains open, but without TP order.
                     // We should probably clear open_order_id in position.

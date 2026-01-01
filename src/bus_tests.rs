@@ -3,7 +3,7 @@
 #[cfg(test)]
 mod bus_tests {
     use crate::bus::EventBus;
-    use crate::events::{Event, MarketEvent, AnalysisSignal, OrderRequest, ExecutionReport};
+    use crate::events::{AnalysisSignal, Event, ExecutionReport, MarketEvent, OrderRequest};
 
     #[tokio::test]
     async fn test_eventbus_new() {
@@ -31,8 +31,11 @@ mod bus_tests {
         // Subscriber should receive the event
         let received = rx.recv().await;
         assert!(received.is_ok());
-        
-        if let Ok(Event::Market(MarketEvent::Quote { symbol, bid, ask, .. })) = received {
+
+        if let Ok(Event::Market(MarketEvent::Quote {
+            symbol, bid, ask, ..
+        })) = received
+        {
             assert_eq!(symbol, "BTC/USD");
             assert_eq!(bid, 50000.0);
             assert_eq!(ask, 50001.0);
@@ -136,7 +139,13 @@ mod bus_tests {
 
         bus.publish(event).unwrap();
 
-        if let Ok(Event::Market(MarketEvent::Trade { symbol, price, size, .. })) = rx.recv().await {
+        if let Ok(Event::Market(MarketEvent::Trade {
+            symbol,
+            price,
+            size,
+            ..
+        })) = rx.recv().await
+        {
             assert_eq!(symbol, "XRP/USD");
             assert_eq!(price, 0.55);
             assert_eq!(size, 5000.0);
@@ -164,4 +173,3 @@ mod bus_tests {
         // Should not panic - channel handles overflow by lagging
     }
 }
-

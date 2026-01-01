@@ -2,7 +2,7 @@ pub mod queue;
 
 use async_openai::{
     config::OpenAIConfig,
-    types::{CreateChatCompletionRequestArgs, ChatCompletionRequestMessage},
+    types::{ChatCompletionRequestMessage, CreateChatCompletionRequestArgs},
     Client,
 };
 use std::error::Error;
@@ -25,23 +25,39 @@ impl LLMClient {
         Self { client, model }
     }
 
-    pub async fn chat(&self, system_prompt: &str, user_input: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
+    pub async fn chat(
+        &self,
+        system_prompt: &str,
+        user_input: &str,
+    ) -> Result<String, Box<dyn Error + Send + Sync>> {
         use tracing::info;
 
         info!("🤖 Sending request to LLM (Model: {})...", self.model);
-        
+
         let request = CreateChatCompletionRequestArgs::default()
             .model(&self.model)
             .messages([
-                ChatCompletionRequestMessage::System(async_openai::types::ChatCompletionRequestSystemMessageArgs::default().content(system_prompt).build()?),
-                ChatCompletionRequestMessage::User(async_openai::types::ChatCompletionRequestUserMessageArgs::default().content(user_input).build()?),
+                ChatCompletionRequestMessage::System(
+                    async_openai::types::ChatCompletionRequestSystemMessageArgs::default()
+                        .content(system_prompt)
+                        .build()?,
+                ),
+                ChatCompletionRequestMessage::User(
+                    async_openai::types::ChatCompletionRequestUserMessageArgs::default()
+                        .content(user_input)
+                        .build()?,
+                ),
             ])
             .build()?;
 
         let response = self.client.chat().create(request).await?;
-        
+
         info!("🤖 LLM Response received.");
 
-        Ok(response.choices[0].message.content.clone().unwrap_or_default())
+        Ok(response.choices[0]
+            .message
+            .content
+            .clone()
+            .unwrap_or_default())
     }
 }

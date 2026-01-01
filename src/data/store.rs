@@ -1,8 +1,8 @@
-use std::collections::VecDeque;
-use std::sync::{Arc, Mutex};
-use serde_json::Value;
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use std::collections::VecDeque;
+use std::sync::{Arc, Mutex};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Quote {
@@ -73,7 +73,10 @@ impl MarketStore {
     }
 
     pub fn update_bar(&self, symbol: String, bar: Bar) {
-        let mut queue = self.historical_bars.entry(symbol).or_insert_with(VecDeque::new);
+        let mut queue = self
+            .historical_bars
+            .entry(symbol)
+            .or_insert_with(VecDeque::new);
         if queue.len() >= self.limit {
             queue.pop_front();
         }
@@ -81,7 +84,10 @@ impl MarketStore {
     }
 
     pub fn update_trade(&self, symbol: String, trade: Trade) {
-        let mut queue = self.historical_trades.entry(symbol).or_insert_with(VecDeque::new);
+        let mut queue = self
+            .historical_trades
+            .entry(symbol)
+            .or_insert_with(VecDeque::new);
         if queue.len() >= self.limit {
             queue.pop_front();
         }
@@ -89,7 +95,10 @@ impl MarketStore {
     }
 
     pub fn update_quote(&self, symbol: String, quote: Quote) {
-        let mut queue = self.historical_quotes.entry(symbol).or_insert_with(VecDeque::new);
+        let mut queue = self
+            .historical_quotes
+            .entry(symbol)
+            .or_insert_with(VecDeque::new);
         if queue.len() >= self.limit {
             queue.pop_front();
         }
@@ -103,9 +112,11 @@ impl MarketStore {
         }
         news.push(news_item);
     }
-    
+
     pub fn get_latest_bar(&self, symbol: &str) -> Option<Bar> {
-        self.historical_bars.get(symbol).and_then(|q| q.back().cloned())
+        self.historical_bars
+            .get(symbol)
+            .and_then(|q| q.back().cloned())
     }
 
     pub fn get_bar_history(&self, symbol: &str) -> Vec<Bar> {
@@ -138,9 +149,11 @@ impl MarketStore {
     }
 
     pub fn get_latest_quote(&self, symbol: &str) -> Option<Quote> {
-        self.historical_quotes.get(symbol).and_then(|q| q.back().cloned())
+        self.historical_quotes
+            .get(symbol)
+            .and_then(|q| q.back().cloned())
     }
-    
+
     pub fn get_latest_news(&self) -> Vec<Value> {
         let news = self.news.lock().unwrap();
         news.clone()

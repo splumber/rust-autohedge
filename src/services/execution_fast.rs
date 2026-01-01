@@ -1,17 +1,22 @@
-use std::sync::Arc;
-use tracing::{info, error, warn};
+use crate::agents::{execution::ExecutionAgent, Agent};
 use crate::bus::EventBus;
-use crate::events::{Event, OrderRequest, ExecutionReport};
-use crate::llm::LLMQueue;
-use crate::agents::{Agent, execution::ExecutionAgent};
 use crate::config::AppConfig;
-use crate::services::position_monitor::{PositionTracker, PositionInfo, PendingOrder};
-use crate::services::execution_utils::{AccountCache, RateLimiter, compute_order_sizing, aggressive_limit_price};
+use crate::data::store::MarketStore;
+use crate::events::{Event, ExecutionReport, OrderRequest};
 use crate::exchange::{
     traits::TradingApi,
-    types::{OrderType as ExOrderType, PlaceOrderRequest as ExPlaceOrderRequest, Side as ExSide, TimeInForce as ExTimeInForce},
+    types::{
+        OrderType as ExOrderType, PlaceOrderRequest as ExPlaceOrderRequest, Side as ExSide,
+        TimeInForce as ExTimeInForce,
+    },
 };
-use crate::data::store::MarketStore;
+use crate::llm::LLMQueue;
+use crate::services::execution_utils::{
+    aggressive_limit_price, compute_order_sizing, AccountCache, RateLimiter,
+};
+use crate::services::position_monitor::{PendingOrder, PositionInfo, PositionTracker};
+use std::sync::Arc;
+use tracing::{error, info, warn};
 
 /// High-performance execution engine optimized for frequent small trades.
 pub struct ExecutionEngine {
@@ -70,14 +75,22 @@ impl ExecutionEngine {
 
         tokio::spawn(async move {
             info!("⚡ Execution Engine Started (High-Performance Mode)");
-            info!("[EXECUTION] Exchange: {} | Mode: {} | MinOrder=${:.2} MaxOrder=${:.2}",
-                  exchange.name(), config.trading_mode, config.defaults.min_order_amount, config.defaults.max_order_amount);
+            info!(
+                "[EXECUTION] Exchange: {} | Mode: {} | MinOrder=${:.2} MaxOrder=${:.2}",
+                exchange.name(),
+                config.trading_mode,
+                config.defaults.min_order_amount,
+                config.defaults.max_order_amount
+            );
 
             while let Ok(event) = rx.recv().await {
                 if let Event::Order(req) = event {
                     // Skip verbose logging for performance
                     if config.chatter_level != "low" {
-                        info!("[EXECUTION] Received: {} {} {}", req.action, req.symbol, req.order_type);
+                        info!(
+                            "[EXECUTION] Received: {} {} {}",
+                            req.action, req.symbol, req.order_type
+                        );
                     }
 
                     // Clone for async task
@@ -92,7 +105,18 @@ impl ExecutionEngine {
 
                     // Spawn non-blocking execution
                     tokio::spawn(async move {
-                        Self::execute_fast(req, exchange, store, llm, bus, config, tracker, account_cache, rate_limiter).await;
+                        Self::execute_fast(
+                            req,
+                            exchange,
+                            store,
+                            llm,
+                            bus,
+                            config,
+                            tracker,
+                            account_cache,
+                            rate_limiter,
+                        )
+                        .await;
                     });
                 }
             }
@@ -157,7 +181,12 @@ impl ExecutionEngine {
         };
 
         // Calculate aggressive limit price for faster fills
-        let limit_price = aggressive_limit_price(quote.bid_price, quote.ask_price, "buy", micro_config.aggression_bps);
+        let limit_price = aggressive_limit_price(
+            quote.bid_price,
+            quote.ask_price,
+            "buy",
+            micro_config.aggression_bps,
+        );
 
         // Get cached buying power (reduces API calls from every order to every 30s)
         let buying_power = account_cache.buying_power().await;
@@ -176,7 +205,10 @@ impl ExecutionEngine {
         ) {
             Some(s) => s,
             None => {
-                error!("[EXECUTION] Cannot size order for {} (balance=${:.2})", req.symbol, buying_power);
+                error!(
+                    "[EXECUTION] Cannot size order for {} (balance=${:.2})",
+                    req.symbol, buying_power
+                );
                 return;
             }
         };
@@ -209,7 +241,10 @@ impl ExecutionEngine {
 
         if action != "buy" {
             if config.chatter_level != "low" {
-                info!("[EXECUTION] Agent decided '{}' for {}, skipping", action, req.symbol);
+                info!(
+                    "[EXECUTION] Agent decided '{}' for {}, skipping",
+                    action, req.symbol
+                );
             }
             return;
         }
@@ -218,12 +253,17 @@ impl ExecutionEngine {
         // For crypto: Use configured time-in-force (gtc or ioc)
         // For stocks: Use Day
         let time_in_force = if is_crypto {
-            match config.micro_trade.crypto_time_in_force.to_lowercase().as_str() {
-                "ioc" => ExTimeInForce::Ioc,  // Immediate Or Cancel
-                _ => ExTimeInForce::Gtc,       // Good Till Canceled (default)
+            match config
+                .micro_trade
+                .crypto_time_in_force
+                .to_lowercase()
+                .as_str()
+            {
+                "ioc" => ExTimeInForce::Ioc, // Immediate Or Cancel
+                _ => ExTimeInForce::Gtc,     // Good Till Canceled (default)
             }
         } else {
-            ExTimeInForce::Day  // Stocks use Day
+            ExTimeInForce::Day // Stocks use Day
         };
 
         let api_req = ExPlaceOrderRequest {
@@ -233,13 +273,26 @@ impl ExecutionEngine {
             qty: Some(sizing.qty),
             notional: None, // Use qty for limit orders
             time_in_force,
-            limit_price: if matches!(order_type, ExOrderType::Limit) { Some(limit_price) } else { None },
+            limit_price: if matches!(order_type, ExOrderType::Limit) {
+                Some(limit_price)
+            } else {
+                None
+            },
         };
 
         if config.chatter_level != "low" {
-            info!("[ORDER] {} {} qty={:.6} @ ${:.4} (${:.2})",
-                  if matches!(order_type, ExOrderType::Limit) { "LIMIT" } else { "MARKET" },
-                  req.symbol, sizing.qty, limit_price, sizing.notional);
+            info!(
+                "[ORDER] {} {} qty={:.6} @ ${:.4} (${:.2})",
+                if matches!(order_type, ExOrderType::Limit) {
+                    "LIMIT"
+                } else {
+                    "MARKET"
+                },
+                req.symbol,
+                sizing.qty,
+                limit_price,
+                sizing.notional
+            );
         }
 
         // Submit order
@@ -257,7 +310,7 @@ impl ExecutionEngine {
                 let (tp_pct, sl_pct) = config.get_symbol_params(&req.symbol);
                 let stop_loss = limit_price * (1.0 - sl_pct / 100.0);
                 let take_profit = limit_price * (1.0 + tp_pct / 100.0);
-                
+
                 if config.chatter_level != "low" {
                     info!("[EXECUTION] TP/SL calculated from limit_price ${:.8}: TP=${:.8} (+{:.2}%), SL=${:.8} (-{:.2}%)",
                           limit_price, take_profit, tp_pct, stop_loss, sl_pct);
@@ -334,12 +387,11 @@ impl ExecutionEngine {
             pos.qty
         } else {
             match exchange.get_positions().await {
-                Ok(positions) => {
-                    positions.into_iter()
-                        .find(|p| p.symbol == req.symbol)
-                        .map(|p| p.qty)
-                        .unwrap_or(0.0)
-                }
+                Ok(positions) => positions
+                    .into_iter()
+                    .find(|p| p.symbol == req.symbol)
+                    .map(|p| p.qty)
+                    .unwrap_or(0.0),
                 Err(_) => 0.0,
             }
         };
@@ -349,7 +401,11 @@ impl ExecutionEngine {
             return;
         }
 
-        let time_in_force = if is_crypto { ExTimeInForce::Gtc } else { ExTimeInForce::Day };
+        let time_in_force = if is_crypto {
+            ExTimeInForce::Gtc
+        } else {
+            ExTimeInForce::Day
+        };
 
         let api_req = ExPlaceOrderRequest {
             symbol: req.symbol.clone(),
@@ -385,7 +441,10 @@ impl ExecutionEngine {
     /// Get decision from LLM (slower path)
     async fn get_llm_decision(symbol: &str, llm: &LLMQueue) -> Option<(String, ExOrderType)> {
         let agent = ExecutionAgent;
-        let input = format!("Symbol: {}\nRisk Analysis: Approved\nAction: Create Order JSON", symbol);
+        let input = format!(
+            "Symbol: {}\nRisk Analysis: Approved\nAction: Create Order JSON",
+            symbol
+        );
 
         match agent.run_high_priority(&input, llm).await {
             Ok(response) => {
@@ -419,18 +478,21 @@ impl ExecutionEngine {
              Strategy: HFT micro-trade, targeting {}bps profit.\n\
              Current spread acceptable.\n\
              Should we proceed? Reply with just 'yes' or 'no'.",
-            symbol,
-            config.hft.take_profit_bps
+            symbol, config.hft.take_profit_bps
         );
 
         match agent.run_high_priority(&input, llm).await {
             Ok(response) => {
                 let lower = response.to_lowercase();
-                let approved = lower.contains("yes") || lower.contains("proceed") || lower.contains("approve");
+                let approved =
+                    lower.contains("yes") || lower.contains("proceed") || lower.contains("approve");
                 Some(approved)
             }
             Err(e) => {
-                warn!("[EXECUTION] LLM validation failed for {}: {}, defaulting to approve", symbol, e);
+                warn!(
+                    "[EXECUTION] LLM validation failed for {}: {}, defaulting to approve",
+                    symbol, e
+                );
                 Some(true) // On LLM failure, default to allowing the trade
             }
         }
@@ -446,4 +508,3 @@ impl ExecutionEngine {
         }
     }
 }
-

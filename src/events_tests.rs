@@ -15,7 +15,13 @@ mod events_tests {
             timestamp: "2025-01-01T00:00:00Z".to_string(),
         };
 
-        if let MarketEvent::Quote { symbol, bid, ask, timestamp } = event {
+        if let MarketEvent::Quote {
+            symbol,
+            bid,
+            ask,
+            timestamp,
+        } = event
+        {
             assert_eq!(symbol, "BTC/USD");
             assert_eq!(bid, 50000.0);
             assert_eq!(ask, 50001.0);
@@ -66,7 +72,13 @@ mod events_tests {
             timestamp: "2025-01-01T00:00:00Z".to_string(),
         };
 
-        if let MarketEvent::Trade { symbol, price, size, timestamp } = event {
+        if let MarketEvent::Trade {
+            symbol,
+            price,
+            size,
+            timestamp,
+        } = event
+        {
             assert_eq!(symbol, "DOGE/USD");
             assert_eq!(price, 0.08);
             assert_eq!(size, 10000.0);
@@ -355,4 +367,3 @@ mod events_tests {
         assert!(debug.contains("LTC/USD"));
     }
 }
-
