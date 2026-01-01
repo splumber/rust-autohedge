@@ -116,6 +116,7 @@ impl TradingApi for AlpacaExchange {
         let time_in_force = match order.time_in_force {
             TimeInForce::Day => "day",
             TimeInForce::Gtc => "gtc",
+            TimeInForce::Ioc => "ioc",
         };
 
         let api_req = AlpacaOrderRequest {

@@ -27,6 +27,46 @@ pub struct HftConfig {
 }
 
 #[derive(Clone, Debug, Deserialize)]
+pub struct MicroTradeConfig {
+    /// Target % of balance per trade (e.g., 0.05 = 5%)
+    pub target_balance_pct: f64,
+    /// Aggression in basis points for limit price (higher = closer to market, faster fills)
+    pub aggression_bps: f64,
+    /// Minimum interval between orders per symbol (ms)
+    pub min_order_interval_ms: u64,
+    /// Account cache refresh interval (secs)
+    pub account_cache_secs: u64,
+    /// If true, use LLM to filter/validate HFT signals (slower but potentially smarter)
+    #[serde(default)]
+    pub use_llm_filter: bool,
+    /// If true, use Day time-in-force for limit orders (expire at end of day)
+    #[serde(default = "default_true")]
+    pub limit_orders_expire_daily: bool,
+    /// Time-in-force for crypto limit orders: "gtc" or "ioc"
+    /// - gtc: Good Till Canceled (stays open until filled or manually canceled)
+    /// - ioc: Immediate Or Cancel (fills immediately or cancels, no partial fills wait)
+    #[serde(default = "default_tif")]
+    pub crypto_time_in_force: String,
+}
+
+fn default_true() -> bool { true }
+fn default_tif() -> String { "gtc".to_string() }
+
+impl Default for MicroTradeConfig {
+    fn default() -> Self {
+        Self {
+            target_balance_pct: 0.05,
+            aggression_bps: 5.0,
+            min_order_interval_ms: 500,
+            account_cache_secs: 30,
+            use_llm_filter: false,
+            limit_orders_expire_daily: true,
+            crypto_time_in_force: "gtc".to_string(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
 pub struct HybridConfig {
     pub gate_refresh_quotes: usize,
     pub no_trade_cooldown_quotes: usize,
@@ -86,6 +126,8 @@ pub struct AppConfig {
 
     pub hft: HftConfig,
     pub hybrid: HybridConfig,
+    #[serde(default)]
+    pub micro_trade: MicroTradeConfig,
     pub llm: LlmConfig,
     pub alpaca: AlpacaConfig,
     pub binance: Option<BinanceConfig>,

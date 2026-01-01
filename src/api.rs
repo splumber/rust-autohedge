@@ -31,6 +31,7 @@ pub async fn run_server(state: Arc<AppState>) {
         .route("/stop", post(stop_trading))
         .route("/assets", get(get_assets))
         .route("/report", get(get_report))
+        .route("/stats", get(get_stats))
         .route("/cancel_all", post(cancel_all_orders))
         .with_state(state);
 
@@ -64,6 +65,21 @@ async fn get_report(State(_state): State<Arc<AppState>>) -> impl IntoResponse {
         Err(_) => (
             axum::http::StatusCode::NOT_FOUND,
             "No report found yet. Start trading first.",
+        ).into_response(),
+    }
+}
+
+async fn get_stats(State(_state): State<Arc<AppState>>) -> impl IntoResponse {
+    // Read the computed stats (smaller, easier to read)
+    let path = std::path::PathBuf::from("./data/trade_stats.json");
+    match std::fs::read_to_string(&path) {
+        Ok(txt) => (
+            [(axum::http::header::CONTENT_TYPE, "application/json")],
+            txt
+        ).into_response(),
+        Err(_) => (
+            axum::http::StatusCode::NOT_FOUND,
+            "No stats found yet. Start trading first.",
         ).into_response(),
     }
 }
@@ -164,16 +180,29 @@ async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse 
         );
         risk_engine.start().await;
 
-        // Start Execution Engine
-        let execution_engine = crate::services::execution::ExecutionEngine::new(
-            event_bus.clone(),
-            exchange.clone(),
-            market_store.clone(),
-            llm.clone(),
-            config.clone(),
-            position_tracker.clone(),
-        );
-        execution_engine.start().await;
+        // Start Execution Engine (use fast engine for HFT mode)
+        if config.strategy_mode.to_lowercase() == "hft" {
+            info!("⚡ Using Fast Execution Engine for HFT mode");
+            let execution_engine = crate::services::execution_fast::ExecutionEngine::new(
+                event_bus.clone(),
+                exchange.clone(),
+                market_store.clone(),
+                llm.clone(),
+                config.clone(),
+                position_tracker.clone(),
+            );
+            execution_engine.start().await;
+        } else {
+            let execution_engine = crate::services::execution::ExecutionEngine::new(
+                event_bus.clone(),
+                exchange.clone(),
+                market_store.clone(),
+                llm.clone(),
+                config.clone(),
+                position_tracker.clone(),
+            );
+            execution_engine.start().await;
+        }
 
         // Start Position Monitor
         let position_monitor = crate::services::position_monitor::PositionMonitor::new(

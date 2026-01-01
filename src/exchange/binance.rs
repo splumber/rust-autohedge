@@ -77,7 +77,7 @@ impl TradingApi for BinanceExchange {
     async fn submit_order(&self, order: PlaceOrderRequest) -> ExchangeResult<OrderAck> {
         // Minimal placeholder. Real Binance endpoint is POST /api/v3/order with signed query.
         let endpoint = format!("{}/api/v3/order", self.base_url);
-        let _tif = match order.time_in_force { TimeInForce::Day => "DAY", TimeInForce::Gtc => "GTC" };
+        let _tif = match order.time_in_force { TimeInForce::Day => "DAY", TimeInForce::Gtc => "GTC", TimeInForce::Ioc => "IOC" };
         let _side = match order.side { Side::Buy => "BUY", Side::Sell => "SELL" };
         let _type = match order.order_type { OrderType::Market => "MARKET", OrderType::Limit => "LIMIT" };
 

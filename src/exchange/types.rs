@@ -34,6 +34,7 @@ pub enum OrderType {
 pub enum TimeInForce {
     Day,
     Gtc,
+    Ioc, // Immediate Or Cancel - for crypto limit orders
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

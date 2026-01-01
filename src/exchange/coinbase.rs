@@ -83,7 +83,7 @@ impl TradingApi for CoinbaseExchange {
         let endpoint = format!("{}/api/v3/brokerage/orders", self.base_url);
 
         let side = match order.side { Side::Buy => "BUY", Side::Sell => "SELL" };
-        let _tif = match order.time_in_force { TimeInForce::Day => "DAY", TimeInForce::Gtc => "GTC" };
+        let _tif = match order.time_in_force { TimeInForce::Day => "DAY", TimeInForce::Gtc => "GTC", TimeInForce::Ioc => "IOC" };
 
         let product_id = to_coinbase_product_id(&order.symbol);
 

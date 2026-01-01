@@ -55,6 +55,7 @@ pub struct OpenPosition {
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct PerformanceSummary {
+    pub start_time: Option<String>,
     pub total_orders: u64,
     pub total_exec_reports: u64,
 
@@ -74,6 +75,87 @@ pub struct PerformanceSummary {
     
     /// Currently open positions
     pub open_positions: HashMap<String, OpenPosition>,
+
+    // === Micro-trading metrics ===
+    /// Total realized P&L across all closed trades
+    pub total_realized_pnl: f64,
+
+    /// Number of winning trades
+    pub winning_trades: u64,
+
+    /// Number of losing trades
+    pub losing_trades: u64,
+
+    /// Sum of profits from winning trades
+    pub total_profit: f64,
+
+    /// Sum of losses from losing trades
+    pub total_loss: f64,
+}
+
+/// Computed statistics for display
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ComputedStats {
+    pub runtime_minutes: f64,
+    pub trades_per_hour: f64,
+    pub win_rate_pct: f64,
+    pub avg_profit_per_trade: f64,
+    pub profit_factor: f64,  // total_profit / total_loss
+    pub total_closed_trades: u64,
+    pub open_position_count: usize,
+}
+
+impl PerformanceSummary {
+    /// Compute derived statistics
+    pub fn compute_stats(&self) -> ComputedStats {
+        let runtime_minutes = if let Some(ref start) = self.start_time {
+            if let Ok(start_dt) = chrono::DateTime::parse_from_rfc3339(start) {
+                let now = Utc::now();
+                (now.signed_duration_since(start_dt.with_timezone(&Utc))).num_seconds() as f64 / 60.0
+            } else {
+                0.0
+            }
+        } else {
+            0.0
+        };
+
+        let total_closed = self.winning_trades + self.losing_trades;
+        let trades_per_hour = if runtime_minutes > 0.0 {
+            (total_closed as f64) / (runtime_minutes / 60.0)
+        } else {
+            0.0
+        };
+
+        let win_rate_pct = if total_closed > 0 {
+            (self.winning_trades as f64 / total_closed as f64) * 100.0
+        } else {
+            0.0
+        };
+
+        let avg_profit_per_trade = if total_closed > 0 {
+            self.total_realized_pnl / total_closed as f64
+        } else {
+            0.0
+        };
+
+        let profit_factor = if self.total_loss > 0.0 {
+            self.total_profit / self.total_loss
+        } else if self.total_profit > 0.0 {
+            f64::INFINITY
+        } else {
+            0.0
+        };
+
+        ComputedStats {
+            runtime_minutes,
+            trades_per_hour,
+            win_rate_pct,
+            avg_profit_per_trade,
+            profit_factor,
+            total_closed_trades: total_closed,
+            open_position_count: self.open_positions.len(),
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -151,6 +233,12 @@ impl TradeReporter {
 
     fn on_execution(&self, exec: &ExecutionReport) {
         let mut s = self.summary.lock().unwrap();
+
+        // Initialize start_time on first execution
+        if s.start_time.is_none() {
+            s.start_time = Some(Utc::now().to_rfc3339());
+        }
+
         s.total_exec_reports += 1;
 
         let st = exec.status.to_lowercase();
@@ -177,6 +265,16 @@ impl TradeReporter {
                          let pnl = (price - open_pos.buy_price) * qty;
                          let pnl_percent = (price - open_pos.buy_price) / open_pos.buy_price * 100.0;
                          
+                         // Track win/loss metrics
+                         s.total_realized_pnl += pnl;
+                         if pnl > 0.0 {
+                             s.winning_trades += 1;
+                             s.total_profit += pnl;
+                         } else {
+                             s.losing_trades += 1;
+                             s.total_loss += pnl.abs();
+                         }
+
                          let trade = ClosedTrade {
                              symbol: exec.symbol.clone(),
                              buy_time: open_pos.buy_time,
@@ -203,7 +301,7 @@ impl TradeReporter {
         let entry = TradeLogEntry {
             ts: Utc::now().to_rfc3339(),
             symbol: exec.symbol.clone(),
-            action: "unknown".to_string(),
+            action: exec.side.clone(),
             order_id: exec.order_id.clone(),
             status: exec.status.clone(),
             qty: exec.qty,
@@ -240,12 +338,36 @@ impl TradeReporter {
             .log_path
             .with_file_name("trade_summary.json");
 
+        let stats_path = self
+            .log_path
+            .with_file_name("trade_stats.json");
+
         if let Some(parent) = summary_path.parent() {
             std::fs::create_dir_all(parent)?;
         }
 
         let s = self.summary.lock().unwrap().clone();
-        std::fs::write(summary_path, serde_json::to_vec_pretty(&s)?)?;
+        let stats = s.compute_stats();
+        
+        // Write full summary
+        std::fs::write(&summary_path, serde_json::to_vec_pretty(&s)?)?;
+        
+        // Write computed stats (smaller, easier to read)
+        let stats_output = serde_json::json!({
+            "runtime_minutes": format!("{:.1}", stats.runtime_minutes),
+            "trades_per_hour": format!("{:.2}", stats.trades_per_hour),
+            "win_rate_pct": format!("{:.1}%", stats.win_rate_pct),
+            "avg_profit_per_trade": format!("${:.4}", stats.avg_profit_per_trade),
+            "profit_factor": format!("{:.2}", stats.profit_factor),
+            "total_closed_trades": stats.total_closed_trades,
+            "open_positions": stats.open_position_count,
+            "winning_trades": s.winning_trades,
+            "losing_trades": s.losing_trades,
+            "total_realized_pnl": format!("${:.4}", s.total_realized_pnl),
+            "total_notional_traded": format!("${:.2}", s.total_notional),
+        });
+        std::fs::write(&stats_path, serde_json::to_vec_pretty(&stats_output)?)?;
+        
         Ok(())
     }
 }

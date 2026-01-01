@@ -315,9 +315,14 @@ impl ExecutionEngine {
                             info!("[SUCCESS] Order Placed: id={} status={}", res.id, res.status);
 
                             if order.action == "buy" {
+                                // IMPORTANT: Always calculate TP/SL from actual entry price
+                                // Don't use req.stop_loss/take_profit as those may be stale
                                 let (tp_pct, sl_pct) = config.get_symbol_params(&req.symbol);
-                                let stop_loss = req.stop_loss.unwrap_or(estimated_price * (1.0 - sl_pct / 100.0));
-                                let take_profit = req.take_profit.unwrap_or(estimated_price * (1.0 + tp_pct / 100.0));
+                                let stop_loss = estimated_price * (1.0 - sl_pct / 100.0);
+                                let take_profit = estimated_price * (1.0 + tp_pct / 100.0);
+
+                                info!("[EXECUTION] TP/SL from entry ${:.8}: TP=${:.8} (+{:.2}%), SL=${:.8} (-{:.2}%)",
+                                      estimated_price, take_profit, tp_pct, stop_loss, sl_pct);
 
                                 if matches!(order_type_enum, ExOrderType::Limit) {
                                     let pending = crate::services::position_monitor::PendingOrder {

@@ -418,16 +418,23 @@ impl PositionMonitor {
                     tracker.remove_pending_order(&order.order_id);
 
                     let (tp_pct, sl_pct) = config.get_symbol_params(&order.symbol);
-                    let default_sl = order.limit_price * (1.0 - sl_pct / 100.0);
-                    let default_tp = order.limit_price * (1.0 + tp_pct / 100.0);
+                    // IMPORTANT: Always recalculate TP/SL based on actual fill price
+                    // The signal's TP might be stale (calculated from mid at signal time)
+                    // which could be LOWER than the aggressive buy limit price
+                    let fill_price = order.limit_price;
+                    let take_profit_price = fill_price * (1.0 + tp_pct / 100.0);
+                    let stop_loss_price = fill_price * (1.0 - sl_pct / 100.0);
+
+                    info!("📊 [MONITOR] Calculating TP/SL from fill price ${:.8}: TP=${:.8} (+{:.2}%), SL=${:.8} (-{:.2}%)",
+                          fill_price, take_profit_price, tp_pct, stop_loss_price, sl_pct);
 
                     // Create Position
                     let mut pos_info = PositionInfo {
                         symbol: order.symbol.clone(),
-                        entry_price: order.limit_price,
+                        entry_price: fill_price,
                         qty: order.qty,
-                        stop_loss: order.stop_loss.unwrap_or(default_sl),
-                        take_profit: order.take_profit.unwrap_or(default_tp),
+                        stop_loss: stop_loss_price,
+                        take_profit: take_profit_price,
                         entry_time: chrono::Utc::now().to_rfc3339(),
                         side: "buy".to_string(),
                         is_closing: false,
@@ -452,6 +459,9 @@ impl PositionMonitor {
                             pos_info.open_order_id = Some(res.id.clone());
 
                             // Add TP to Pending Orders
+                            // NOTE: We don't set stop_loss on the sell order itself.
+                            // The position is monitored separately for SL conditions.
+                            // This prevents the TP sell from being cancelled due to SL.
                             let tp_pending = PendingOrder {
                                 order_id: res.id,
                                 symbol: order.symbol.clone(),
@@ -459,7 +469,7 @@ impl PositionMonitor {
                                 limit_price: pos_info.take_profit,
                                 qty: order.qty,
                                 created_at: chrono::Utc::now().to_rfc3339(),
-                                stop_loss: Some(pos_info.stop_loss),
+                                stop_loss: None, // Don't attach SL to the sell order
                                 take_profit: None,
                                 last_check_time: None,
                             };
