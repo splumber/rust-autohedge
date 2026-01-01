@@ -55,6 +55,7 @@ jobs:
 
       - name: Deploy documentation
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        continue-on-error: true
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
