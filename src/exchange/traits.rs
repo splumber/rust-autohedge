@@ -3,9 +3,7 @@ use serde_json::Value;
 
 use crate::{bus::EventBus, data::store::MarketStore};
 
-use super::types::{
-    AccountSummary, ExchangeCapabilities, OrderAck, PlaceOrderRequest, Position,
-};
+use super::types::{AccountSummary, ExchangeCapabilities, OrderAck, PlaceOrderRequest, Position};
 
 pub type ExchangeResult<T> = Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
@@ -29,5 +27,10 @@ pub trait TradingApi: Send + Sync {
 
 #[async_trait]
 pub trait MarketDataStream: Send + Sync {
-    async fn start(&self, store: MarketStore, symbols: Vec<String>, event_bus: EventBus) -> ExchangeResult<()>;
+    async fn start(
+        &self,
+        store: MarketStore,
+        symbols: Vec<String>,
+        event_bus: EventBus,
+    ) -> ExchangeResult<()>;
 }

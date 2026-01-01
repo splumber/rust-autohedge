@@ -19,18 +19,18 @@ mod execution_utils_tests {
         assert!(result.is_some());
         let sizing = result.unwrap();
         assert_eq!(sizing.notional, 100.0); // 5% of 10000 = 500, clamped to max 100
-        assert_eq!(sizing.qty, 1.0);        // 100 / 100 = 1
+        assert_eq!(sizing.qty, 1.0); // 100 / 100 = 1
         assert_eq!(sizing.limit_price, 100.0);
     }
 
     #[test]
     fn test_compute_order_sizing_min_order() {
         let result = compute_order_sizing(
-            100.0,  // price
-            100.0,  // buying_power (small)
-            10.0,   // min_order
-            100.0,  // max_order
-            0.05,   // target 5% = $5, but min is $10
+            100.0, // price
+            100.0, // buying_power (small)
+            10.0,  // min_order
+            100.0, // max_order
+            0.05,  // target 5% = $5, but min is $10
         );
 
         assert!(result.is_some());
@@ -57,11 +57,11 @@ mod execution_utils_tests {
     fn test_compute_order_sizing_95_percent_cap() {
         // Test that we don't exceed 95% of buying power
         let result = compute_order_sizing(
-            100.0,  // price
-            50.0,   // buying_power (only $50)
-            10.0,   // min_order
-            100.0,  // max_order
-            0.50,   // target 50% = $25, but max affordable is $47.50 (95%)
+            100.0, // price
+            50.0,  // buying_power (only $50)
+            10.0,  // min_order
+            100.0, // max_order
+            0.50,  // target 50% = $25, but max affordable is $47.50 (95%)
         );
 
         assert!(result.is_some());
@@ -86,11 +86,8 @@ mod execution_utils_tests {
     #[test]
     fn test_compute_order_sizing_zero_price() {
         let result = compute_order_sizing(
-            0.0,     // invalid price
-            10000.0,
-            10.0,
-            100.0,
-            0.05,
+            0.0, // invalid price
+            10000.0, 10.0, 100.0, 0.05,
         );
         assert!(result.is_none());
     }
@@ -98,11 +95,8 @@ mod execution_utils_tests {
     #[test]
     fn test_compute_order_sizing_negative_price() {
         let result = compute_order_sizing(
-            -100.0,  // invalid price
-            10000.0,
-            10.0,
-            100.0,
-            0.05,
+            -100.0, // invalid price
+            10000.0, 10.0, 100.0, 0.05,
         );
         assert!(result.is_none());
     }
@@ -110,11 +104,8 @@ mod execution_utils_tests {
     #[test]
     fn test_compute_order_sizing_zero_buying_power() {
         let result = compute_order_sizing(
-            100.0,
-            0.0,   // no buying power
-            10.0,
-            100.0,
-            0.05,
+            100.0, 0.0, // no buying power
+            10.0, 100.0, 0.05,
         );
         assert!(result.is_none());
     }
@@ -303,4 +294,3 @@ mod execution_utils_tests {
         assert!(debug.contains("qty"));
     }
 }
-

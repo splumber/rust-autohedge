@@ -1,5 +1,5 @@
-use tokio::sync::broadcast;
 use crate::events::Event;
+use tokio::sync::broadcast;
 
 #[derive(Clone)]
 pub struct EventBus {

@@ -1,21 +1,20 @@
+use crate::llm::LLMQueue;
 use axum::{
-    routing::{get, post},
-    Router,
     extract::State,
-    Json,
     response::IntoResponse,
+    routing::{get, post},
+    Json, Router,
 };
+use serde_json::json;
 use std::sync::{Arc, Mutex};
 use tokio::task::JoinHandle;
-use serde_json::json;
-use crate::llm::LLMQueue;
-use tracing::{info, error};
+use tracing::{error, info};
 
 use crate::config::AppConfig;
-use crate::exchange::{factory::build_exchange, ws::GenericWsStream};
-use crate::exchange::ws::WsProvider;
-use crate::exchange::traits::{TradingApi, MarketDataStream};
 use crate::data::store::MarketStore;
+use crate::exchange::traits::{MarketDataStream, TradingApi};
+use crate::exchange::ws::WsProvider;
+use crate::exchange::{factory::build_exchange, ws::GenericWsStream};
 use crate::services::reporting::TradeReporter;
 
 pub struct AppState {
@@ -49,12 +48,13 @@ struct AssetParams {
 
 async fn get_assets(
     State(_state): State<Arc<AppState>>,
-    Query(_params): Query<AssetParams>
+    Query(_params): Query<AssetParams>,
 ) -> impl IntoResponse {
     (
         axum::http::StatusCode::NOT_IMPLEMENTED,
         "Assets endpoint is exchange-specific; implement via TradingApi extension per exchange.",
-    ).into_response()
+    )
+        .into_response()
 }
 
 async fn get_report(State(_state): State<Arc<AppState>>) -> impl IntoResponse {
@@ -65,7 +65,8 @@ async fn get_report(State(_state): State<Arc<AppState>>) -> impl IntoResponse {
         Err(_) => (
             axum::http::StatusCode::NOT_FOUND,
             "No report found yet. Start trading first.",
-        ).into_response(),
+        )
+            .into_response(),
     }
 }
 
@@ -75,12 +76,14 @@ async fn get_stats(State(_state): State<Arc<AppState>>) -> impl IntoResponse {
     match std::fs::read_to_string(&path) {
         Ok(txt) => (
             [(axum::http::header::CONTENT_TYPE, "application/json")],
-            txt
-        ).into_response(),
+            txt,
+        )
+            .into_response(),
         Err(_) => (
             axum::http::StatusCode::NOT_FOUND,
             "No stats found yet. Start trading first.",
-        ).into_response(),
+        )
+            .into_response(),
     }
 }
 
@@ -111,7 +114,6 @@ async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse 
         // Create Event Bus
         let event_bus = crate::bus::EventBus::new(1000);
 
-
         // Market store: if exchange doesn't provide one, make a local one.
         let market_store = maybe_store.unwrap_or_else(|| MarketStore::new(config.history_limit));
 
@@ -129,7 +131,7 @@ async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse 
                     (None, None)
                 };
                 GenericWsStream::binance(key, secret)
-            },
+            }
             "coinbase" => {
                 let (key, secret) = if let Some(c) = &config.coinbase {
                     (Some(c.api_key.clone()), Some(c.secret_key.clone()))
@@ -137,7 +139,7 @@ async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse 
                     (None, None)
                 };
                 GenericWsStream::coinbase(key, secret)
-            },
+            }
             "kraken" => {
                 let (key, secret) = if let Some(c) = &config.kraken {
                     (Some(c.api_key.clone()), Some(c.secret_key.clone()))
@@ -145,11 +147,18 @@ async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse 
                     (None, None)
                 };
                 GenericWsStream::kraken(key, secret)
+            }
+            _ => GenericWsStream {
+                provider: WsProvider::AlpacaCrypto,
+                api_key: None,
+                api_secret: None,
             },
-            _ => GenericWsStream { provider: WsProvider::AlpacaCrypto, api_key: None, api_secret: None },
         };
 
-        if let Err(e) = ws_provider.start(market_store.clone(), symbols.clone(), event_bus.clone()).await {
+        if let Err(e) = ws_provider
+            .start(market_store.clone(), symbols.clone(), event_bus.clone())
+            .await
+        {
             error!("WS start failed: {}", e);
         }
 
@@ -227,7 +236,7 @@ async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse 
 
 async fn stop_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     let mut handle_lock = state.trading_handle.lock().unwrap();
-    
+
     if let Some(handle) = handle_lock.take() {
         handle.abort();
         Json(json!({"status": "stopped"})).into_response()
@@ -250,10 +259,13 @@ async fn cancel_all_orders(State(state): State<Arc<AppState>>) -> impl IntoRespo
     };
 
     match exchange.cancel_all_orders().await {
-        Ok(_) => Json(json!({"status": "success", "message": "All orders cancelled"})).into_response(),
+        Ok(_) => {
+            Json(json!({"status": "success", "message": "All orders cancelled"})).into_response()
+        }
         Err(e) => (
             axum::http::StatusCode::INTERNAL_SERVER_ERROR,
             format!("Failed to cancel all orders: {}", e),
-        ).into_response(),
+        )
+            .into_response(),
     }
 }

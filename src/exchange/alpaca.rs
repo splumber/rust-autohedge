@@ -19,7 +19,10 @@ pub struct AlpacaExchange {
 
 impl AlpacaExchange {
     pub fn new(inner: AlpacaClient, trading_mode: String) -> Self {
-        Self { inner, trading_mode }
+        Self {
+            inner,
+            trading_mode,
+        }
     }
 
     pub fn market_store(&self) -> crate::data::store::MarketStore {
@@ -56,7 +59,11 @@ impl TradingApi for AlpacaExchange {
         let vals = self.inner.get_positions().await?;
         let mut out = Vec::with_capacity(vals.len());
         for v in vals {
-            let symbol = v.get("symbol").and_then(|x| x.as_str()).unwrap_or_default().to_string();
+            let symbol = v
+                .get("symbol")
+                .and_then(|x| x.as_str())
+                .unwrap_or_default()
+                .to_string();
             let qty = v
                 .get("qty")
                 .and_then(|x| x.as_str())

@@ -49,8 +49,12 @@ pub struct MicroTradeConfig {
     pub crypto_time_in_force: String,
 }
 
-fn default_true() -> bool { true }
-fn default_tif() -> String { "gtc".to_string() }
+fn default_true() -> bool {
+    true
+}
+fn default_tif() -> String {
+    "gtc".to_string()
+}
 
 impl Default for MicroTradeConfig {
     fn default() -> Self {
@@ -138,7 +142,6 @@ pub struct AppConfig {
 }
 
 impl AppConfig {
-
     pub fn load() -> Self {
         let config_path = "config.yaml";
         let content = fs::read_to_string(config_path).expect("Failed to read config.yaml");
@@ -157,8 +160,12 @@ impl AppConfig {
 
         if let Some(overrides) = &self.symbol_overrides {
             if let Some(sc) = overrides.get(symbol) {
-                if let Some(v) = sc.take_profit_pct { tp = v; }
-                if let Some(v) = sc.stop_loss_pct { sl = v; }
+                if let Some(v) = sc.take_profit_pct {
+                    tp = v;
+                }
+                if let Some(v) = sc.stop_loss_pct {
+                    sl = v;
+                }
             }
         }
         (tp, sl)

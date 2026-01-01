@@ -160,7 +160,10 @@ model: "gpt-4"
         let config: LlmConfig = serde_yaml::from_str(yaml).unwrap();
 
         assert_eq!(config.api_key, Some("sk-test123".to_string()));
-        assert_eq!(config.base_url, Some("https://api.openai.com/v1".to_string()));
+        assert_eq!(
+            config.base_url,
+            Some("https://api.openai.com/v1".to_string())
+        );
         assert_eq!(config.model, "gpt-4");
     }
 
@@ -174,7 +177,10 @@ model: "llama2"
         let config: LlmConfig = serde_yaml::from_str(yaml).unwrap();
 
         assert_eq!(config.api_key, None);
-        assert_eq!(config.base_url, Some("http://localhost:11434/v1".to_string()));
+        assert_eq!(
+            config.base_url,
+            Some("http://localhost:11434/v1".to_string())
+        );
     }
 
     // ============= Exchange Config Tests =============
@@ -407,4 +413,3 @@ exit_on_quotes: true
         assert!(config.hft.max_spread_bps > 0.0);
     }
 }
-

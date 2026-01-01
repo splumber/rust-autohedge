@@ -127,7 +127,7 @@ mod reporting_tests {
             buy_price: 50000.0,
             sell_price: 51000.0,
             qty: 0.1,
-            pnl: 100.0,  // (51000 - 50000) * 0.1
+            pnl: 100.0, // (51000 - 50000) * 0.1
             pnl_percent: 2.0,
         };
 
@@ -318,7 +318,7 @@ mod reporting_tests {
     #[test]
     fn test_history_tracking() {
         let mut summary = PerformanceSummary::default();
-        
+
         let trade1 = ClosedTrade {
             symbol: "SOL/USD".to_string(),
             buy_time: "2025-01-01T00:00:00Z".to_string(),
@@ -330,7 +330,11 @@ mod reporting_tests {
             pnl_percent: 1.0,
         };
 
-        summary.history.entry("SOL/USD".to_string()).or_default().push(trade1);
+        summary
+            .history
+            .entry("SOL/USD".to_string())
+            .or_default()
+            .push(trade1);
 
         assert_eq!(summary.history.get("SOL/USD").unwrap().len(), 1);
     }
@@ -338,7 +342,7 @@ mod reporting_tests {
     #[test]
     fn test_open_positions_tracking() {
         let mut summary = PerformanceSummary::default();
-        
+
         summary.open_positions.insert(
             "DOT/USD".to_string(),
             OpenPosition {
@@ -353,4 +357,3 @@ mod reporting_tests {
         assert_eq!(stats.open_position_count, 1);
     }
 }
-

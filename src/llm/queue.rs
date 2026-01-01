@@ -34,10 +34,10 @@ impl LLMQueue {
         let (normal_tx, normal_rx) = mpsc::channel::<QueuedRequest>(queue_size);
 
         let semaphore = Arc::new(Semaphore::new(max_concurrent));
-        
+
         // Spawn the queue processor
         tokio::spawn(Self::process_queue(client, semaphore, high_rx, normal_rx));
-        
+
         Self { high_tx, normal_tx }
     }
 
@@ -48,13 +48,16 @@ impl LLMQueue {
         mut high_rx: mpsc::Receiver<QueuedRequest>,
         mut normal_rx: mpsc::Receiver<QueuedRequest>,
     ) {
-        info!("📬 [QUEUE] LLM Queue processor started (max concurrent: {})", semaphore.available_permits());
-        
+        info!(
+            "📬 [QUEUE] LLM Queue processor started (max concurrent: {})",
+            semaphore.available_permits()
+        );
+
         loop {
             // Prioritize high-priority requests, fall back to normal if none available
             let request = tokio::select! {
                 biased;
-                
+
                 Some(req) = high_rx.recv() => {
                     info!("📬 [QUEUE] Processing HIGH priority request");
                     req
@@ -73,11 +76,13 @@ impl LLMQueue {
             // Acquire semaphore permit
             let permit = semaphore.clone().acquire_owned().await;
             if permit.is_err() {
-                let _ = request.response_tx.send(Err("Semaphore closed".to_string()));
+                let _ = request
+                    .response_tx
+                    .send(Err("Semaphore closed".to_string()));
                 continue;
             }
             let permit = permit.unwrap();
-            
+
             let available = semaphore.available_permits();
             info!("📬 [QUEUE] Acquired permit. {} slots remaining", available);
 
@@ -88,7 +93,7 @@ impl LLMQueue {
                     .chat(&request.system_prompt, &request.user_input)
                     .await
                     .map_err(|e| e.to_string());
-                
+
                 let _ = request.response_tx.send(result);
                 drop(permit); // Release permit when done
             });
@@ -103,7 +108,7 @@ impl LLMQueue {
         priority: Priority,
     ) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
         let (response_tx, response_rx) = oneshot::channel();
-        
+
         let request = QueuedRequest {
             system_prompt: system_prompt.to_string(),
             user_input: user_input.to_string(),

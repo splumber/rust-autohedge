@@ -2,7 +2,7 @@
 
 #[cfg(test)]
 mod store_tests {
-    use crate::data::store::{MarketStore, Quote, Trade, Bar};
+    use crate::data::store::{Bar, MarketStore, Quote, Trade};
 
     #[test]
     fn test_market_store_new() {
@@ -13,7 +13,7 @@ mod store_tests {
     #[test]
     fn test_update_and_get_quote() {
         let store = MarketStore::new(100);
-        
+
         let quote = Quote {
             symbol: "BTC/USD".to_string(),
             bid_price: 50000.0,
@@ -72,7 +72,7 @@ mod store_tests {
 
         let history = store.get_quote_history("SOL/USD");
         assert_eq!(history.len(), 3); // Should be capped at limit
-        // Should have the latest 3
+                                      // Should have the latest 3
         assert_eq!(history[0].bid_price, 102.0);
         assert_eq!(history[2].bid_price, 104.0);
     }
@@ -293,4 +293,3 @@ mod store_tests {
         }
     }
 }
-

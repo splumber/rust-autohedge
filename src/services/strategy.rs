@@ -1,13 +1,13 @@
-use tracing::{info, error, warn};
+use crate::agents::{director::DirectorAgent, quant::QuantAgent, Agent};
 use crate::bus::EventBus;
-use crate::events::{Event, MarketEvent, AnalysisSignal};
-use crate::data::store::{MarketStore, Quote};
-use crate::llm::LLMQueue;
-use crate::agents::{Agent, director::DirectorAgent, quant::QuantAgent};
 use crate::config::AppConfig;
+use crate::data::store::{MarketStore, Quote};
+use crate::events::{AnalysisSignal, Event, MarketEvent};
+use crate::llm::LLMQueue;
+use dashmap::DashMap;
 use std::collections::VecDeque;
 use std::sync::Arc;
-use dashmap::DashMap;
+use tracing::{error, info, warn};
 
 #[derive(Clone)]
 struct SymbolCooldown {
@@ -37,7 +37,12 @@ pub struct StrategyEngine {
 }
 
 impl StrategyEngine {
-    pub fn new(event_bus: EventBus, market_store: MarketStore, llm: LLMQueue, config: AppConfig) -> Self {
+    pub fn new(
+        event_bus: EventBus,
+        market_store: MarketStore,
+        llm: LLMQueue,
+        config: AppConfig,
+    ) -> Self {
         Self {
             event_bus,
             market_store,
@@ -63,12 +68,19 @@ impl StrategyEngine {
         let hybrid_gate: Arc<DashMap<String, HybridGateState>> = Arc::new(DashMap::new());
 
         tokio::spawn(async move {
-            info!("🧠 Strategy Engine Started (mode: {})", config_clone.strategy_mode);
+            info!(
+                "🧠 Strategy Engine Started (mode: {})",
+                config_clone.strategy_mode
+            );
             while let Ok(event) = rx.recv().await {
                 if let Event::Market(market_event) = event {
                     let (symbol, bid, ask) = match &market_event {
-                        MarketEvent::Quote { symbol, bid, ask, .. } => (symbol.clone(), *bid, *ask),
-                        MarketEvent::Trade { symbol, price, .. } => (symbol.clone(), *price, *price),
+                        MarketEvent::Quote {
+                            symbol, bid, ask, ..
+                        } => (symbol.clone(), *bid, *ask),
+                        MarketEvent::Trade { symbol, price, .. } => {
+                            (symbol.clone(), *price, *price)
+                        }
                     };
 
                     let mode = config_clone.strategy_mode.to_lowercase();
@@ -91,7 +103,18 @@ impl StrategyEngine {
                         let hft_tracker = hft_state.clone();
                         let gate = hybrid_gate.clone();
                         tokio::spawn(async move {
-                            Self::evaluate_hybrid(symbol, bid, ask, bus, store, llm, hft_tracker, gate, config).await;
+                            Self::evaluate_hybrid(
+                                symbol,
+                                bid,
+                                ask,
+                                bus,
+                                store,
+                                llm,
+                                hft_tracker,
+                                gate,
+                                config,
+                            )
+                            .await;
                         });
                         continue;
                     }
@@ -103,7 +126,10 @@ impl StrategyEngine {
                         if cooldown.quotes_remaining > 0 {
                             cooldown.quotes_remaining -= 1;
                             if cooldown.quotes_remaining == 0 {
-                                info!("⏰ [COOLDOWN] {} cooldown expired. Ready for analysis.", symbol);
+                                info!(
+                                    "⏰ [COOLDOWN] {} cooldown expired. Ready for analysis.",
+                                    symbol
+                                );
                                 // DashMap doesn't need explicit remove here if we just check > 0
                                 // But to clean up memory we can remove.
                                 // However, get_mut holds a lock shard.
@@ -117,9 +143,9 @@ impl StrategyEngine {
                     // Cleanup expired cooldowns lazily or just leave them as 0.
                     // Or use remove_if.
                     if let Some(cooldown) = cooldowns.get(&symbol) {
-                         if cooldown.quotes_remaining == 0 {
-                             cooldowns.remove(&symbol);
-                         }
+                        if cooldown.quotes_remaining == 0 {
+                            cooldowns.remove(&symbol);
+                        }
                     }
 
                     // Warm-up Check
@@ -137,7 +163,15 @@ impl StrategyEngine {
                     let config = config_clone.clone();
 
                     tokio::spawn(async move {
-                        Self::analyze_symbol_llm(symbol_clone, store, llm, bus, cooldowns_clone, config).await;
+                        Self::analyze_symbol_llm(
+                            symbol_clone,
+                            store,
+                            llm,
+                            bus,
+                            cooldowns_clone,
+                            config,
+                        )
+                        .await;
                     });
                 }
             }
@@ -165,7 +199,11 @@ impl StrategyEngine {
             let headlines: Vec<String> = news
                 .iter()
                 .take(5)
-                .filter_map(|n| n.get("headline").and_then(|h| h.as_str()).map(|s| s.to_string()))
+                .filter_map(|n| {
+                    n.get("headline")
+                        .and_then(|h| h.as_str())
+                        .map(|s| s.to_string())
+                })
                 .collect();
             format!("Recent News: {:?}", headlines)
         };
@@ -204,11 +242,17 @@ impl StrategyEngine {
             return;
         }
 
-        info!("🟢 [STRATEGY] Opportunity found for {}! Running Quant...", symbol);
+        info!(
+            "🟢 [STRATEGY] Opportunity found for {}! Running Quant...",
+            symbol
+        );
 
         // 2. Quant
         let quant = QuantAgent;
-        let quant_input = format!("Thesis: {}\n\nMarket Data:\n{}", director_response, combined_data);
+        let quant_input = format!(
+            "Thesis: {}\n\nMarket Data:\n{}",
+            director_response, combined_data
+        );
 
         let quant_response = match quant.run_high_priority(&quant_input, &llm).await {
             Ok(res) => res,
@@ -218,7 +262,10 @@ impl StrategyEngine {
             }
         };
 
-        info!("📈 [STRATEGY] Quant Analysis for {}: {}", symbol, quant_response);
+        info!(
+            "📈 [STRATEGY] Quant Analysis for {}: {}",
+            symbol, quant_response
+        );
 
         // Publish Signal
         let signal = AnalysisSignal {
@@ -242,7 +289,10 @@ impl StrategyEngine {
     ) {
         if bid <= 0.0 || ask <= 0.0 || ask < bid {
             if config.chatter_level.to_lowercase() == "verbose" {
-                warn!("[HFT] Skip {}: invalid quote bid={} ask={}", symbol, bid, ask);
+                warn!(
+                    "[HFT] Skip {}: invalid quote bid={} ask={}",
+                    symbol, bid, ask
+                );
             }
             return;
         }
@@ -251,17 +301,21 @@ impl StrategyEngine {
         let spread_bps = ((ask - bid) / mid) * 10_000.0;
         if spread_bps > config.hft.max_spread_bps {
             if config.chatter_level.to_lowercase() == "verbose" {
-                info!("[HFT] Skip {}: spread_bps={:.2} > max_spread_bps={:.2} (bid={:.8} ask={:.8})",
-                      symbol, spread_bps, config.hft.max_spread_bps, bid, ask);
+                info!(
+                    "[HFT] Skip {}: spread_bps={:.2} > max_spread_bps={:.2} (bid={:.8} ask={:.8})",
+                    symbol, spread_bps, config.hft.max_spread_bps, bid, ask
+                );
             }
             return;
         }
 
-        let mut entry = state.entry(symbol.clone()).or_insert_with(|| HftSymbolState {
-            quotes_since_eval: 0,
-            last_mid: None,
-            mids: VecDeque::with_capacity(64),
-        });
+        let mut entry = state
+            .entry(symbol.clone())
+            .or_insert_with(|| HftSymbolState {
+                quotes_since_eval: 0,
+                last_mid: None,
+                mids: VecDeque::with_capacity(64),
+            });
 
         entry.quotes_since_eval += 1;
         entry.mids.push_back(mid);
@@ -271,8 +325,10 @@ impl StrategyEngine {
 
         if entry.quotes_since_eval < config.hft.evaluate_every_quotes {
             if config.chatter_level.to_lowercase() == "verbose" {
-                info!("[HFT] Debounce {}: {}/{} quotes collected (mid={:.8})",
-                      symbol, entry.quotes_since_eval, config.hft.evaluate_every_quotes, mid);
+                info!(
+                    "[HFT] Debounce {}: {}/{} quotes collected (mid={:.8})",
+                    symbol, entry.quotes_since_eval, config.hft.evaluate_every_quotes, mid
+                );
             }
             entry.last_mid = Some(mid);
             return;
@@ -288,7 +344,11 @@ impl StrategyEngine {
             entry.last_mid = Some(mid);
             return;
         }
-        let past = entry.mids.get(entry.mids.len() - 1 - lookback).copied().unwrap_or(mid);
+        let past = entry
+            .mids
+            .get(entry.mids.len() - 1 - lookback)
+            .copied()
+            .unwrap_or(mid);
         let edge_bps = ((mid - past) / past) * 10_000.0;
 
         entry.last_mid = Some(mid);
@@ -296,8 +356,10 @@ impl StrategyEngine {
 
         if edge_bps < config.hft.min_edge_bps {
             if config.chatter_level.to_lowercase() == "verbose" {
-                info!("[HFT] Skip {}: edge_bps={:.2} < min_edge_bps={:.2} (mid={:.8} past={:.8})",
-                      symbol, edge_bps, config.hft.min_edge_bps, mid, past);
+                info!(
+                    "[HFT] Skip {}: edge_bps={:.2} < min_edge_bps={:.2} (mid={:.8} past={:.8})",
+                    symbol, edge_bps, config.hft.min_edge_bps, mid, past
+                );
             }
             return;
         }
@@ -343,7 +405,10 @@ impl StrategyEngine {
     ) {
         if bid <= 0.0 || ask <= 0.0 || ask < bid {
             if config.chatter_level.to_lowercase() == "verbose" {
-                warn!("[HYBRID] Skip {}: invalid quote bid={} ask={}", symbol, bid, ask);
+                warn!(
+                    "[HYBRID] Skip {}: invalid quote bid={} ask={}",
+                    symbol, bid, ask
+                );
             }
             return;
         }
@@ -353,12 +418,14 @@ impl StrategyEngine {
         let mut currently_allowed;
 
         {
-            let mut entry = gate.entry(symbol.clone()).or_insert_with(|| HybridGateState {
-                quotes_until_refresh: config.hybrid.gate_refresh_quotes,
-                cooldown_quotes_remaining: 0,
-                allowed: true,
-                last_reason: None,
-            });
+            let mut entry = gate
+                .entry(symbol.clone())
+                .or_insert_with(|| HybridGateState {
+                    quotes_until_refresh: config.hybrid.gate_refresh_quotes,
+                    cooldown_quotes_remaining: 0,
+                    allowed: true,
+                    last_reason: None,
+                });
 
             if entry.cooldown_quotes_remaining > 0 {
                 entry.cooldown_quotes_remaining = entry.cooldown_quotes_remaining.saturating_sub(1);
@@ -377,8 +444,10 @@ impl StrategyEngine {
             currently_allowed = entry.allowed && entry.cooldown_quotes_remaining == 0;
 
             if !currently_allowed && config.chatter_level.to_lowercase() == "verbose" {
-                info!("[HYBRID] Gate closed for {} (cooldown_remaining={}, quotes_until_refresh={})",
-                      symbol, entry.cooldown_quotes_remaining, entry.quotes_until_refresh);
+                info!(
+                    "[HYBRID] Gate closed for {} (cooldown_remaining={}, quotes_until_refresh={})",
+                    symbol, entry.cooldown_quotes_remaining, entry.quotes_until_refresh
+                );
             }
         }
 
@@ -386,12 +455,17 @@ impl StrategyEngine {
             let history = store.get_quote_history(&symbol);
             if history.len() >= config.warmup_count {
                 if config.chatter_level.to_lowercase() != "low" {
-                    info!("[HYBRID] Refreshing LLM gate for {} (history_len={})", symbol, history.len());
+                    info!(
+                        "[HYBRID] Refreshing LLM gate for {} (history_len={})",
+                        symbol,
+                        history.len()
+                    );
                 }
 
                 let combined_data = Self::format_quote_history_table(&history);
                 let director = DirectorAgent;
-                let director_input = format!("Symbol: {}, Market Context: {}", symbol, combined_data);
+                let director_input =
+                    format!("Symbol: {}, Market Context: {}", symbol, combined_data);
 
                 match director.run(&director_input, &llm).await {
                     Ok(resp) => {
@@ -405,27 +479,44 @@ impl StrategyEngine {
                         entry.last_reason = Some(resp.clone());
 
                         if !allowed {
-                            entry.cooldown_quotes_remaining = config.hybrid.no_trade_cooldown_quotes;
-                            warn!("[HYBRID] Gate CLOSED for {} by director. Cooldown {} quotes.", symbol, config.hybrid.no_trade_cooldown_quotes);
+                            entry.cooldown_quotes_remaining =
+                                config.hybrid.no_trade_cooldown_quotes;
+                            warn!(
+                                "[HYBRID] Gate CLOSED for {} by director. Cooldown {} quotes.",
+                                symbol, config.hybrid.no_trade_cooldown_quotes
+                            );
                             if config.chatter_level.to_lowercase() == "verbose" {
-                                warn!("[HYBRID] Director response (no_trade) for {}: {}", symbol, resp);
+                                warn!(
+                                    "[HYBRID] Director response (no_trade) for {}: {}",
+                                    symbol, resp
+                                );
                             }
                         } else {
                             if config.chatter_level.to_lowercase() != "low" {
                                 info!("[HYBRID] Gate OPEN for {} by director.", symbol);
                             }
                             if config.chatter_level.to_lowercase() == "verbose" {
-                                info!("[HYBRID] Director response (allowed) for {}: {}", symbol, resp);
+                                info!(
+                                    "[HYBRID] Director response (allowed) for {}: {}",
+                                    symbol, resp
+                                );
                             }
                         }
                     }
                     Err(e) => {
-                        warn!("[HYBRID] Director gate failed for {}: {} (keeping previous gate)", symbol, e);
+                        warn!(
+                            "[HYBRID] Director gate failed for {}: {} (keeping previous gate)",
+                            symbol, e
+                        );
                     }
                 }
             } else if config.chatter_level.to_lowercase() == "verbose" {
-                info!("[HYBRID] Skip gate refresh for {}: warmup not met (history_len={}, warmup={})",
-                      symbol, history.len(), config.warmup_count);
+                info!(
+                    "[HYBRID] Skip gate refresh for {}: warmup not met (history_len={}, warmup={})",
+                    symbol,
+                    history.len(),
+                    config.warmup_count
+                );
             }
         }
 
@@ -444,7 +535,9 @@ impl StrategyEngine {
     }
 
     fn format_quote_history_table(history: &[Quote]) -> String {
-        let mut table = String::from("Recent Quote History (Last 50 Quotes):\nTime | Bid | BidSz | Ask | AskSz\n");
+        let mut table = String::from(
+            "Recent Quote History (Last 50 Quotes):\nTime | Bid | BidSz | Ask | AskSz\n",
+        );
         for quote in history {
             let t = &quote.timestamp;
             let bp = quote.bid_price;
