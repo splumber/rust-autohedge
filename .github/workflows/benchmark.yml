@@ -48,9 +48,18 @@ jobs:
       - name: Run benchmarks
         run: cargo bench --verbose || echo "No benchmarks defined yet"
 
+      - name: Check if benchmarks ran
+        id: check_benchmarks
+        run: |
+          if [ -d "target/criterion" ] && [ -f "target/criterion/output.txt" ]; then
+            echo "benchmarks_exist=true" >> $GITHUB_OUTPUT
+          else
+            echo "benchmarks_exist=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master' && steps.check_benchmarks.outputs.benchmarks_exist == 'true'
         with:
           tool: 'cargo'
           output-file-path: target/criterion/output.txt
