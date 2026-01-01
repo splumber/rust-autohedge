@@ -1,0 +1,27 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+
+# Rust build artifacts
+target/
+**/*.rs.bk
+*.pdb
+
+# Environment and config
+.env
+config.yaml
+
+# Documentation
+*.md
+!README.md
+
+# CI/CD
+.github/
+
+# Temporary files
+tmp/
+temp/
