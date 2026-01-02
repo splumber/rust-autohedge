@@ -4,7 +4,7 @@
 use reqwest::Client;
 use std::time::Duration;
 use tokio_cron_scheduler::{Job, JobScheduler};
-use tracing::{error, info, warn};
+use tracing::{info, warn};
 
 pub struct KeepAliveService {
     base_url: String,
@@ -118,7 +118,12 @@ impl KeepAliveService {
     /// * `cron_expression` - Cron expression (e.g., "*/10 * * * * *" for every 10 seconds)
     ///
     /// # Examples
-    /// ```
+    /// ```no_run
+    /// # use rust_autohedge::services::keep_alive::KeepAliveService;
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let service = KeepAliveService::new("http://localhost:3000".to_string());
+    ///
     /// // Every 10 seconds (default)
     /// service.start_with_schedule("*/10 * * * * *").await?;
     ///
@@ -127,6 +132,8 @@ impl KeepAliveService {
     ///
     /// // Every minute
     /// service.start_with_schedule("0 * * * * *").await?;
+    /// # Ok(())
+    /// # }
     /// ```
     pub async fn start_with_schedule(
         &self,
