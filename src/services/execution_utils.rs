@@ -1,8 +1,8 @@
+use dashmap::DashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
 use tracing::warn;
-use dashmap::DashMap;
 
 use crate::exchange::traits::TradingApi;
 use crate::exchange::types::AccountSummary;
@@ -161,14 +161,14 @@ impl RateLimiter {
     /// Each symbol has independent rate limiting.
     pub async fn try_acquire(&self, symbol: &str) -> bool {
         let now = Instant::now();
-        
+
         // Check if this symbol is rate limited
         if let Some(entry) = self.last_order_per_symbol.get(symbol) {
             if entry.elapsed() < self.min_interval {
                 return false; // Still in cooldown
             }
         }
-        
+
         // Update last order time for this symbol
         self.last_order_per_symbol.insert(symbol.to_string(), now);
         true

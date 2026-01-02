@@ -149,8 +149,10 @@ impl ExecutionEngine {
         // Rate limit check per symbol (don't spam orders for the same symbol)
         if !rate_limiter.try_acquire(&req.symbol).await {
             if config.chatter_level != "low" {
-                info!("[EXECUTION] Rate limited for {} (cooldown: {}ms)", 
-                      req.symbol, config.micro_trade.min_order_interval_ms);
+                info!(
+                    "[EXECUTION] Rate limited for {} (cooldown: {}ms)",
+                    req.symbol, config.micro_trade.min_order_interval_ms
+                );
             }
             return;
         }
