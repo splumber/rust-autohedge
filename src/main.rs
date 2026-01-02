@@ -11,6 +11,7 @@ pub mod services;
 use api::{run_server, AppState};
 use config::AppConfig;
 use llm::{LLMClient, LLMQueue};
+use services::keep_alive::KeepAliveService;
 use std::sync::{Arc, Mutex};
 use tracing::info;
 
@@ -55,6 +56,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         llm: llm_queue,
         config,
     });
+
+    // Start Keep-Alive Service (prevents free hosting from scaling down)
+    // Reads KEEP_ALIVE_URL from environment (e.g., your Railway/Render URL)
+    // or defaults to localhost for local development
+    if let Ok(keep_alive_url) = std::env::var("KEEP_ALIVE_URL") {
+        info!("🔔 Starting Keep-Alive Service for: {}", keep_alive_url);
+        let keep_alive = KeepAliveService::new(keep_alive_url);
+
+        // Start with default schedule (every 10 minutes)
+        // Or use KEEP_ALIVE_CRON env var for custom schedule
+        if let Ok(cron_schedule) = std::env::var("KEEP_ALIVE_CRON") {
+            info!("📅 Using custom cron schedule: {}", cron_schedule);
+            if let Err(e) = keep_alive.start_with_schedule(&cron_schedule).await {
+                tracing::warn!("⚠️ Failed to start keep-alive with custom schedule: {}", e);
+            }
+        } else {
+            if let Err(e) = keep_alive.start().await {
+                tracing::warn!("⚠️ Failed to start keep-alive service: {}", e);
+            }
+        }
+    } else {
+        info!("ℹ️ KEEP_ALIVE_URL not set - keep-alive service disabled (set it for production)");
+    }
 
     // Start API Server
     info!("Initializing API Server...");

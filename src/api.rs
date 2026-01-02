@@ -26,6 +26,7 @@ pub struct AppState {
 
 pub async fn run_server(state: Arc<AppState>) {
     let app = Router::new()
+        .route("/health", get(health_check))
         .route("/start", post(start_trading))
         .route("/stop", post(stop_trading))
         .route("/assets", get(get_assets))
@@ -39,6 +40,14 @@ pub async fn run_server(state: Arc<AppState>) {
     axum::serve(listener, app).await.unwrap();
 }
 
+// Lightweight health check endpoint for keep-alive
+async fn health_check() -> impl IntoResponse {
+    Json(json!({
+        "status": "ok",
+        "timestamp": chrono::Utc::now().to_rfc3339(),
+        "service": "rust-autohedge"
+    }))
+}
 use axum::extract::Query;
 
 #[derive(serde::Deserialize)]
