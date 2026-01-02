@@ -2,6 +2,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::RwLock;
 use tracing::warn;
+use dashmap::DashMap;
 
 use crate::exchange::traits::TradingApi;
 use crate::exchange::types::AccountSummary;
@@ -141,29 +142,35 @@ pub fn aggressive_limit_price(bid: f64, ask: f64, side: &str, aggression_bps: f6
 }
 
 /// Rate limiter to prevent API abuse.
+/// Uses per-symbol tracking so different symbols can trade independently.
 #[derive(Clone)]
 pub struct RateLimiter {
-    last_order: Arc<RwLock<Option<Instant>>>,
+    last_order_per_symbol: Arc<DashMap<String, Instant>>,
     min_interval: Duration,
 }
 
 impl RateLimiter {
     pub fn new(min_interval_ms: u64) -> Self {
         Self {
-            last_order: Arc::new(RwLock::new(None)),
+            last_order_per_symbol: Arc::new(DashMap::new()),
             min_interval: Duration::from_millis(min_interval_ms),
         }
     }
 
-    /// Returns true if order is allowed, false if rate limited.
-    pub async fn try_acquire(&self) -> bool {
-        let mut last = self.last_order.write().await;
-        match *last {
-            Some(t) if t.elapsed() < self.min_interval => false,
-            _ => {
-                *last = Some(Instant::now());
-                true
+    /// Returns true if order is allowed for this symbol, false if rate limited.
+    /// Each symbol has independent rate limiting.
+    pub async fn try_acquire(&self, symbol: &str) -> bool {
+        let now = Instant::now();
+        
+        // Check if this symbol is rate limited
+        if let Some(entry) = self.last_order_per_symbol.get(symbol) {
+            if entry.elapsed() < self.min_interval {
+                return false; // Still in cooldown
             }
         }
+        
+        // Update last order time for this symbol
+        self.last_order_per_symbol.insert(symbol.to_string(), now);
+        true
     }
 }

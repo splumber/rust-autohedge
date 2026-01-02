@@ -192,7 +192,7 @@ mod execution_utils_tests {
     #[tokio::test]
     async fn test_rate_limiter_first_call() {
         let limiter = RateLimiter::new(100); // 100ms interval
-        let allowed = limiter.try_acquire().await;
+        let allowed = limiter.try_acquire("BTC/USD").await;
         assert!(allowed);
     }
 
@@ -200,8 +200,8 @@ mod execution_utils_tests {
     async fn test_rate_limiter_immediate_second_call() {
         let limiter = RateLimiter::new(100); // 100ms interval
 
-        let first = limiter.try_acquire().await;
-        let second = limiter.try_acquire().await;
+        let first = limiter.try_acquire("BTC/USD").await;
+        let second = limiter.try_acquire("BTC/USD").await;
 
         assert!(first);
         assert!(!second); // Should be rate limited
@@ -211,13 +211,13 @@ mod execution_utils_tests {
     async fn test_rate_limiter_after_interval() {
         let limiter = RateLimiter::new(50); // 50ms interval
 
-        let first = limiter.try_acquire().await;
+        let first = limiter.try_acquire("BTC/USD").await;
         assert!(first);
 
         // Wait for interval to pass
         tokio::time::sleep(tokio::time::Duration::from_millis(60)).await;
 
-        let second = limiter.try_acquire().await;
+        let second = limiter.try_acquire("BTC/USD").await;
         assert!(second); // Should be allowed now
     }
 
@@ -229,7 +229,7 @@ mod execution_utils_tests {
         let mut denied_count = 0;
 
         for _ in 0..10 {
-            if limiter.try_acquire().await {
+            if limiter.try_acquire("BTC/USD").await {
                 allowed_count += 1;
             } else {
                 denied_count += 1;
@@ -245,16 +245,34 @@ mod execution_utils_tests {
     async fn test_rate_limiter_with_delays() {
         let limiter = RateLimiter::new(20); // 20ms interval
 
-        let first = limiter.try_acquire().await;
+        let first = limiter.try_acquire("BTC/USD").await;
         assert!(first);
 
         tokio::time::sleep(tokio::time::Duration::from_millis(25)).await;
-        let second = limiter.try_acquire().await;
+        let second = limiter.try_acquire("BTC/USD").await;
         assert!(second);
 
         tokio::time::sleep(tokio::time::Duration::from_millis(25)).await;
-        let third = limiter.try_acquire().await;
+        let third = limiter.try_acquire("BTC/USD").await;
         assert!(third);
+    }
+
+    #[tokio::test]
+    async fn test_rate_limiter_per_symbol() {
+        let limiter = RateLimiter::new(100); // 100ms interval
+
+        // Different symbols should not interfere
+        let btc1 = limiter.try_acquire("BTC/USD").await;
+        let eth1 = limiter.try_acquire("ETH/USD").await;
+        let sol1 = limiter.try_acquire("SOL/USD").await;
+
+        assert!(btc1);
+        assert!(eth1);
+        assert!(sol1);
+
+        // But same symbol should be rate limited
+        let btc2 = limiter.try_acquire("BTC/USD").await;
+        assert!(!btc2);
     }
 
     // ============= OrderSizing Struct Tests =============

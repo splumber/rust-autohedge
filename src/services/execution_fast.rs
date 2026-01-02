@@ -146,10 +146,11 @@ impl ExecutionEngine {
 
         // ========== BUY PATH (Optimized) ==========
 
-        // Rate limit check (don't spam orders)
-        if !rate_limiter.try_acquire().await {
-            if config.chatter_level == "verbose" {
-                warn!("[EXECUTION] Rate limited for {}", req.symbol);
+        // Rate limit check per symbol (don't spam orders for the same symbol)
+        if !rate_limiter.try_acquire(&req.symbol).await {
+            if config.chatter_level != "low" {
+                info!("[EXECUTION] Rate limited for {} (cooldown: {}ms)", 
+                      req.symbol, config.micro_trade.min_order_interval_ms);
             }
             return;
         }
