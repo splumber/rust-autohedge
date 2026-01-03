@@ -164,7 +164,8 @@ impl RateLimiter {
 
         // Check if this symbol is rate limited
         if let Some(entry) = self.last_order_per_symbol.get(symbol) {
-            if entry.elapsed() < self.min_interval {
+            let last_order_time = *entry.value(); // Get the actual Instant value
+            if now.duration_since(last_order_time) < self.min_interval {
                 return false; // Still in cooldown
             }
         }

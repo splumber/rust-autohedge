@@ -19,6 +19,7 @@ use crate::services::reporting::TradeReporter;
 
 pub struct AppState {
     pub trading_handle: Mutex<Option<JoinHandle<()>>>,
+    pub websocket_handle: Mutex<Option<JoinHandle<()>>>,
     pub exchange: Mutex<Option<Arc<dyn TradingApi>>>,
     pub llm: LLMQueue,
     pub config: AppConfig,
@@ -98,6 +99,7 @@ async fn get_stats(State(_state): State<Arc<AppState>>) -> impl IntoResponse {
 
 async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     let mut handle_lock = state.trading_handle.lock().unwrap();
+    let mut ws_handle_lock = state.websocket_handle.lock().unwrap();
 
     if handle_lock.is_some() {
         return Json(json!({"status": "already_running"})).into_response();
@@ -245,9 +247,34 @@ async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse 
 
 async fn stop_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     let mut handle_lock = state.trading_handle.lock().unwrap();
+    let mut ws_handle_lock = state.websocket_handle.lock().unwrap();
 
+    let mut stopped_something = false;
+
+    // Abort the main trading task (which contains all the spawned services including WS)
     if let Some(handle) = handle_lock.take() {
+        info!("Aborting trading task...");
         handle.abort();
+        stopped_something = true;
+    }
+
+    // Abort WebSocket handle if it exists separately
+    if let Some(ws_handle) = ws_handle_lock.take() {
+        info!("Aborting WebSocket task...");
+        ws_handle.abort();
+        stopped_something = true;
+    }
+
+    // Clear exchange from state
+    {
+        let mut exchange_lock = state.exchange.lock().unwrap();
+        if exchange_lock.take().is_some() {
+            info!("Cleared exchange from state");
+        }
+    }
+
+    if stopped_something {
+        info!("✅ Trading system stopped successfully");
         Json(json!({"status": "stopped"})).into_response()
     } else {
         Json(json!({"status": "not_running"})).into_response()

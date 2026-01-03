@@ -52,6 +52,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Create App State
     let app_state = Arc::new(AppState {
         trading_handle: Mutex::new(None),
+        websocket_handle: Mutex::new(None),
         exchange: Mutex::new(None),
         llm: llm_queue,
         config,

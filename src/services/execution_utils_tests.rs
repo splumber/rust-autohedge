@@ -275,6 +275,51 @@ mod execution_utils_tests {
         assert!(!btc2);
     }
 
+    #[tokio::test]
+    async fn test_rate_limiter_exact_timing_250ms() {
+        let limiter = RateLimiter::new(250); // 250ms interval (production config)
+
+        // First call should succeed
+        let first = limiter.try_acquire("TEST/USD").await;
+        assert!(first, "First call should be allowed");
+
+        // Immediate second call should fail
+        let second = limiter.try_acquire("TEST/USD").await;
+        assert!(!second, "Immediate second call should be rate limited");
+
+        // Wait exactly 250ms
+        tokio::time::sleep(tokio::time::Duration::from_millis(250)).await;
+
+        // Third call should now succeed
+        let third = limiter.try_acquire("TEST/USD").await;
+        assert!(third, "Call after 250ms should be allowed");
+
+        // Fourth immediate call should fail again
+        let fourth = limiter.try_acquire("TEST/USD").await;
+        assert!(!fourth, "Immediate call after third should be rate limited");
+    }
+
+    #[tokio::test]
+    async fn test_rate_limiter_slightly_before_interval() {
+        let limiter = RateLimiter::new(250); // 250ms interval
+
+        let first = limiter.try_acquire("TIMING/USD").await;
+        assert!(first);
+
+        // Wait 240ms (slightly less than 250ms)
+        tokio::time::sleep(tokio::time::Duration::from_millis(240)).await;
+
+        let second = limiter.try_acquire("TIMING/USD").await;
+        assert!(!second, "Call at 240ms should still be rate limited");
+
+        // Wait remaining 15ms (total 255ms)
+        tokio::time::sleep(tokio::time::Duration::from_millis(15)).await;
+
+        let third = limiter.try_acquire("TIMING/USD").await;
+        assert!(third, "Call at 255ms should be allowed");
+    }
+
+
     // ============= OrderSizing Struct Tests =============
 
     #[test]
