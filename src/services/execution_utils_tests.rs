@@ -319,7 +319,6 @@ mod execution_utils_tests {
         assert!(third, "Call at 255ms should be allowed");
     }
 
-
     // ============= OrderSizing Struct Tests =============
 
     #[test]

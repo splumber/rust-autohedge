@@ -99,7 +99,7 @@ async fn get_stats(State(_state): State<Arc<AppState>>) -> impl IntoResponse {
 
 async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     let mut handle_lock = state.trading_handle.lock().unwrap();
-    let mut ws_handle_lock = state.websocket_handle.lock().unwrap();
+    let ws_handle_lock = state.websocket_handle.lock().unwrap();
 
     if handle_lock.is_some() {
         return Json(json!({"status": "already_running"})).into_response();

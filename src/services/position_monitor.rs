@@ -232,7 +232,7 @@ impl PositionMonitor {
 
                 // Check Pending Orders
                 let pending_orders = tracker.get_all_pending_orders();
-                for order in pending_orders {
+                for order in &pending_orders {
                     if order.symbol == symbol {
                         // Check for expiration
                         if let Some(days) = config.defaults.limit_order_expiration_days {
@@ -324,6 +324,44 @@ impl PositionMonitor {
                         continue;
                     }
 
+                    // IMPORTANT: Check if position has an exit order
+                    // If open_order_id is None, this position is orphaned!
+                    if position.open_order_id.is_none() {
+                        warn!(
+                            "🔍 [MONITOR] Detected orphaned position: {} (no exit order)",
+                            position.symbol
+                        );
+
+                        // Check if there's actually a pending sell order we don't know about
+                        let has_pending_sell = pending_orders
+                            .iter()
+                            .any(|o| o.symbol == position.symbol && o.side == "sell");
+
+                        if !has_pending_sell {
+                            warn!(
+                                "🚨 [MONITOR] Position {} has NO pending sell order - recreating!",
+                                position.symbol
+                            );
+                            Self::recreate_limit_sell_order(&position, &*exchange, &tracker).await;
+                            // Skip further checks this iteration to avoid conflicts
+                            continue;
+                        } else {
+                            // Sync: Link the pending order ID to the position
+                            if let Some(pending) = pending_orders
+                                .iter()
+                                .find(|o| o.symbol == position.symbol && o.side == "sell")
+                            {
+                                let mut updated_pos = position.clone();
+                                updated_pos.open_order_id = Some(pending.order_id.clone());
+                                tracker.add_position(updated_pos);
+                                info!(
+                                    "🔗 [MONITOR] Linked position {} to pending order {}",
+                                    position.symbol, pending.order_id
+                                );
+                            }
+                        }
+                    }
+
                     // If we have an open Limit Sell (TP), we don't need to check TP here,
                     // but we DO need to check SL (which is handled above if we track it as PendingOrder).
                     // If we have open_order_id, we assume it's being tracked as PendingOrder.
@@ -388,7 +426,7 @@ impl PositionMonitor {
                         let stop_loss = avg_entry * (1.0 - sl_pct / 100.0);
                         let take_profit = avg_entry * (1.0 + tp_pct / 100.0);
 
-                        let info = PositionInfo {
+                        let pos_info = PositionInfo {
                             symbol: symbol.clone(),
                             entry_price: avg_entry,
                             qty,
@@ -400,8 +438,18 @@ impl PositionMonitor {
                             open_order_id: None,
                         };
 
-                        tracker.add_position(info);
-                        warn!("⚠️  [MONITOR] Added existing position {} (defaults: SL -{:.2}%, TP +{:.2}%)", symbol, sl_pct, tp_pct);
+                        tracker.add_position(pos_info.clone());
+                        warn!(
+                            "⚠️  [MONITOR] Added existing position {} (defaults: SL -{:.2}%, TP +{:.2}%)",
+                            symbol, sl_pct, tp_pct
+                        );
+
+                        // IMPORTANT: Create exit order for this synced position
+                        info!(
+                            "🔄 [MONITOR] Creating exit order for synced position {}",
+                            symbol
+                        );
+                        Self::recreate_limit_sell_order(&pos_info, exchange, tracker).await;
                     }
                 }
                 info!("✅ [MONITOR] Position sync complete");
@@ -567,20 +615,85 @@ impl PositionMonitor {
                 } else if ack.status.eq_ignore_ascii_case("canceled")
                     || ack.status.eq_ignore_ascii_case("expired")
                 {
-                    info!(
+                    warn!(
                         "⚠️ [MONITOR] TP Limit Sell canceled/expired: {}",
                         order.symbol
                     );
                     tracker.remove_pending_order(&order.order_id);
-                    // Position remains open, but without TP order.
-                    // We should probably clear open_order_id in position.
+
+                    // IMPORTANT: Position is now orphaned without exit order
+                    // Clear open_order_id and flag for recreation
                     if let Some(mut pos) = tracker.get_position(&order.symbol) {
                         pos.open_order_id = None;
-                        tracker.add_position(pos); // Update
+                        tracker.add_position(pos.clone());
+
+                        warn!(
+                            "🔄 [MONITOR] Position {} now without exit order - will recreate",
+                            order.symbol
+                        );
+
+                        // Recreate limit sell order immediately
+                        Self::recreate_limit_sell_order(&pos, exchange, tracker).await;
                     }
                 }
             }
             Err(e) => error!("❌ [MONITOR] Failed to check sell order status: {}", e),
+        }
+    }
+
+    /// Recreate a limit sell order for a position that lost its exit order
+    async fn recreate_limit_sell_order(
+        position: &PositionInfo,
+        exchange: &dyn TradingApi,
+        tracker: &PositionTracker,
+    ) {
+        info!(
+            "🔄 [MONITOR] Recreating TP Limit Sell for {} @ ${:.8}",
+            position.symbol, position.take_profit
+        );
+
+        let tp_req = ExPlaceOrderRequest {
+            symbol: position.symbol.clone(),
+            side: ExSide::Sell,
+            order_type: ExOrderType::Limit,
+            qty: Some(position.qty),
+            notional: None,
+            limit_price: Some(position.take_profit),
+            time_in_force: ExTimeInForce::Gtc,
+        };
+
+        match exchange.submit_order(tp_req).await {
+            Ok(res) => {
+                info!(
+                    "✅ [MONITOR] Recreated TP Limit Sell: {} (order: {})",
+                    position.symbol, res.id
+                );
+
+                // Update position with new order ID
+                let mut updated_pos = position.clone();
+                updated_pos.open_order_id = Some(res.id.clone());
+                tracker.add_position(updated_pos);
+
+                // Track as pending order
+                let tp_pending = PendingOrder {
+                    order_id: res.id,
+                    symbol: position.symbol.clone(),
+                    side: "sell".to_string(),
+                    limit_price: position.take_profit,
+                    qty: position.qty,
+                    created_at: chrono::Utc::now().to_rfc3339(),
+                    stop_loss: None,
+                    take_profit: None,
+                    last_check_time: None,
+                };
+                tracker.add_pending_order(tp_pending);
+            }
+            Err(e) => {
+                error!(
+                    "❌ [MONITOR] Failed to recreate TP Limit Sell for {}: {}",
+                    position.symbol, e
+                );
+            }
         }
     }
 }
