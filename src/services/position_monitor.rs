@@ -672,20 +672,37 @@ impl PositionMonitor {
 
         // IMPORTANT: Verify actual holdings before placing sell order
         // This prevents "insufficient balance" errors from quantity mismatches
-        let actual_qty = match exchange.get_positions().await {
-            Ok(positions) => positions
-                .iter()
-                .find(|p| p.symbol == position.symbol)
-                .map(|p| p.qty)
-                .unwrap_or(position.qty),
+        let (actual_qty, position_exists) = match exchange.get_positions().await {
+            Ok(positions) => {
+                if let Some(pos) = positions.iter().find(|p| p.symbol == position.symbol) {
+                    (pos.qty, true)
+                } else {
+                    // Position not found on exchange - likely already closed
+                    warn!(
+                        "⚠️ [MONITOR] Position {} not found on exchange during verification - likely already closed",
+                        position.symbol
+                    );
+                    (0.0, false)
+                }
+            }
             Err(e) => {
                 warn!(
                     "⚠️ [MONITOR] Could not verify holdings for {}: {} (using tracked qty)",
                     position.symbol, e
                 );
-                position.qty
+                (position.qty, true) // Assume exists on API error
             }
         };
+
+        // If position doesn't exist on exchange, remove from tracker and return
+        if !position_exists {
+            tracker.remove_position(&position.symbol);
+            info!(
+                "🧹 [MONITOR] Cleaned up tracked position {} (not on exchange)",
+                position.symbol
+            );
+            return;
+        }
 
         // If actual quantity differs from tracked, update the position
         let final_qty = if (actual_qty - position.qty).abs() > 0.000001 {
@@ -706,10 +723,11 @@ impl PositionMonitor {
 
         // Safety check: Don't place order if qty is zero or negative
         if final_qty <= 0.0 {
-            error!(
-                "❌ [MONITOR] Cannot create sell order for {} - invalid qty: {}",
+            warn!(
+                "⚠️ [MONITOR] Position {} has zero/negative quantity: {} - removing from tracker",
                 position.symbol, final_qty
             );
+            tracker.remove_position(&position.symbol);
             return;
         }
 
@@ -834,8 +852,16 @@ impl PositionMonitor {
                                     }
                                 }
                             } else {
-                                error!(
-                                    "❌ [MONITOR] Position {} not found in exchange holdings - cannot retry",
+                                warn!(
+                                    "⚠️ [MONITOR] Position {} not found in exchange holdings - likely already closed",
+                                    position.symbol
+                                );
+
+                                // Position doesn't exist on exchange - remove from our tracker
+                                tracker.remove_position(&position.symbol);
+
+                                info!(
+                                    "🧹 [MONITOR] Cleaned up tracked position {} (not on exchange)",
                                     position.symbol
                                 );
                             }

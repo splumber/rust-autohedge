@@ -4,10 +4,11 @@
 //! including market data handling, strategy execution, and position management.
 
 pub mod agents;
-pub mod api;
 pub mod bus;
 pub mod config;
+pub mod constants;
 pub mod data;
+pub mod error;
 pub mod events;
 pub mod exchange;
 pub mod llm;
