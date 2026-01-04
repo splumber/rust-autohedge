@@ -741,7 +741,7 @@ impl PositionMonitor {
                     symbol: position.symbol.clone(),
                     side: "sell".to_string(),
                     limit_price: position.take_profit,
-                    qty: position.qty,
+                    qty: final_qty, // Use final_qty, not position.qty
                     created_at: chrono::Utc::now().to_rfc3339(),
                     stop_loss: None,
                     take_profit: None,
@@ -750,10 +750,110 @@ impl PositionMonitor {
                 tracker.add_pending_order(tp_pending);
             }
             Err(e) => {
-                error!(
-                    "❌ [MONITOR] Failed to recreate TP Limit Sell for {}: {}",
-                    position.symbol, e
-                );
+                let error_msg = format!("{}", e);
+
+                // Check if this is an insufficient balance error (403 with code 40310000)
+                if (error_msg.contains("403") && error_msg.contains("40310000"))
+                    || error_msg.contains("insufficient balance")
+                {
+                    warn!(
+                        "⚠️ [MONITOR] Insufficient balance error for {} - verifying actual holdings and retrying",
+                        position.symbol
+                    );
+
+                    // RETRY: Get fresh holdings directly from exchange
+                    match exchange.get_positions().await {
+                        Ok(positions) => {
+                            if let Some(pos) =
+                                positions.iter().find(|p| p.symbol == position.symbol)
+                            {
+                                let verified_qty = pos.qty;
+
+                                warn!(
+                                    "🔄 [MONITOR] Verified holdings for {}: tried={}, actual={} - retrying with actual",
+                                    position.symbol, final_qty, verified_qty
+                                );
+
+                                // Safety check
+                                if verified_qty <= 0.0 {
+                                    error!(
+                                        "❌ [MONITOR] Verified qty is invalid: {} - cannot retry",
+                                        verified_qty
+                                    );
+                                    return;
+                                }
+
+                                // Update position with verified quantity
+                                let mut corrected_pos = position.clone();
+                                corrected_pos.qty = verified_qty;
+                                tracker.add_position(corrected_pos);
+
+                                // Retry with verified quantity
+                                let retry_req = ExPlaceOrderRequest {
+                                    symbol: position.symbol.clone(),
+                                    side: ExSide::Sell,
+                                    order_type: ExOrderType::Limit,
+                                    qty: Some(verified_qty),
+                                    notional: None,
+                                    limit_price: Some(position.take_profit),
+                                    time_in_force: ExTimeInForce::Gtc,
+                                };
+
+                                match exchange.submit_order(retry_req).await {
+                                    Ok(retry_res) => {
+                                        info!(
+                                            "✅ [MONITOR] Retry successful - TP Limit Sell: {} qty={} (order: {})",
+                                            position.symbol, verified_qty, retry_res.id
+                                        );
+
+                                        // Update position with new order ID
+                                        let mut updated_pos = position.clone();
+                                        updated_pos.qty = verified_qty;
+                                        updated_pos.open_order_id = Some(retry_res.id.clone());
+                                        tracker.add_position(updated_pos);
+
+                                        // Track as pending order
+                                        let tp_pending = PendingOrder {
+                                            order_id: retry_res.id,
+                                            symbol: position.symbol.clone(),
+                                            side: "sell".to_string(),
+                                            limit_price: position.take_profit,
+                                            qty: verified_qty,
+                                            created_at: chrono::Utc::now().to_rfc3339(),
+                                            stop_loss: None,
+                                            take_profit: None,
+                                            last_check_time: None,
+                                        };
+                                        tracker.add_pending_order(tp_pending);
+                                    }
+                                    Err(retry_err) => {
+                                        error!(
+                                            "❌ [MONITOR] Retry failed for {} with verified qty {}: {}",
+                                            position.symbol, verified_qty, retry_err
+                                        );
+                                    }
+                                }
+                            } else {
+                                error!(
+                                    "❌ [MONITOR] Position {} not found in exchange holdings - cannot retry",
+                                    position.symbol
+                                );
+                            }
+                        }
+                        Err(verify_err) => {
+                            error!(
+                                "❌ [MONITOR] Failed to verify holdings for {}: {}",
+                                position.symbol, verify_err
+                            );
+                        }
+                    }
+                } else {
+                    // Not an insufficient balance error - log and continue
+                    error!(
+                        "❌ [MONITOR] Failed to recreate TP Limit Sell for {}: {}",
+                        position.symbol, e
+                    );
+                }
             }
         }
     }
