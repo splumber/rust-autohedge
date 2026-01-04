@@ -150,6 +150,8 @@ fn test_position_tracking_flow() {
         side: "buy".to_string(),
         is_closing: false,
         open_order_id: None,
+        last_recreate_attempt: None,
+        recreate_attempts: 0,
     };
 
     tracker.add_position(position);
@@ -196,6 +198,8 @@ fn test_order_sizing_integration() {
         side: "buy".to_string(),
         is_closing: false,
         open_order_id: None,
+        last_recreate_attempt: None,
+        recreate_attempts: 0,
     };
 
     tracker.add_position(position);
@@ -236,6 +240,8 @@ async fn test_multi_symbol_flow() {
             side: "buy".to_string(),
             is_closing: false,
             open_order_id: None,
+            last_recreate_attempt: None,
+            recreate_attempts: 0,
         };
         tracker.add_position(pos);
     }
@@ -362,6 +368,8 @@ fn test_position_lifecycle() {
         side: "buy".to_string(),
         is_closing: false,
         open_order_id: None,
+        last_recreate_attempt: None,
+        recreate_attempts: 0,
     };
     tracker.add_position(position);
 

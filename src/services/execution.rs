@@ -452,6 +452,8 @@ impl ExecutionEngine {
                                 side: "buy".to_string(),
                                 is_closing: false,
                                 open_order_id: None,
+                                last_recreate_attempt: None,
+                                recreate_attempts: 0,
                             };
                             tracker.add_position(position_info);
                         }

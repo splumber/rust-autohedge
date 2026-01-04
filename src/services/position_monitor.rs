@@ -8,6 +8,7 @@ use crate::exchange::types::{
 };
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+use std::time::Instant;
 use tokio::time::{sleep, Duration};
 use tracing::{error, info, warn};
 
@@ -19,9 +20,11 @@ pub struct PositionInfo {
     pub stop_loss: f64,
     pub take_profit: f64,
     pub entry_time: String,
-    pub side: String,                  // "buy" or "sell"
-    pub is_closing: bool,              // New field to prevent double-sells
-    pub open_order_id: Option<String>, // For Take Profit Limit Order
+    pub side: String,                           // "buy" or "sell"
+    pub is_closing: bool,                       // New field to prevent double-sells
+    pub open_order_id: Option<String>,          // For Take Profit Limit Order
+    pub last_recreate_attempt: Option<Instant>, // Track last recreation attempt
+    pub recreate_attempts: u32,                 // Count failed recreation attempts
 }
 
 #[derive(Clone, Debug)]
@@ -304,6 +307,8 @@ impl PositionMonitor {
                                         side: "buy".to_string(),
                                         is_closing: true,
                                         open_order_id: None,
+                                        last_recreate_attempt: None,
+                                        recreate_attempts: 0,
                                     };
                                     Self::generate_exit_signal(
                                         &pos_info,
@@ -327,9 +332,28 @@ impl PositionMonitor {
                     // IMPORTANT: Check if position has an exit order
                     // If open_order_id is None, this position is orphaned!
                     if position.open_order_id.is_none() {
+                        // Check if we've exceeded retry attempts
+                        if position.recreate_attempts >= 3 {
+                            error!(
+                                "❌ [MONITOR] Position {} has failed {} recreation attempts - removing from tracker",
+                                position.symbol, position.recreate_attempts
+                            );
+                            tracker.remove_position(&position.symbol);
+                            continue;
+                        }
+
+                        // Rate limit recreation attempts - only try every 30 seconds
+                        if let Some(last_attempt) = position.last_recreate_attempt {
+                            let elapsed = last_attempt.elapsed();
+                            if elapsed < Duration::from_secs(30) {
+                                // Too soon to retry - skip this iteration
+                                continue;
+                            }
+                        }
+
                         warn!(
-                            "🔍 [MONITOR] Detected orphaned position: {} (no exit order)",
-                            position.symbol
+                            "🔍 [MONITOR] Detected orphaned position: {} (no exit order, attempt {}/3)",
+                            position.symbol, position.recreate_attempts + 1
                         );
 
                         // Check if there's actually a pending sell order we don't know about
@@ -342,7 +366,15 @@ impl PositionMonitor {
                                 "🚨 [MONITOR] Position {} has NO pending sell order - recreating!",
                                 position.symbol
                             );
-                            Self::recreate_limit_sell_order(&position, &*exchange, &tracker).await;
+
+                            // Update attempt tracking BEFORE trying to recreate
+                            let mut updated_pos = position.clone();
+                            updated_pos.last_recreate_attempt = Some(Instant::now());
+                            updated_pos.recreate_attempts += 1;
+                            tracker.add_position(updated_pos.clone());
+
+                            Self::recreate_limit_sell_order(&updated_pos, &*exchange, &tracker)
+                                .await;
                             // Skip further checks this iteration to avoid conflicts
                             continue;
                         } else {
@@ -436,6 +468,8 @@ impl PositionMonitor {
                             side: "buy".to_string(),
                             is_closing: false,
                             open_order_id: None,
+                            last_recreate_attempt: None,
+                            recreate_attempts: 0,
                         };
 
                         tracker.add_position(pos_info.clone());
@@ -557,6 +591,8 @@ impl PositionMonitor {
                         side: "buy".to_string(),
                         is_closing: false,
                         open_order_id: None,
+                        last_recreate_attempt: None,
+                        recreate_attempts: 0,
                     };
 
                     // Submit Limit Sell (TP) with ACTUAL filled quantity

@@ -4,6 +4,23 @@
 mod position_tracker_tests {
     use crate::services::position_monitor::{PendingOrder, PositionInfo, PositionTracker};
 
+    // Helper to create test positions
+    fn test_pos(symbol: &str, entry: f64, qty: f64) -> PositionInfo {
+        PositionInfo {
+            symbol: symbol.to_string(),
+            entry_price: entry,
+            qty,
+            stop_loss: entry * 0.98,
+            take_profit: entry * 1.02,
+            entry_time: chrono::Utc::now().to_rfc3339(),
+            side: "buy".to_string(),
+            is_closing: false,
+            open_order_id: None,
+            last_recreate_attempt: None,
+            recreate_attempts: 0,
+        }
+    }
+
     // ============= PositionTracker Basic Tests =============
 
     #[test]
@@ -19,17 +36,7 @@ mod position_tracker_tests {
     fn test_add_position() {
         let tracker = PositionTracker::new();
 
-        let pos = PositionInfo {
-            symbol: "BTC/USD".to_string(),
-            entry_price: 50000.0,
-            qty: 0.1,
-            stop_loss: 49000.0,
-            take_profit: 51000.0,
-            entry_time: "2025-01-01T00:00:00Z".to_string(),
-            side: "buy".to_string(),
-            is_closing: false,
-            open_order_id: None,
-        };
+        let pos = test_pos("BTC/USD", 50000.0, 0.1);
 
         tracker.add_position(pos);
 
@@ -51,6 +58,8 @@ mod position_tracker_tests {
             side: "buy".to_string(),
             is_closing: false,
             open_order_id: Some("order123".to_string()),
+            last_recreate_attempt: None,
+            recreate_attempts: 0,
         };
 
         tracker.add_position(pos);
@@ -84,6 +93,8 @@ mod position_tracker_tests {
             side: "buy".to_string(),
             is_closing: false,
             open_order_id: None,
+            last_recreate_attempt: None,
+            recreate_attempts: 0,
         };
 
         tracker.add_position(pos);
@@ -116,6 +127,8 @@ mod position_tracker_tests {
                 side: "buy".to_string(),
                 is_closing: false,
                 open_order_id: None,
+                last_recreate_attempt: None,
+                recreate_attempts: 0,
             };
             tracker.add_position(pos);
         }
@@ -138,6 +151,8 @@ mod position_tracker_tests {
             side: "buy".to_string(),
             is_closing: false,
             open_order_id: None,
+            last_recreate_attempt: None,
+            recreate_attempts: 0,
         };
 
         tracker.add_position(pos);
@@ -167,6 +182,8 @@ mod position_tracker_tests {
             side: "buy".to_string(),
             is_closing: false,
             open_order_id: None,
+            last_recreate_attempt: None,
+            recreate_attempts: 0,
         };
 
         let pos2 = PositionInfo {
@@ -179,6 +196,8 @@ mod position_tracker_tests {
             side: "buy".to_string(),
             is_closing: false,
             open_order_id: None,
+            last_recreate_attempt: None,
+            recreate_attempts: 0,
         };
 
         tracker.add_position(pos1);
@@ -308,6 +327,8 @@ mod position_tracker_tests {
             side: "buy".to_string(),
             is_closing: true,
             open_order_id: Some("tp_order".to_string()),
+            last_recreate_attempt: None,
+            recreate_attempts: 0,
         };
 
         assert_eq!(pos.symbol, "LTC/USD");
@@ -329,6 +350,8 @@ mod position_tracker_tests {
             side: "buy".to_string(),
             is_closing: false,
             open_order_id: None,
+            last_recreate_attempt: None,
+            recreate_attempts: 0,
         };
 
         let cloned = pos.clone();
@@ -399,6 +422,8 @@ mod position_tracker_tests {
                     side: "buy".to_string(),
                     is_closing: false,
                     open_order_id: None,
+                    last_recreate_attempt: None,
+                    recreate_attempts: 0,
                 };
                 tracker_clone.add_position(pos);
             });
