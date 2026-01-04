@@ -511,9 +511,27 @@ impl PositionMonitor {
         match exchange.get_order(&order.order_id).await {
             Ok(ack) => {
                 if ack.status.eq_ignore_ascii_case("filled") {
+                    // IMPORTANT: Extract actual filled quantity from order response
+                    // This prevents "insufficient balance" errors from quantity mismatches
+                    let filled_qty = ack
+                        .raw
+                        .get("filled_qty")
+                        .and_then(|v| v.as_str())
+                        .and_then(|s| s.parse::<f64>().ok())
+                        .or_else(|| ack.raw.get("filled_qty").and_then(|v| v.as_f64()))
+                        .unwrap_or(order.qty);
+
+                    // Warn if there's a quantity mismatch
+                    if (filled_qty - order.qty).abs() > 0.000001 {
+                        warn!(
+                            "⚠️ [MONITOR] Quantity mismatch for {}: ordered={}, filled={} - using filled qty",
+                            order.symbol, order.qty, filled_qty
+                        );
+                    }
+
                     info!(
-                        "✅ [MONITOR] Pending BUY filled: {} @ ${:.2}",
-                        order.symbol, order.limit_price
+                        "✅ [MONITOR] Pending BUY filled: {} qty={} @ ${:.2}",
+                        order.symbol, filled_qty, order.limit_price
                     );
                     tracker.remove_pending_order(&order.order_id);
 
@@ -528,11 +546,11 @@ impl PositionMonitor {
                     info!("📊 [MONITOR] Calculating TP/SL from fill price ${:.8}: TP=${:.8} (+{:.2}%), SL=${:.8} (-{:.2}%)",
                           fill_price, take_profit_price, tp_pct, stop_loss_price, sl_pct);
 
-                    // Create Position
+                    // Create Position with ACTUAL filled quantity
                     let mut pos_info = PositionInfo {
                         symbol: order.symbol.clone(),
                         entry_price: fill_price,
-                        qty: order.qty,
+                        qty: filled_qty, // Use actual filled qty
                         stop_loss: stop_loss_price,
                         take_profit: take_profit_price,
                         entry_time: chrono::Utc::now().to_rfc3339(),
@@ -541,12 +559,12 @@ impl PositionMonitor {
                         open_order_id: None,
                     };
 
-                    // Submit Limit Sell (TP)
+                    // Submit Limit Sell (TP) with ACTUAL filled quantity
                     let tp_req = ExPlaceOrderRequest {
                         symbol: order.symbol.clone(),
                         side: ExSide::Sell,
                         order_type: ExOrderType::Limit,
-                        qty: Some(order.qty),
+                        qty: Some(filled_qty), // Use actual filled qty
                         notional: None,
                         limit_price: Some(pos_info.take_profit),
                         time_in_force: ExTimeInForce::Gtc, // Crypto usually GTC
@@ -570,7 +588,7 @@ impl PositionMonitor {
                                 symbol: order.symbol.clone(),
                                 side: "sell".to_string(),
                                 limit_price: pos_info.take_profit,
-                                qty: order.qty,
+                                qty: filled_qty, // Use actual filled qty
                                 created_at: chrono::Utc::now().to_rfc3339(),
                                 stop_loss: None, // Don't attach SL to the sell order
                                 take_profit: None,
@@ -652,11 +670,54 @@ impl PositionMonitor {
             position.symbol, position.take_profit
         );
 
+        // IMPORTANT: Verify actual holdings before placing sell order
+        // This prevents "insufficient balance" errors from quantity mismatches
+        let actual_qty = match exchange.get_positions().await {
+            Ok(positions) => positions
+                .iter()
+                .find(|p| p.symbol == position.symbol)
+                .map(|p| p.qty)
+                .unwrap_or(position.qty),
+            Err(e) => {
+                warn!(
+                    "⚠️ [MONITOR] Could not verify holdings for {}: {} (using tracked qty)",
+                    position.symbol, e
+                );
+                position.qty
+            }
+        };
+
+        // If actual quantity differs from tracked, update the position
+        let final_qty = if (actual_qty - position.qty).abs() > 0.000001 {
+            warn!(
+                "⚠️ [MONITOR] Quantity mismatch for {}: tracked={}, actual={} - using actual",
+                position.symbol, position.qty, actual_qty
+            );
+
+            // Update the tracked position with correct quantity
+            let mut corrected_pos = position.clone();
+            corrected_pos.qty = actual_qty;
+            tracker.add_position(corrected_pos);
+
+            actual_qty
+        } else {
+            position.qty
+        };
+
+        // Safety check: Don't place order if qty is zero or negative
+        if final_qty <= 0.0 {
+            error!(
+                "❌ [MONITOR] Cannot create sell order for {} - invalid qty: {}",
+                position.symbol, final_qty
+            );
+            return;
+        }
+
         let tp_req = ExPlaceOrderRequest {
             symbol: position.symbol.clone(),
             side: ExSide::Sell,
             order_type: ExOrderType::Limit,
-            qty: Some(position.qty),
+            qty: Some(final_qty),
             notional: None,
             limit_price: Some(position.take_profit),
             time_in_force: ExTimeInForce::Gtc,
