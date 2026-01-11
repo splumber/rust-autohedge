@@ -33,7 +33,6 @@ pub struct ExecutionEngine {
 #[derive(serde::Deserialize)]
 struct ExecutionOutput {
     action: String,
-    qty: f64,
     order_type: String,
 }
 
@@ -305,7 +304,7 @@ impl ExecutionEngine {
         let api_req = ExPlaceOrderRequest {
             symbol: req.symbol.clone(),
             side: ExSide::Buy,
-            order_type: order_type.clone(),
+            order_type,
             qty: Some(sizing.qty),
             notional: None, // Use qty for limit orders
             time_in_force,

@@ -37,10 +37,7 @@ impl AccountCache {
     pub async fn buying_power(&self) -> f64 {
         let should_refresh = {
             let cache = self.cache.read().await;
-            match cache.last_fetch {
-                Some(t) if t.elapsed() < self.refresh_interval => false,
-                _ => true,
-            }
+            !matches!(cache.last_fetch, Some(t) if t.elapsed() < self.refresh_interval)
         };
 
         if should_refresh {

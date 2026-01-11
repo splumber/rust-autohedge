@@ -72,10 +72,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             if let Err(e) = keep_alive.start_with_schedule(&cron_schedule).await {
                 tracing::warn!("⚠️ Failed to start keep-alive with custom schedule: {}", e);
             }
-        } else {
-            if let Err(e) = keep_alive.start().await {
-                tracing::warn!("⚠️ Failed to start keep-alive service: {}", e);
-            }
+        } else if let Err(e) = keep_alive.start().await {
+            tracing::warn!("⚠️ Failed to start keep-alive service: {}", e);
         }
     } else {
         info!("ℹ️ KEEP_ALIVE_URL not set - keep-alive service disabled (set it for production)");
