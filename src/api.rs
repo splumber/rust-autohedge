@@ -33,6 +33,7 @@ pub async fn run_server(state: Arc<AppState>) {
         .route("/assets", get(get_assets))
         .route("/report", get(get_report))
         .route("/stats", get(get_stats))
+        .route("/sync_positions", post(sync_positions))
         .route("/cancel_all", post(cancel_all_orders))
         .with_state(state);
 
@@ -278,6 +279,47 @@ async fn stop_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse {
         Json(json!({"status": "stopped"})).into_response()
     } else {
         Json(json!({"status": "not_running"})).into_response()
+    }
+}
+
+async fn sync_positions(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    // Get the exchange from state
+    let exchange = {
+        let exchange_lock = state.exchange.lock().unwrap();
+        if let Some(ex) = exchange_lock.clone() {
+            ex
+        } else {
+            return (
+                axum::http::StatusCode::BAD_REQUEST,
+                "Trading not started. Start trading first with /start"
+            ).into_response();
+        }
+    };
+
+    info!("🔄 Manual position sync requested...");
+
+    // Get positions from exchange
+    match exchange.get_positions().await {
+        Ok(positions) => {
+            let position_count = positions.len();
+            let symbols: Vec<String> = positions.iter().map(|p| p.symbol.clone()).collect();
+
+            info!("✅ Found {} positions on exchange: {:?}", position_count, symbols);
+
+            Json(json!({
+                "status": "synced",
+                "position_count": position_count,
+                "symbols": symbols,
+                "message": "Position sync completed. Ghost positions should be cleaned on next monitoring cycle."
+            })).into_response()
+        }
+        Err(e) => {
+            error!("❌ Failed to sync positions: {}", e);
+            (
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Failed to sync positions: {}", e)
+            ).into_response()
+        }
     }
 }
 

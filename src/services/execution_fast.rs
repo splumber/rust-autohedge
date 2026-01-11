@@ -157,12 +157,28 @@ impl ExecutionEngine {
             return;
         }
 
-        // Check if we already have a position (avoid stacking)
+        // Check if we already have a position (verify it's real, not a ghost)
         if tracker.has_position(&req.symbol) {
-            if config.chatter_level != "low" {
-                info!("[EXECUTION] Skip {}: already have position", req.symbol);
+            // Check if position actually exists on exchange
+            let position_valid = match exchange.get_positions().await {
+                Ok(positions) => positions.iter().any(|p| p.symbol == req.symbol),
+                Err(e) => {
+                    warn!("[EXECUTION] Failed to verify position for {}: {}", req.symbol, e);
+                    true // Assume valid on error to be safe
+                }
+            };
+
+            if position_valid {
+                if config.chatter_level != "low" {
+                    info!("[EXECUTION] Skip {}: already have position", req.symbol);
+                }
+                return;
+            } else {
+                // Ghost position detected - remove it
+                warn!("[EXECUTION] Ghost position detected for {} - cleaning up", req.symbol);
+                tracker.remove_position(&req.symbol);
+                info!("[EXECUTION] Removed ghost position, proceeding with order...");
             }
-            return;
         }
 
         // Check for pending orders on this symbol
