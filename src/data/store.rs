@@ -73,10 +73,7 @@ impl MarketStore {
     }
 
     pub fn update_bar(&self, symbol: String, bar: Bar) {
-        let mut queue = self
-            .historical_bars
-            .entry(symbol)
-            .or_insert_with(VecDeque::new);
+        let mut queue = self.historical_bars.entry(symbol).or_default();
         if queue.len() >= self.limit {
             queue.pop_front();
         }
@@ -84,10 +81,7 @@ impl MarketStore {
     }
 
     pub fn update_trade(&self, symbol: String, trade: Trade) {
-        let mut queue = self
-            .historical_trades
-            .entry(symbol)
-            .or_insert_with(VecDeque::new);
+        let mut queue = self.historical_trades.entry(symbol).or_default();
         if queue.len() >= self.limit {
             queue.pop_front();
         }
@@ -95,10 +89,7 @@ impl MarketStore {
     }
 
     pub fn update_quote(&self, symbol: String, quote: Quote) {
-        let mut queue = self
-            .historical_quotes
-            .entry(symbol)
-            .or_insert_with(VecDeque::new);
+        let mut queue = self.historical_quotes.entry(symbol).or_default();
         if queue.len() >= self.limit {
             queue.pop_front();
         }

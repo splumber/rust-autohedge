@@ -46,6 +46,12 @@ pub struct PositionTracker {
     pending_orders: Arc<Mutex<HashMap<String, PendingOrder>>>,
 }
 
+impl Default for PositionTracker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PositionTracker {
     pub fn new() -> Self {
         Self {
