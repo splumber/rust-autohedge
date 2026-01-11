@@ -9,6 +9,7 @@
 ### For Developers
 - **[TECHNICAL_DESIGN.md](./TECHNICAL_DESIGN.md)** - Architecture and system design
 - **[HFT_PERFORMANCE.md](./HFT_PERFORMANCE.md)** - Performance characteristics and optimization
+- **[OPTIMIZATION_REPORT.md](./OPTIMIZATION_REPORT.md)** - Code optimization analysis and improvements
 
 ---
 
@@ -102,6 +103,7 @@ rust-autohedge/
 │   ├── INDEX.md                  # This file
 │   ├── TECHNICAL_DESIGN.md       # Architecture
 │   ├── HFT_PERFORMANCE.md        # Performance docs
+│   ├── OPTIMIZATION_REPORT.md    # Code optimizations
 │   ├── guides/                   # User and developer guides
 │   │   ├── USER_GUIDE.md
 │   │   ├── POSITION_MANAGEMENT_GUIDE.md
@@ -132,7 +134,8 @@ rust-autohedge/
 1. [README.md](../README.md) - Project overview
 2. [CLAUDE_MEMORY.md](../CLAUDE_MEMORY.md) - Complete technical reference
 3. [TECHNICAL_DESIGN.md](./TECHNICAL_DESIGN.md) - Architecture
-4. [REFACTORING_PLAN.md](./guides/REFACTORING_PLAN.md) - Improvement roadmap
+4. [OPTIMIZATION_REPORT.md](./OPTIMIZATION_REPORT.md) - Code optimization guide
+5. [REFACTORING_PLAN.md](./guides/REFACTORING_PLAN.md) - Improvement roadmap
 
 ### For AI Assistants
 1. **[CLAUDE_MEMORY.md](../CLAUDE_MEMORY.md)** - Start here! Complete implementation reference

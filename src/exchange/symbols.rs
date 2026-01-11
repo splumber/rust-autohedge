@@ -17,6 +17,7 @@ pub fn to_kraken_pair(canonical: &str) -> String {
     s
 }
 
+#[allow(dead_code)]
 pub fn to_binance_stream_symbol(canonical: &str) -> String {
     // Binance spot commonly uses e.g. BTCUSDT; for USD-quoted pairs keep BTCUSD.
     canonical.replace('/', "").to_lowercase()

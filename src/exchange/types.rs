@@ -58,6 +58,7 @@ pub struct OrderAck {
 }
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 pub struct NormalizedQuote {
     pub symbol: String,
     pub bid: f64,
@@ -67,6 +68,7 @@ pub struct NormalizedQuote {
 }
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 pub struct NormalizedTrade {
     pub symbol: String,
     pub price: f64,
