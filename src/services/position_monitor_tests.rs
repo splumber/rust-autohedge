@@ -18,6 +18,9 @@ mod position_tracker_tests {
             open_order_id: None,
             last_recreate_attempt: None,
             recreate_attempts: 0,
+            highest_price: entry,
+            trailing_stop_active: false,
+            trailing_stop_price: entry * 0.98,
         }
     }
 
@@ -60,6 +63,9 @@ mod position_tracker_tests {
             open_order_id: Some("order123".to_string()),
             last_recreate_attempt: None,
             recreate_attempts: 0,
+            highest_price: 3000.0,
+            trailing_stop_active: false,
+            trailing_stop_price: 2900.0,
         };
 
         tracker.add_position(pos);
@@ -95,6 +101,9 @@ mod position_tracker_tests {
             open_order_id: None,
             last_recreate_attempt: None,
             recreate_attempts: 0,
+            highest_price: 100.0,
+            trailing_stop_active: false,
+            trailing_stop_price: 95.0,
         };
 
         tracker.add_position(pos);
@@ -129,6 +138,9 @@ mod position_tracker_tests {
                 open_order_id: None,
                 last_recreate_attempt: None,
                 recreate_attempts: 0,
+                highest_price: 100.0,
+                trailing_stop_active: false,
+                trailing_stop_price: 95.0,
             };
             tracker.add_position(pos);
         }
@@ -153,6 +165,9 @@ mod position_tracker_tests {
             open_order_id: None,
             last_recreate_attempt: None,
             recreate_attempts: 0,
+            highest_price: 0.08,
+            trailing_stop_active: false,
+            trailing_stop_price: 0.07,
         };
 
         tracker.add_position(pos);
@@ -184,6 +199,9 @@ mod position_tracker_tests {
             open_order_id: None,
             last_recreate_attempt: None,
             recreate_attempts: 0,
+            highest_price: 0.50,
+            trailing_stop_active: false,
+            trailing_stop_price: 0.45,
         };
 
         let pos2 = PositionInfo {
@@ -198,6 +216,9 @@ mod position_tracker_tests {
             open_order_id: None,
             last_recreate_attempt: None,
             recreate_attempts: 0,
+            highest_price: 0.55,
+            trailing_stop_active: false,
+            trailing_stop_price: 0.50,
         };
 
         tracker.add_position(pos1);
@@ -329,6 +350,9 @@ mod position_tracker_tests {
             open_order_id: Some("tp_order".to_string()),
             last_recreate_attempt: None,
             recreate_attempts: 0,
+            highest_price: 80.0,
+            trailing_stop_active: false,
+            trailing_stop_price: 75.0,
         };
 
         assert_eq!(pos.symbol, "LTC/USD");
@@ -352,6 +376,9 @@ mod position_tracker_tests {
             open_order_id: None,
             last_recreate_attempt: None,
             recreate_attempts: 0,
+            highest_price: 5.0,
+            trailing_stop_active: false,
+            trailing_stop_price: 4.5,
         };
 
         let cloned = pos.clone();
@@ -424,6 +451,9 @@ mod position_tracker_tests {
                     open_order_id: None,
                     last_recreate_attempt: None,
                     recreate_attempts: 0,
+                    highest_price: 100.0 + i as f64,
+                    trailing_stop_active: false,
+                    trailing_stop_price: 95.0,
                 };
                 tracker_clone.add_position(pos);
             });

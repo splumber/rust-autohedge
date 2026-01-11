@@ -454,6 +454,9 @@ impl ExecutionEngine {
                                 open_order_id: None,
                                 last_recreate_attempt: None,
                                 recreate_attempts: 0,
+                                highest_price: estimated_price,
+                                trailing_stop_active: false,
+                                trailing_stop_price: stop_loss,
                             };
                             tracker.add_position(position_info);
                         }

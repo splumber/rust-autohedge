@@ -24,6 +24,23 @@ pub struct HftConfig {
     pub take_profit_bps: f64,
     pub stop_loss_bps: f64,
     pub max_spread_bps: f64,
+    /// Minimum volume ratio vs moving average (filter low liquidity periods)
+    #[serde(default = "default_volume_ratio")]
+    pub min_volume_ratio: f64,
+    /// Use VWAP for trend confirmation
+    #[serde(default)]
+    pub use_vwap_filter: bool,
+    /// Lookback window for momentum calculation
+    #[serde(default = "default_momentum_lookback")]
+    pub momentum_lookback: usize,
+}
+
+fn default_volume_ratio() -> f64 {
+    0.5
+}
+
+fn default_momentum_lookback() -> usize {
+    20
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -51,6 +68,23 @@ pub struct MicroTradeConfig {
     /// WARNING: This increases risk exposure!
     #[serde(default)]
     pub allow_multiple_positions: bool,
+    /// If true, use trailing stop to lock in profits
+    #[serde(default)]
+    pub use_trailing_stop: bool,
+    /// Activate trailing stop after this % profit
+    #[serde(default = "default_trailing_activation")]
+    pub trailing_stop_activation_pct: f64,
+    /// Trail the stop by this % below the highest price reached
+    #[serde(default = "default_trailing_distance")]
+    pub trailing_stop_distance_pct: f64,
+}
+
+fn default_trailing_activation() -> f64 {
+    0.5
+}
+
+fn default_trailing_distance() -> f64 {
+    0.25
 }
 
 fn default_true() -> bool {
@@ -63,14 +97,17 @@ fn default_tif() -> String {
 impl Default for MicroTradeConfig {
     fn default() -> Self {
         Self {
-            target_balance_pct: 0.05,
-            aggression_bps: 5.0,
-            min_order_interval_ms: 500,
+            target_balance_pct: 0.02,
+            aggression_bps: 15.0,
+            min_order_interval_ms: 1000,
             account_cache_secs: 30,
             use_llm_filter: false,
             limit_orders_expire_daily: true,
-            crypto_time_in_force: "gtc".to_string(),
-            allow_multiple_positions: false, // Default: single position per symbol
+            crypto_time_in_force: "ioc".to_string(),
+            allow_multiple_positions: false,
+            use_trailing_stop: true,
+            trailing_stop_activation_pct: 0.4,
+            trailing_stop_distance_pct: 0.2,
         }
     }
 }

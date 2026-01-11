@@ -25,6 +25,10 @@ pub struct PositionInfo {
     pub open_order_id: Option<String>,          // For Take Profit Limit Order
     pub last_recreate_attempt: Option<Instant>, // Track last recreation attempt
     pub recreate_attempts: u32,                 // Count failed recreation attempts
+    // Trailing stop fields
+    pub highest_price: f64,         // Track highest price for trailing stop
+    pub trailing_stop_active: bool, // Is trailing stop activated?
+    pub trailing_stop_price: f64,   // Current trailing stop level
 }
 
 #[derive(Clone, Debug)]
@@ -309,6 +313,9 @@ impl PositionMonitor {
                                         open_order_id: None,
                                         last_recreate_attempt: None,
                                         recreate_attempts: 0,
+                                        highest_price: order.limit_price,
+                                        trailing_stop_active: false,
+                                        trailing_stop_price: sl,
                                     };
                                     Self::generate_exit_signal(
                                         &pos_info,
@@ -470,6 +477,9 @@ impl PositionMonitor {
                             open_order_id: None,
                             last_recreate_attempt: None,
                             recreate_attempts: 0,
+                            highest_price: avg_entry,
+                            trailing_stop_active: false,
+                            trailing_stop_price: stop_loss,
                         };
 
                         tracker.add_position(pos_info.clone());
@@ -593,6 +603,9 @@ impl PositionMonitor {
                         open_order_id: None,
                         last_recreate_attempt: None,
                         recreate_attempts: 0,
+                        highest_price: fill_price,
+                        trailing_stop_active: false,
+                        trailing_stop_price: stop_loss_price,
                     };
 
                     // Submit Limit Sell (TP) with ACTUAL filled quantity

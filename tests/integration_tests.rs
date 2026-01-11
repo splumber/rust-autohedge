@@ -152,6 +152,9 @@ fn test_position_tracking_flow() {
         open_order_id: None,
         last_recreate_attempt: None,
         recreate_attempts: 0,
+        highest_price: 0.08,
+        trailing_stop_active: false,
+        trailing_stop_price: 0.075,
     };
 
     tracker.add_position(position);
@@ -200,6 +203,9 @@ fn test_order_sizing_integration() {
         open_order_id: None,
         last_recreate_attempt: None,
         recreate_attempts: 0,
+        highest_price: limit_price,
+        trailing_stop_active: false,
+        trailing_stop_price: limit_price * 0.99,
     };
 
     tracker.add_position(position);
@@ -242,6 +248,9 @@ async fn test_multi_symbol_flow() {
             open_order_id: None,
             last_recreate_attempt: None,
             recreate_attempts: 0,
+            highest_price: 1000.0,
+            trailing_stop_active: false,
+            trailing_stop_price: 950.0,
         };
         tracker.add_position(pos);
     }
@@ -370,6 +379,9 @@ fn test_position_lifecycle() {
         open_order_id: None,
         last_recreate_attempt: None,
         recreate_attempts: 0,
+        highest_price: 0.50,
+        trailing_stop_active: false,
+        trailing_stop_price: 0.48,
     };
     tracker.add_position(position);
 

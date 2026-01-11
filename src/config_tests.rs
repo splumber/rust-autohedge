@@ -10,13 +10,16 @@ mod config_tests {
     fn test_micro_trade_config_default() {
         let config = MicroTradeConfig::default();
 
-        assert_eq!(config.target_balance_pct, 0.05);
-        assert_eq!(config.aggression_bps, 5.0);
-        assert_eq!(config.min_order_interval_ms, 500);
+        assert_eq!(config.target_balance_pct, 0.02);
+        assert_eq!(config.aggression_bps, 15.0);
+        assert_eq!(config.min_order_interval_ms, 1000);
         assert_eq!(config.account_cache_secs, 30);
         assert!(!config.use_llm_filter);
         assert!(config.limit_orders_expire_daily);
-        assert_eq!(config.crypto_time_in_force, "gtc");
+        assert_eq!(config.crypto_time_in_force, "ioc");
+        assert!(config.use_trailing_stop);
+        assert_eq!(config.trailing_stop_activation_pct, 0.4);
+        assert_eq!(config.trailing_stop_distance_pct, 0.2);
     }
 
     #[test]
