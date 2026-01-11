@@ -1,12 +1,11 @@
-/// Simple symbol normalization helpers.
-///
-/// Canonical symbol (used internally):
-/// - crypto: "BASE/USD" like "BTC/USD" (matches existing .env values)
-///
-/// Exchange mappings:
-/// - Coinbase: "BTC-USD"
-/// - Kraken:  "XBT/USD" (Kraken prefers XBT for BTC)
-
+//! Simple symbol normalization helpers.
+//!
+//! Canonical symbol (used internally):
+//! - crypto: "BASE/USD" like "BTC/USD" (matches existing .env values)
+//!
+//! Exchange mappings:
+//! - Coinbase: "BTC-USD"
+//! - Kraken:  "XBT/USD" (Kraken prefers XBT for BTC)
 pub fn to_coinbase_product_id(canonical: &str) -> String {
     canonical.replace('/', "-")
 }
