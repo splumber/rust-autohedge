@@ -291,8 +291,9 @@ async fn sync_positions(State(state): State<Arc<AppState>>) -> impl IntoResponse
         } else {
             return (
                 axum::http::StatusCode::BAD_REQUEST,
-                "Trading not started. Start trading first with /start"
-            ).into_response();
+                "Trading not started. Start trading first with /start",
+            )
+                .into_response();
         }
     };
 
@@ -304,7 +305,10 @@ async fn sync_positions(State(state): State<Arc<AppState>>) -> impl IntoResponse
             let position_count = positions.len();
             let symbols: Vec<String> = positions.iter().map(|p| p.symbol.clone()).collect();
 
-            info!("✅ Found {} positions on exchange: {:?}", position_count, symbols);
+            info!(
+                "✅ Found {} positions on exchange: {:?}",
+                position_count, symbols
+            );
 
             Json(json!({
                 "status": "synced",
@@ -317,8 +321,9 @@ async fn sync_positions(State(state): State<Arc<AppState>>) -> impl IntoResponse
             error!("❌ Failed to sync positions: {}", e);
             (
                 axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Failed to sync positions: {}", e)
-            ).into_response()
+                format!("Failed to sync positions: {}", e),
+            )
+                .into_response()
         }
     }
 }

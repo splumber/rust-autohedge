@@ -70,7 +70,7 @@ impl Default for MicroTradeConfig {
             use_llm_filter: false,
             limit_orders_expire_daily: true,
             crypto_time_in_force: "gtc".to_string(),
-            allow_multiple_positions: false,  // Default: single position per symbol
+            allow_multiple_positions: false, // Default: single position per symbol
         }
     }
 }

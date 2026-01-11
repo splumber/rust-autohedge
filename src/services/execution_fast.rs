@@ -165,19 +165,28 @@ impl ExecutionEngine {
                 let position_valid = match exchange.get_positions().await {
                     Ok(positions) => positions.iter().any(|p| p.symbol == req.symbol),
                     Err(e) => {
-                        warn!("[EXECUTION] Failed to verify position for {}: {}", req.symbol, e);
+                        warn!(
+                            "[EXECUTION] Failed to verify position for {}: {}",
+                            req.symbol, e
+                        );
                         true // Assume valid on error to be safe
                     }
                 };
 
                 if position_valid {
                     if config.chatter_level != "low" {
-                        info!("[EXECUTION] Skip {}: already have position (stacking disabled)", req.symbol);
+                        info!(
+                            "[EXECUTION] Skip {}: already have position (stacking disabled)",
+                            req.symbol
+                        );
                     }
                     return;
                 } else {
                     // Ghost position detected - remove it
-                    warn!("[EXECUTION] Ghost position detected for {} - cleaning up", req.symbol);
+                    warn!(
+                        "[EXECUTION] Ghost position detected for {} - cleaning up",
+                        req.symbol
+                    );
                     tracker.remove_position(&req.symbol);
                     info!("[EXECUTION] Removed ghost position, proceeding with order...");
                 }
