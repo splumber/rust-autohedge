@@ -157,27 +157,35 @@ impl ExecutionEngine {
             return;
         }
 
-        // Check if we already have a position (verify it's real, not a ghost)
+        // Check if we already have a position
         if tracker.has_position(&req.symbol) {
-            // Check if position actually exists on exchange
-            let position_valid = match exchange.get_positions().await {
-                Ok(positions) => positions.iter().any(|p| p.symbol == req.symbol),
-                Err(e) => {
-                    warn!("[EXECUTION] Failed to verify position for {}: {}", req.symbol, e);
-                    true // Assume valid on error to be safe
-                }
-            };
+            // Check config to see if multiple positions are allowed
+            if !config.micro_trade.allow_multiple_positions {
+                // Verify position actually exists on exchange (ghost cleanup)
+                let position_valid = match exchange.get_positions().await {
+                    Ok(positions) => positions.iter().any(|p| p.symbol == req.symbol),
+                    Err(e) => {
+                        warn!("[EXECUTION] Failed to verify position for {}: {}", req.symbol, e);
+                        true // Assume valid on error to be safe
+                    }
+                };
 
-            if position_valid {
-                if config.chatter_level != "low" {
-                    info!("[EXECUTION] Skip {}: already have position", req.symbol);
+                if position_valid {
+                    if config.chatter_level != "low" {
+                        info!("[EXECUTION] Skip {}: already have position (stacking disabled)", req.symbol);
+                    }
+                    return;
+                } else {
+                    // Ghost position detected - remove it
+                    warn!("[EXECUTION] Ghost position detected for {} - cleaning up", req.symbol);
+                    tracker.remove_position(&req.symbol);
+                    info!("[EXECUTION] Removed ghost position, proceeding with order...");
                 }
-                return;
             } else {
-                // Ghost position detected - remove it
-                warn!("[EXECUTION] Ghost position detected for {} - cleaning up", req.symbol);
-                tracker.remove_position(&req.symbol);
-                info!("[EXECUTION] Removed ghost position, proceeding with order...");
+                // Multiple positions allowed - just log and continue
+                if config.chatter_level != "low" {
+                    info!("[EXECUTION] Position exists for {} but multiple positions allowed - proceeding", req.symbol);
+                }
             }
         }
 

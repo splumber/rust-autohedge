@@ -47,6 +47,10 @@ pub struct MicroTradeConfig {
     /// - ioc: Immediate Or Cancel (fills immediately or cancels, no partial fills wait)
     #[serde(default = "default_tif")]
     pub crypto_time_in_force: String,
+    /// If true, allow multiple positions per symbol (position stacking)
+    /// WARNING: This increases risk exposure!
+    #[serde(default)]
+    pub allow_multiple_positions: bool,
 }
 
 fn default_true() -> bool {
@@ -66,6 +70,7 @@ impl Default for MicroTradeConfig {
             use_llm_filter: false,
             limit_orders_expire_daily: true,
             crypto_time_in_force: "gtc".to_string(),
+            allow_multiple_positions: false,  // Default: single position per symbol
         }
     }
 }
