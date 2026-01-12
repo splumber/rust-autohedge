@@ -27,7 +27,7 @@ jobs:
           configuration-path: .github/labeler.yml
 
       - name: Label size
-        uses: pascalgn/size-label-action@v0.5.4
+        uses: pascalgn/size-label-action@v0.5.5
         if: github.event_name == 'pull_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
