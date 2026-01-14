@@ -43,8 +43,6 @@ pub mod trading {
 
 /// Rate limiting constants
 pub mod rate_limit {
-    use super::*;
-
     /// Default rate limit interval (250ms = 4 orders/sec per symbol)
     pub const DEFAULT_INTERVAL_MS: u64 = 250;
 

@@ -69,12 +69,16 @@ impl RiskEngine {
             for part in signal.market_context.split(',') {
                 let part = part.trim();
                 if part.starts_with("tp=") {
-                    if let Ok(val) = part["tp=".len()..].parse::<f64>() {
-                        take_profit = Some(val);
+                    if let Some(val_str) = part.strip_prefix("tp=") {
+                        if let Ok(val) = val_str.parse::<f64>() {
+                            take_profit = Some(val);
+                        }
                     }
                 } else if part.starts_with("sl=") {
-                    if let Ok(val) = part["sl=".len()..].parse::<f64>() {
-                        stop_loss = Some(val);
+                    if let Some(val_str) = part.strip_prefix("sl=") {
+                        if let Ok(val) = val_str.parse::<f64>() {
+                            stop_loss = Some(val);
+                        }
                     }
                 }
             }

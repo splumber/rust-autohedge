@@ -97,6 +97,7 @@ impl AlpacaClient {
         Ok(data)
     }
 
+    #[allow(dead_code)]
     pub async fn get_assets(
         &self,
         asset_class: Option<String>,
