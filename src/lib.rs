@@ -4,6 +4,7 @@
 //! including market data handling, strategy execution, and position management.
 
 pub mod agents;
+pub mod backtest_support;
 pub mod bus;
 pub mod config;
 pub mod constants;

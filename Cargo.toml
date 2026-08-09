@@ -11,6 +11,18 @@ path = "src/lib.rs"
 name = "rust_autohedge"
 path = "src/main.rs"
 
+[[bin]]
+name = "backtest"
+path = "src/bin/backtest.rs"
+
+[[bin]]
+name = "pairs"
+path = "src/bin/pairs.rs"
+
+[[bin]]
+name = "cross_exchange"
+path = "src/bin/cross_exchange.rs"
+
 [dependencies]
 tokio = { version = "1.0", features = ["full"] }
 async-openai = "0.26.0"

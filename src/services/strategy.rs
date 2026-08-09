@@ -1,6 +1,6 @@
 use crate::agents::{director::DirectorAgent, quant::QuantAgent, Agent};
 use crate::bus::EventBus;
-use crate::config::AppConfig;
+use crate::config::{AppConfig, FeeConfig, HftConfig};
 use crate::data::store::{MarketStore, Quote};
 use crate::events::{AnalysisSignal, Event, MarketEvent};
 use crate::llm::LLMQueue;
@@ -9,6 +9,367 @@ use std::collections::VecDeque;
 use std::sync::Arc;
 use tokio::sync::broadcast::error::RecvError;
 use tracing::{error, info, warn};
+
+/// Outcome of evaluating a single HFT quote tick against the entry criteria.
+#[derive(Debug, Clone, PartialEq)]
+pub enum HftSignal {
+    /// Not enough mid-price history yet to compute momentum.
+    InsufficientHistory,
+    /// Spread too wide to trade.
+    SpreadTooWide { spread_bps: f64 },
+    /// Raw momentum below the coarse pre-filter.
+    EdgeTooLow { edge_bps: f64 },
+    /// Passed the raw momentum filter but isn't profitable net of spread + fees.
+    NetEdgeTooLow {
+        edge_bps: f64,
+        spread_bps: f64,
+        net_edge_bps: f64,
+    },
+    /// Passed the edge gates, but recent trade activity doesn't confirm the move - likely
+    /// quote noise rather than a real move with conviction behind it.
+    VolumeTooLow { volume_ratio: f64 },
+    /// All gates passed - buy.
+    Buy {
+        mid: f64,
+        spread_bps: f64,
+        edge_bps: f64,
+        net_edge_bps: f64,
+        take_profit: f64,
+        stop_loss: f64,
+    },
+}
+
+/// Ratio of the most recent trade size to the average of the ones before it, or `None`
+/// when there isn't enough trade history yet to compute a baseline. `>1` means the latest
+/// trade was larger than recent average activity (confirms conviction); `<1` means it was
+/// quieter than usual (more likely to be noise).
+fn volume_ratio(recent_volumes: &VecDeque<f64>) -> Option<f64> {
+    if recent_volumes.len() < 3 {
+        return None;
+    }
+    let current = *recent_volumes.back()?;
+    let baseline_count = recent_volumes.len() - 1;
+    let baseline_avg: f64 =
+        recent_volumes.iter().take(baseline_count).sum::<f64>() / baseline_count as f64;
+    if baseline_avg <= 0.0 {
+        return None;
+    }
+    Some(current / baseline_avg)
+}
+
+/// Pure entry-decision logic for the HFT strategy: given a quote, recent mid-price history
+/// (most recent last, already including the current tick and capped the same way
+/// `evaluate_hft` caps it), and recent trade-size history, decides whether to buy. No I/O,
+/// no async, no shared state - this is the single source of truth for "would the HFT
+/// strategy buy here," called by both the live strategy loop and the backtester so the two
+/// can never drift apart.
+///
+/// Callers are responsible for the invalid-quote check (`bid <= 0.0 || ask <= 0.0 || ask <
+/// bid`) and for pushing the current mid/trade-size into their respective histories before
+/// calling this - those are bookkeeping concerns, not entry-decision math.
+pub fn evaluate_hft_signal(
+    bid: f64,
+    ask: f64,
+    mids: &VecDeque<f64>,
+    recent_volumes: &VecDeque<f64>,
+    hft: &HftConfig,
+    fees: &FeeConfig,
+) -> HftSignal {
+    let mid = (bid + ask) / 2.0;
+    let spread_bps = ((ask - bid) / mid) * 10_000.0;
+    if spread_bps > hft.max_spread_bps {
+        return HftSignal::SpreadTooWide { spread_bps };
+    }
+
+    // Simple momentum edge: compare current mid to mid N steps back.
+    let lookback = hft.momentum_lookback.min(mids.len().saturating_sub(1));
+    if lookback == 0 {
+        return HftSignal::InsufficientHistory;
+    }
+    let past = mids.get(mids.len() - 1 - lookback).copied().unwrap_or(mid);
+    let edge_bps = ((mid - past) / past) * 10_000.0;
+
+    if edge_bps < hft.min_edge_bps {
+        return HftSignal::EdgeTooLow { edge_bps };
+    }
+
+    // The real profitability gate: edge net of spread and round-trip trading costs.
+    // A raw momentum reading above min_edge_bps means nothing if spread + fees exceed
+    // it - the position would be underwater from the moment it opens.
+    let net_edge_bps = edge_bps - spread_bps - fees.round_trip_fee_bps;
+    if net_edge_bps < hft.min_net_edge_bps {
+        return HftSignal::NetEdgeTooLow {
+            edge_bps,
+            spread_bps,
+            net_edge_bps,
+        };
+    }
+
+    // Volume confirmation: require recent trade activity to be at least in line with
+    // its own recent average before trusting the momentum reading. Fails open (doesn't
+    // block) when there isn't enough trade history yet, so sparse trade data on a
+    // low-liquidity symbol can't silently wedge the strategy shut.
+    if let Some(ratio) = volume_ratio(recent_volumes) {
+        if ratio < hft.min_volume_ratio {
+            return HftSignal::VolumeTooLow {
+                volume_ratio: ratio,
+            };
+        }
+    }
+
+    let take_profit = mid * (1.0 + hft.take_profit_bps / 10_000.0);
+    let stop_loss = mid * (1.0 - hft.stop_loss_bps / 10_000.0);
+
+    HftSignal::Buy {
+        mid,
+        spread_bps,
+        edge_bps,
+        net_edge_bps,
+        take_profit,
+        stop_loss,
+    }
+}
+
+/// Experimental mean-reversion variant of `evaluate_hft_signal`: instead of buying on
+/// upward momentum (betting the move continues), buys on a short-term dip of at least
+/// `hft.min_edge_bps` magnitude (betting price reverts back up). Not wired into the live
+/// strategy engine - this exists for backtesting the reversion hypothesis against the same
+/// historical data and cost model as the momentum strategy, using the same config knobs
+/// (spread/fee/volume gates and TP/SL sizing are identical; only the entry direction and
+/// what counts as "edge" differ).
+pub fn evaluate_mean_reversion_signal(
+    bid: f64,
+    ask: f64,
+    mids: &VecDeque<f64>,
+    recent_volumes: &VecDeque<f64>,
+    hft: &HftConfig,
+    fees: &FeeConfig,
+) -> HftSignal {
+    let mid = (bid + ask) / 2.0;
+    let spread_bps = ((ask - bid) / mid) * 10_000.0;
+    if spread_bps > hft.max_spread_bps {
+        return HftSignal::SpreadTooWide { spread_bps };
+    }
+
+    let lookback = hft.momentum_lookback.min(mids.len().saturating_sub(1));
+    if lookback == 0 {
+        return HftSignal::InsufficientHistory;
+    }
+    let past = mids.get(mids.len() - 1 - lookback).copied().unwrap_or(mid);
+    let move_bps = ((mid - past) / past) * 10_000.0; // negative = a dip
+
+    // Only buy on a dip of at least min_edge_bps magnitude - the mirror image of the
+    // momentum strategy's "only buy on a rise of at least min_edge_bps."
+    if move_bps > -hft.min_edge_bps {
+        return HftSignal::EdgeTooLow { edge_bps: move_bps };
+    }
+    let edge_bps = -move_bps; // reframe the dip size as a positive "reversion edge"
+
+    let net_edge_bps = edge_bps - spread_bps - fees.round_trip_fee_bps;
+    if net_edge_bps < hft.min_net_edge_bps {
+        return HftSignal::NetEdgeTooLow {
+            edge_bps,
+            spread_bps,
+            net_edge_bps,
+        };
+    }
+
+    if let Some(ratio) = volume_ratio(recent_volumes) {
+        if ratio < hft.min_volume_ratio {
+            return HftSignal::VolumeTooLow {
+                volume_ratio: ratio,
+            };
+        }
+    }
+
+    let take_profit = mid * (1.0 + hft.take_profit_bps / 10_000.0);
+    let stop_loss = mid * (1.0 - hft.stop_loss_bps / 10_000.0);
+
+    HftSignal::Buy {
+        mid,
+        spread_bps,
+        edge_bps,
+        net_edge_bps,
+        take_profit,
+        stop_loss,
+    }
+}
+
+/// Outcome of any indicator-based signal below - deliberately simpler than `HftSignal`
+/// since these aren't all comparable along the same "edge_bps/spread_bps/net_edge_bps"
+/// axes; each carries its own free-text reasoning for logging/backtest inspection instead.
+#[derive(Debug, Clone, PartialEq)]
+pub enum SignalDecision {
+    NoSignal,
+    Buy {
+        mid: f64,
+        take_profit: f64,
+        stop_loss: f64,
+        reasoning: String,
+    },
+}
+
+/// Shared spread/liquidity gate used by every signal below: even a textbook-perfect
+/// indicator reading is untradeable if the book is too wide. Returns the mid price when
+/// the gate passes. (Unlike `evaluate_hft_signal`, these signals don't duplicate a
+/// net-edge-vs-fees pre-check - the backtester already deducts real fees from every
+/// trade's PnL regardless of which signal opened it, so cost realism is enforced once,
+/// centrally, rather than re-implemented per signal.)
+fn passes_spread_gate(bid: f64, ask: f64, max_spread_bps: f64) -> Option<f64> {
+    if bid <= 0.0 || ask <= 0.0 || ask < bid {
+        return None;
+    }
+    let mid = (bid + ask) / 2.0;
+    let spread_bps = ((ask - bid) / mid) * 10_000.0;
+    if spread_bps > max_spread_bps {
+        return None;
+    }
+    Some(mid)
+}
+
+/// RSI mean-reversion: buy when RSI drops below `oversold`, betting on a bounce.
+/// `closes` must be ordered oldest-to-newest and include the current price as the last
+/// element.
+pub fn evaluate_rsi_signal(
+    bid: f64,
+    ask: f64,
+    closes: &VecDeque<f64>,
+    period: usize,
+    oversold: f64,
+    max_spread_bps: f64,
+    tp_pct: f64,
+    sl_pct: f64,
+) -> SignalDecision {
+    let Some(mid) = passes_spread_gate(bid, ask, max_spread_bps) else {
+        return SignalDecision::NoSignal;
+    };
+    let closes_vec: Vec<f64> = closes.iter().copied().collect();
+    let Some(r) = crate::services::indicators::rsi(&closes_vec, period) else {
+        return SignalDecision::NoSignal;
+    };
+    if r > oversold {
+        return SignalDecision::NoSignal;
+    }
+    SignalDecision::Buy {
+        mid,
+        take_profit: mid * (1.0 + tp_pct / 100.0),
+        stop_loss: mid * (1.0 - sl_pct / 100.0),
+        reasoning: format!("rsi={:.1} < oversold={:.1}", r, oversold),
+    }
+}
+
+/// Bollinger-band mean-reversion: buy when price is `entry_z` standard deviations (or
+/// more) below its own `period`-length moving average - a volatility-normalized dip,
+/// unlike the fixed-bps dip threshold `evaluate_mean_reversion_signal` uses.
+pub fn evaluate_bollinger_signal(
+    bid: f64,
+    ask: f64,
+    closes: &VecDeque<f64>,
+    period: usize,
+    entry_z: f64,
+    max_spread_bps: f64,
+    tp_pct: f64,
+    sl_pct: f64,
+) -> SignalDecision {
+    let Some(mid) = passes_spread_gate(bid, ask, max_spread_bps) else {
+        return SignalDecision::NoSignal;
+    };
+    let closes_vec: Vec<f64> = closes.iter().copied().collect();
+    let (Some(mean), Some(sd)) = (
+        crate::services::indicators::sma(&closes_vec, period),
+        crate::services::indicators::stddev(&closes_vec, period),
+    ) else {
+        return SignalDecision::NoSignal;
+    };
+    if sd <= 0.0 {
+        return SignalDecision::NoSignal;
+    }
+    let z = (mid - mean) / sd;
+    if z > -entry_z {
+        return SignalDecision::NoSignal;
+    }
+    SignalDecision::Buy {
+        mid,
+        take_profit: mid * (1.0 + tp_pct / 100.0),
+        stop_loss: mid * (1.0 - sl_pct / 100.0),
+        reasoning: format!("bollinger z={:.2} <= -{:.2}", z, entry_z),
+    }
+}
+
+/// Moving-average crossover (trend-following): buy on a "golden cross," the tick where
+/// the fast MA moves from at-or-below the slow MA to above it.
+pub fn evaluate_ma_crossover_signal(
+    bid: f64,
+    ask: f64,
+    closes: &VecDeque<f64>,
+    fast_period: usize,
+    slow_period: usize,
+    max_spread_bps: f64,
+    tp_pct: f64,
+    sl_pct: f64,
+) -> SignalDecision {
+    let Some(mid) = passes_spread_gate(bid, ask, max_spread_bps) else {
+        return SignalDecision::NoSignal;
+    };
+    let closes_vec: Vec<f64> = closes.iter().copied().collect();
+    if closes_vec.len() < slow_period + 1 {
+        return SignalDecision::NoSignal;
+    }
+    let prior = &closes_vec[..closes_vec.len() - 1];
+    let (Some(fast_now), Some(slow_now), Some(fast_prev), Some(slow_prev)) = (
+        crate::services::indicators::sma(&closes_vec, fast_period),
+        crate::services::indicators::sma(&closes_vec, slow_period),
+        crate::services::indicators::sma(prior, fast_period),
+        crate::services::indicators::sma(prior, slow_period),
+    ) else {
+        return SignalDecision::NoSignal;
+    };
+    let crossed_up = fast_prev <= slow_prev && fast_now > slow_now;
+    if !crossed_up {
+        return SignalDecision::NoSignal;
+    }
+    SignalDecision::Buy {
+        mid,
+        take_profit: mid * (1.0 + tp_pct / 100.0),
+        stop_loss: mid * (1.0 - sl_pct / 100.0),
+        reasoning: format!(
+            "golden cross: fast({})={:.8} > slow({})={:.8}",
+            fast_period, fast_now, slow_period, slow_now
+        ),
+    }
+}
+
+/// Donchian channel breakout (trend/momentum): buy when price closes above the highest
+/// close of the prior `period` ticks - a different shape of "momentum" than
+/// `evaluate_hft_signal`'s point-to-point comparison (this requires a new extreme, not
+/// just net positive drift over the window).
+pub fn evaluate_donchian_breakout_signal(
+    bid: f64,
+    ask: f64,
+    closes: &VecDeque<f64>,
+    period: usize,
+    max_spread_bps: f64,
+    tp_pct: f64,
+    sl_pct: f64,
+) -> SignalDecision {
+    let Some(mid) = passes_spread_gate(bid, ask, max_spread_bps) else {
+        return SignalDecision::NoSignal;
+    };
+    let closes_vec: Vec<f64> = closes.iter().copied().collect();
+    let Some(prior_high) = crate::services::indicators::prior_period_high(&closes_vec, period)
+    else {
+        return SignalDecision::NoSignal;
+    };
+    if mid <= prior_high {
+        return SignalDecision::NoSignal;
+    }
+    SignalDecision::Buy {
+        mid,
+        take_profit: mid * (1.0 + tp_pct / 100.0),
+        stop_loss: mid * (1.0 - sl_pct / 100.0),
+        reasoning: format!("breakout above prior {}-period high {:.8}", period, prior_high),
+    }
+}
 
 #[derive(Clone)]
 struct SymbolCooldown {
@@ -20,6 +381,9 @@ struct HftSymbolState {
     quotes_since_eval: usize,
     last_mid: Option<f64>,
     mids: VecDeque<f64>,
+    /// Rolling window of recent trade sizes, used to confirm momentum with real activity
+    /// (see `evaluate_hft_signal`'s volume gate) rather than trading on quote noise alone.
+    recent_trade_sizes: VecDeque<f64>,
 }
 
 #[derive(Clone, Default)]
@@ -86,13 +450,16 @@ impl StrategyEngine {
                     }
                 };
                 if let Event::Market(market_event) = event {
-                    let (symbol, bid, ask) = match &market_event {
+                    let (symbol, bid, ask, trade_size) = match &market_event {
                         MarketEvent::Quote {
                             symbol, bid, ask, ..
-                        } => (symbol.clone(), *bid, *ask),
-                        MarketEvent::Trade { symbol, price, .. } => {
-                            (symbol.clone(), *price, *price)
-                        }
+                        } => (symbol.clone(), *bid, *ask, None),
+                        MarketEvent::Trade {
+                            symbol,
+                            price,
+                            size,
+                            ..
+                        } => (symbol.clone(), *price, *price, Some(*size)),
                     };
 
                     let mode = config_clone.strategy_mode.to_lowercase();
@@ -102,7 +469,8 @@ impl StrategyEngine {
                         let tracker = hft_state.clone();
                         let config = config_clone.clone();
                         tokio::spawn(async move {
-                            Self::evaluate_hft(symbol, bid, ask, bus, tracker, config).await;
+                            Self::evaluate_hft(symbol, bid, ask, trade_size, bus, tracker, config)
+                                .await;
                         });
                         continue;
                     }
@@ -119,6 +487,7 @@ impl StrategyEngine {
                                 symbol,
                                 bid,
                                 ask,
+                                trade_size,
                                 bus,
                                 store,
                                 llm,
@@ -295,6 +664,7 @@ impl StrategyEngine {
         symbol: String,
         bid: f64,
         ask: f64,
+        trade_size: Option<f64>,
         bus: EventBus,
         state: Arc<DashMap<String, HftSymbolState>>,
         config: AppConfig,
@@ -327,12 +697,19 @@ impl StrategyEngine {
                 quotes_since_eval: 0,
                 last_mid: None,
                 mids: VecDeque::with_capacity(64),
+                recent_trade_sizes: VecDeque::with_capacity(32),
             });
 
         entry.quotes_since_eval += 1;
         entry.mids.push_back(mid);
         while entry.mids.len() > 30 {
             entry.mids.pop_front();
+        }
+        if let Some(size) = trade_size {
+            entry.recent_trade_sizes.push_back(size);
+            while entry.recent_trade_sizes.len() > 30 {
+                entry.recent_trade_sizes.pop_front();
+            }
         }
 
         if entry.quotes_since_eval < config.hft.evaluate_every_quotes {
@@ -346,68 +723,88 @@ impl StrategyEngine {
             return;
         }
         entry.quotes_since_eval = 0;
-
-        // Simple momentum edge: compare current mid to mid N steps back.
-        let lookback = config
-            .hft
-            .momentum_lookback
-            .min(entry.mids.len().saturating_sub(1));
-        if lookback == 0 {
-            if config.chatter_level.to_lowercase() == "verbose" {
-                info!("[HFT] Skip {}: insufficient history for lookback", symbol);
-            }
-            entry.last_mid = Some(mid);
-            return;
-        }
-        let past = entry
-            .mids
-            .get(entry.mids.len() - 1 - lookback)
-            .copied()
-            .unwrap_or(mid);
-        let edge_bps = ((mid - past) / past) * 10_000.0;
-
         entry.last_mid = Some(mid);
+
+        let decision = evaluate_hft_signal(
+            bid,
+            ask,
+            &entry.mids,
+            &entry.recent_trade_sizes,
+            &config.hft,
+            &config.fees,
+        );
         // drop(entry); // DashMap RefMut is dropped here
 
-        if edge_bps < config.hft.min_edge_bps {
-            if config.chatter_level.to_lowercase() == "verbose" {
-                info!(
-                    "[HFT] Skip {}: edge_bps={:.2} < min_edge_bps={:.2} (mid={:.8} past={:.8})",
-                    symbol, edge_bps, config.hft.min_edge_bps, mid, past
-                );
+        let verbose = config.chatter_level.to_lowercase() == "verbose";
+        let (edge_bps, net_edge_bps, take_profit, stop_loss) = match decision {
+            HftSignal::InsufficientHistory => {
+                if verbose {
+                    info!("[HFT] Skip {}: insufficient history for lookback", symbol);
+                }
+                return;
             }
-            return;
-        }
-
-        // The real profitability gate: edge net of spread and round-trip trading costs.
-        // A raw momentum reading above min_edge_bps means nothing if spread + fees exceed
-        // it - the position would be underwater from the moment it opens.
-        let net_edge_bps = edge_bps - spread_bps - config.fees.round_trip_fee_bps;
-        if net_edge_bps < config.hft.min_net_edge_bps {
-            if config.chatter_level.to_lowercase() == "verbose" {
-                info!(
-                    "[HFT] Skip {}: net_edge_bps={:.2} (edge={:.2} - spread={:.2} - fees={:.2}) < min_net_edge_bps={:.2}",
-                    symbol, net_edge_bps, edge_bps, spread_bps, config.fees.round_trip_fee_bps, config.hft.min_net_edge_bps
-                );
+            HftSignal::SpreadTooWide { spread_bps } => {
+                if verbose {
+                    info!(
+                        "[HFT] Skip {}: spread_bps={:.2} > max_spread_bps={:.2} (bid={:.8} ask={:.8})",
+                        symbol, spread_bps, config.hft.max_spread_bps, bid, ask
+                    );
+                }
+                return;
             }
-            return;
-        }
-
-        // If momentum is positive and spread is acceptable, emit a buy signal.
-        let tp = mid * (1.0 + config.hft.take_profit_bps / 10_000.0);
-        let sl = mid * (1.0 - config.hft.stop_loss_bps / 10_000.0);
-
-        // This is the key "when HFT will buy" log.
-        // - In normal: only log on entry.
-        // - In verbose: include more details.
-        if config.chatter_level.to_lowercase() != "low" {
-            info!("[HFT] BUY trigger {}: edge_bps={:.2} >= min_edge_bps={:.2}, net_edge_bps={:.2} >= min_net_edge_bps={:.2}, spread_bps={:.2} <= max_spread_bps={:.2} | entry(mid)={:.8} tp={:.8} sl={:.8}",
-                  symbol, edge_bps, config.hft.min_edge_bps, net_edge_bps, config.hft.min_net_edge_bps, spread_bps, config.hft.max_spread_bps, mid, tp, sl);
-        }
+            HftSignal::EdgeTooLow { edge_bps } => {
+                if verbose {
+                    info!(
+                        "[HFT] Skip {}: edge_bps={:.2} < min_edge_bps={:.2} (mid={:.8})",
+                        symbol, edge_bps, config.hft.min_edge_bps, mid
+                    );
+                }
+                return;
+            }
+            HftSignal::NetEdgeTooLow {
+                edge_bps,
+                spread_bps,
+                net_edge_bps,
+            } => {
+                if verbose {
+                    info!(
+                        "[HFT] Skip {}: net_edge_bps={:.2} (edge={:.2} - spread={:.2} - fees={:.2}) < min_net_edge_bps={:.2}",
+                        symbol, net_edge_bps, edge_bps, spread_bps, config.fees.round_trip_fee_bps, config.hft.min_net_edge_bps
+                    );
+                }
+                return;
+            }
+            HftSignal::VolumeTooLow { volume_ratio } => {
+                if verbose {
+                    info!(
+                        "[HFT] Skip {}: volume_ratio={:.2} < min_volume_ratio={:.2} (edge looked good but activity doesn't confirm it)",
+                        symbol, volume_ratio, config.hft.min_volume_ratio
+                    );
+                }
+                return;
+            }
+            HftSignal::Buy {
+                spread_bps,
+                edge_bps,
+                net_edge_bps,
+                take_profit,
+                stop_loss,
+                ..
+            } => {
+                // This is the key "when HFT will buy" log.
+                // - In normal: only log on entry.
+                // - In verbose: include more details.
+                if config.chatter_level.to_lowercase() != "low" {
+                    info!("[HFT] BUY trigger {}: edge_bps={:.2} >= min_edge_bps={:.2}, net_edge_bps={:.2} >= min_net_edge_bps={:.2}, spread_bps={:.2} <= max_spread_bps={:.2} | entry(mid)={:.8} tp={:.8} sl={:.8}",
+                          symbol, edge_bps, config.hft.min_edge_bps, net_edge_bps, config.hft.min_net_edge_bps, spread_bps, config.hft.max_spread_bps, mid, take_profit, stop_loss);
+                }
+                (edge_bps, net_edge_bps, take_profit, stop_loss)
+            }
+        };
 
         let thesis = format!(
-            "HFT momentum: edge_bps={:.2}, net_edge_bps={:.2}, spread_bps={:.2}, mid={:.8}, past={:.8}",
-            edge_bps, net_edge_bps, spread_bps, mid, past
+            "HFT momentum: edge_bps={:.2}, net_edge_bps={:.2}, mid={:.8}",
+            edge_bps, net_edge_bps, mid
         );
 
         let signal = AnalysisSignal {
@@ -415,7 +812,7 @@ impl StrategyEngine {
             signal: "buy".to_string(),
             confidence: 1.0,
             thesis: thesis.clone(),
-            market_context: format!("tp={:.8}, sl={:.8}", tp, sl),
+            market_context: format!("tp={:.8}, sl={:.8}", take_profit, stop_loss),
         };
 
         bus.publish(Event::Signal(signal)).ok();
@@ -425,6 +822,7 @@ impl StrategyEngine {
         symbol: String,
         bid: f64,
         ask: f64,
+        trade_size: Option<f64>,
         bus: EventBus,
         store: MarketStore,
         llm: LLMQueue,
@@ -560,7 +958,7 @@ impl StrategyEngine {
             return;
         }
 
-        Self::evaluate_hft(symbol, bid, ask, bus, hft_state, config).await;
+        Self::evaluate_hft(symbol, bid, ask, trade_size, bus, hft_state, config).await;
     }
 
     fn format_quote_history_table(history: &[Quote]) -> String {

@@ -23,6 +23,23 @@ pub struct Account {
     pub portfolio_value: String,
 }
 
+/// A single OHLCV bar from Alpaca's historical crypto bars endpoint.
+#[derive(Deserialize, Debug, Clone)]
+pub struct CryptoBar {
+    #[serde(rename = "t")]
+    pub timestamp: String,
+    #[serde(rename = "o")]
+    pub open: f64,
+    #[serde(rename = "h")]
+    pub high: f64,
+    #[serde(rename = "l")]
+    pub low: f64,
+    #[serde(rename = "c")]
+    pub close: f64,
+    #[serde(rename = "v")]
+    pub volume: f64,
+}
+
 #[derive(serde::Serialize, Debug)]
 pub struct OrderRequest {
     pub symbol: String,
@@ -165,6 +182,86 @@ impl AlpacaClient {
 
         let data: Value = resp.json().await?;
         Ok(data)
+    }
+
+    /// Fetches every bar for `symbol` between `start` and `end` (RFC3339 timestamps),
+    /// following `next_page_token` until Alpaca reports no more pages. Used by the
+    /// backtester, which needs a multi-day window rather than the last-100-bars snapshot
+    /// `get_crypto_bars` returns.
+    pub async fn get_crypto_bars_range(
+        &self,
+        symbol: &str,
+        timeframe: &str,
+        start: &str,
+        end: &str,
+    ) -> Result<Vec<CryptoBar>, Box<dyn Error + Send + Sync>> {
+        let mut all_bars = Vec::new();
+        let mut page_token: Option<String> = None;
+
+        loop {
+            let mut query = vec![
+                ("symbols", symbol.to_string()),
+                ("timeframe", timeframe.to_string()),
+                ("start", start.to_string()),
+                ("end", end.to_string()),
+                ("limit", "10000".to_string()),
+            ];
+            if let Some(token) = &page_token {
+                query.push(("page_token", token.clone()));
+            }
+
+            let resp = self
+                .client
+                .get("https://data.alpaca.markets/v1beta3/crypto/us/bars")
+                .header("APCA-API-KEY-ID", &self.api_key)
+                .header("APCA-API-SECRET-KEY", &self.secret_key)
+                .query(&query)
+                .send()
+                .await?;
+
+            let status = resp.status();
+            let body = resp.text().await?;
+            if !status.is_success() {
+                return Err(format!(
+                    "Alpaca get_crypto_bars_range failed ({}): {}",
+                    status, body
+                )
+                .into());
+            }
+
+            let data: Value = serde_json::from_str(&body).map_err(|e| {
+                format!(
+                    "Alpaca get_crypto_bars_range decode failed: {} (body: {})",
+                    e, body
+                )
+            })?;
+
+            let bars_for_symbol = data
+                .get("bars")
+                .and_then(|b| b.get(symbol))
+                .and_then(|b| b.as_array())
+                .cloned()
+                .unwrap_or_default();
+
+            let got_any = !bars_for_symbol.is_empty();
+            for bar in bars_for_symbol {
+                let parsed: CryptoBar = serde_json::from_value(bar).map_err(|e| {
+                    format!("Alpaca get_crypto_bars_range bar decode failed: {}", e)
+                })?;
+                all_bars.push(parsed);
+            }
+
+            page_token = data
+                .get("next_page_token")
+                .and_then(|t| t.as_str())
+                .map(String::from);
+
+            if page_token.is_none() || !got_any {
+                break;
+            }
+        }
+
+        Ok(all_bars)
     }
 
     pub async fn get_order(&self, order_id: &str) -> Result<Value, Box<dyn Error + Send + Sync>> {
