@@ -298,6 +298,33 @@ fn test_hft_edge_calculation() {
     assert!(edge_bps >= min_edge_bps);
 }
 
+/// Test the fee/spread-aware net-edge gate: net_edge_bps = edge_bps - spread_bps - fee_bps.
+/// A raw edge_bps above min_edge_bps alone is not sufficient to trade profitably once
+/// trading costs are netted out.
+#[test]
+fn test_net_edge_gate() {
+    let round_trip_fee_bps: f64 = 50.0;
+    let min_net_edge_bps: f64 = 5.0;
+
+    // Case 1: raw edge clears min_edge_bps, but spread+fees consume it entirely - must skip.
+    let edge_bps: f64 = 20.0;
+    let spread_bps: f64 = 40.0;
+    let net_edge_bps = edge_bps - spread_bps - round_trip_fee_bps;
+    assert!(net_edge_bps < min_net_edge_bps);
+    assert!(net_edge_bps < 0.0);
+
+    // Case 2: strong momentum, tight spread - clears the net-edge gate.
+    let edge_bps: f64 = 100.0;
+    let spread_bps: f64 = 10.0;
+    let net_edge_bps = edge_bps - spread_bps - round_trip_fee_bps;
+    assert!(net_edge_bps >= min_net_edge_bps);
+
+    // Case 3: edge exactly offsets costs plus the required margin - boundary case.
+    let edge_bps: f64 = spread_bps + round_trip_fee_bps + min_net_edge_bps;
+    let net_edge_bps = edge_bps - spread_bps - round_trip_fee_bps;
+    assert!((net_edge_bps - min_net_edge_bps).abs() < 1e-9);
+}
+
 /// Test spread calculation
 #[test]
 fn test_spread_calculation() {

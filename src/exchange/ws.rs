@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use futures_util::{SinkExt, StreamExt};
 use serde_json::{json, Value};
 use tokio::net::TcpStream;
+use tokio::time::{sleep, Duration};
 use tokio_tungstenite::{
     connect_async, tungstenite::protocol::Message, MaybeTlsStream, WebSocketStream,
 };
@@ -14,6 +15,14 @@ use crate::{
 };
 
 use super::traits::{ExchangeResult, MarketDataStream};
+
+type WsWrite = futures_util::stream::SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>;
+type WsRead = futures_util::stream::SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>;
+
+/// Initial reconnect delay; doubles on each consecutive failed reconnect attempt.
+const RECONNECT_BASE_BACKOFF: Duration = Duration::from_secs(1);
+/// Cap on reconnect delay so we never wait longer than this between attempts.
+const RECONNECT_MAX_BACKOFF: Duration = Duration::from_secs(60);
 
 #[derive(Clone)]
 pub enum WsProvider {
@@ -508,6 +517,78 @@ impl GenericWsStream {
     }
 }
 
+impl GenericWsStream {
+    /// Connects, authenticates (if required), and subscribes to `symbols`.
+    /// Does not run the message loop - callers own the returned split halves.
+    async fn connect_and_subscribe(&self, symbols: &[String]) -> ExchangeResult<(WsWrite, WsRead)> {
+        let ws_url = self.ws_url();
+        info!("Connecting to WS: {}", ws_url);
+
+        let (ws_stream, _) = connect_async(ws_url)
+            .await
+            .map_err(|e| format!("WS connect failed: {e}"))?;
+        let (mut write, read) = ws_stream.split();
+
+        match &self.provider {
+            WsProvider::AlpacaCrypto => {
+                let key = self.api_key.clone().unwrap_or_default();
+                let secret = self.api_secret.clone().unwrap_or_default();
+                Self::alpaca_auth(&mut write, &key, &secret).await?;
+                Self::alpaca_subscribe(&mut write, symbols, true).await?;
+            }
+            WsProvider::AlpacaStocks => {
+                let key = self.api_key.clone().unwrap_or_default();
+                let secret = self.api_secret.clone().unwrap_or_default();
+                Self::alpaca_auth(&mut write, &key, &secret).await?;
+                Self::alpaca_subscribe(&mut write, symbols, false).await?;
+            }
+            WsProvider::Binance => {
+                Self::binance_subscribe(&mut write, symbols).await?;
+            }
+            WsProvider::Coinbase => {
+                Self::coinbase_subscribe(&mut write, symbols).await?;
+            }
+            WsProvider::Kraken => {
+                Self::kraken_subscribe(&mut write, symbols).await?;
+            }
+        }
+
+        Ok((write, read))
+    }
+
+    /// Reads and dispatches messages until the connection ends (cleanly or via error).
+    /// Returns when the caller should reconnect.
+    async fn run_message_loop(
+        &self,
+        write: &mut WsWrite,
+        read: &mut WsRead,
+        store: &MarketStore,
+        event_bus: &EventBus,
+    ) {
+        while let Some(msg) = read.next().await {
+            match msg {
+                Ok(Message::Text(text)) => match self.provider {
+                    WsProvider::AlpacaCrypto | WsProvider::AlpacaStocks => {
+                        Self::process_alpaca(&text, store, event_bus).await
+                    }
+                    WsProvider::Binance => Self::process_binance(&text, store, event_bus).await,
+                    WsProvider::Coinbase => Self::process_coinbase(&text, store, event_bus).await,
+                    WsProvider::Kraken => Self::process_kraken(&text, store, event_bus).await,
+                },
+                Ok(Message::Ping(p)) => {
+                    let _ = write.send(Message::Pong(p)).await;
+                }
+                Err(e) => {
+                    error!("WS error: {}", e);
+                    break;
+                }
+                _ => {}
+            }
+        }
+        warn!("WS loop ended for {}", self.ws_url());
+    }
+}
+
 #[async_trait]
 impl MarketDataStream for GenericWsStream {
     async fn start(
@@ -516,66 +597,39 @@ impl MarketDataStream for GenericWsStream {
         symbols: Vec<String>,
         event_bus: EventBus,
     ) -> ExchangeResult<()> {
-        let ws_url = self.ws_url();
-        info!("Connecting to WS: {}", ws_url);
+        // Fail fast on the initial connection so callers see connect/auth errors immediately
+        // (e.g. bad credentials) instead of only discovering them via retry logs.
+        let (mut write, mut read) = self.connect_and_subscribe(&symbols).await?;
 
-        let (ws_stream, _) = connect_async(ws_url)
-            .await
-            .map_err(|e| format!("WS connect failed: {e}"))?;
-        let (mut write, mut read) = ws_stream.split();
-
-        let provider = self.provider.clone();
-
-        match provider {
-            WsProvider::AlpacaCrypto => {
-                let key = self.api_key.clone().unwrap_or_default();
-                let secret = self.api_secret.clone().unwrap_or_default();
-                Self::alpaca_auth(&mut write, &key, &secret).await?;
-                Self::alpaca_subscribe(&mut write, &symbols, true).await?;
-            }
-            WsProvider::AlpacaStocks => {
-                let key = self.api_key.clone().unwrap_or_default();
-                let secret = self.api_secret.clone().unwrap_or_default();
-                Self::alpaca_auth(&mut write, &key, &secret).await?;
-                Self::alpaca_subscribe(&mut write, &symbols, false).await?;
-            }
-            WsProvider::Binance => {
-                Self::binance_subscribe(&mut write, &symbols).await?;
-            }
-            WsProvider::Coinbase => {
-                Self::coinbase_subscribe(&mut write, &symbols).await?;
-            }
-            WsProvider::Kraken => {
-                Self::kraken_subscribe(&mut write, &symbols).await?;
-            }
-        }
-
+        let this = self.clone();
         tokio::spawn(async move {
-            while let Some(msg) = read.next().await {
-                match msg {
-                    Ok(Message::Text(text)) => match provider {
-                        WsProvider::AlpacaCrypto | WsProvider::AlpacaStocks => {
-                            Self::process_alpaca(&text, &store, &event_bus).await
+            loop {
+                this.run_message_loop(&mut write, &mut read, &store, &event_bus)
+                    .await;
+
+                // Disconnected (cleanly or via error) - reconnect with exponential backoff,
+                // re-subscribing to the same symbol set each attempt.
+                let mut backoff = RECONNECT_BASE_BACKOFF;
+                loop {
+                    warn!(
+                        "WS disconnected from {}, reconnecting in {:?}",
+                        this.ws_url(),
+                        backoff
+                    );
+                    sleep(backoff).await;
+                    match this.connect_and_subscribe(&symbols).await {
+                        Ok((w, r)) => {
+                            write = w;
+                            read = r;
+                            break;
                         }
-                        WsProvider::Binance => {
-                            Self::process_binance(&text, &store, &event_bus).await
+                        Err(e) => {
+                            error!("WS reconnect to {} failed: {}", this.ws_url(), e);
+                            backoff = (backoff * 2).min(RECONNECT_MAX_BACKOFF);
                         }
-                        WsProvider::Coinbase => {
-                            Self::process_coinbase(&text, &store, &event_bus).await
-                        }
-                        WsProvider::Kraken => Self::process_kraken(&text, &store, &event_bus).await,
-                    },
-                    Ok(Message::Ping(p)) => {
-                        let _ = write.send(Message::Pong(p)).await;
                     }
-                    Err(e) => {
-                        error!("WS error: {}", e);
-                        break;
-                    }
-                    _ => {}
                 }
             }
-            warn!("WS loop ended");
         });
 
         Ok(())

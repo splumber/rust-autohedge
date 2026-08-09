@@ -7,6 +7,7 @@ use crate::llm::LLMQueue;
 use dashmap::DashMap;
 use std::collections::VecDeque;
 use std::sync::Arc;
+use tokio::sync::broadcast::error::RecvError;
 use tracing::{error, info, warn};
 
 #[derive(Clone)]
@@ -72,7 +73,18 @@ impl StrategyEngine {
                 "🧠 Strategy Engine Started (mode: {})",
                 config_clone.strategy_mode
             );
-            while let Ok(event) = rx.recv().await {
+            loop {
+                let event = match rx.recv().await {
+                    Ok(event) => event,
+                    Err(RecvError::Lagged(n)) => {
+                        warn!("[STRATEGY] Event bus lagged, dropped {} events", n);
+                        continue;
+                    }
+                    Err(RecvError::Closed) => {
+                        info!("[STRATEGY] Event bus closed, shutting down");
+                        break;
+                    }
+                };
                 if let Event::Market(market_event) = event {
                     let (symbol, bid, ask) = match &market_event {
                         MarketEvent::Quote {
@@ -336,7 +348,10 @@ impl StrategyEngine {
         entry.quotes_since_eval = 0;
 
         // Simple momentum edge: compare current mid to mid N steps back.
-        let lookback = 10usize.min(entry.mids.len().saturating_sub(1));
+        let lookback = config
+            .hft
+            .momentum_lookback
+            .min(entry.mids.len().saturating_sub(1));
         if lookback == 0 {
             if config.chatter_level.to_lowercase() == "verbose" {
                 info!("[HFT] Skip {}: insufficient history for lookback", symbol);
@@ -364,6 +379,20 @@ impl StrategyEngine {
             return;
         }
 
+        // The real profitability gate: edge net of spread and round-trip trading costs.
+        // A raw momentum reading above min_edge_bps means nothing if spread + fees exceed
+        // it - the position would be underwater from the moment it opens.
+        let net_edge_bps = edge_bps - spread_bps - config.fees.round_trip_fee_bps;
+        if net_edge_bps < config.hft.min_net_edge_bps {
+            if config.chatter_level.to_lowercase() == "verbose" {
+                info!(
+                    "[HFT] Skip {}: net_edge_bps={:.2} (edge={:.2} - spread={:.2} - fees={:.2}) < min_net_edge_bps={:.2}",
+                    symbol, net_edge_bps, edge_bps, spread_bps, config.fees.round_trip_fee_bps, config.hft.min_net_edge_bps
+                );
+            }
+            return;
+        }
+
         // If momentum is positive and spread is acceptable, emit a buy signal.
         let tp = mid * (1.0 + config.hft.take_profit_bps / 10_000.0);
         let sl = mid * (1.0 - config.hft.stop_loss_bps / 10_000.0);
@@ -372,13 +401,13 @@ impl StrategyEngine {
         // - In normal: only log on entry.
         // - In verbose: include more details.
         if config.chatter_level.to_lowercase() != "low" {
-            info!("[HFT] BUY trigger {}: edge_bps={:.2} >= min_edge_bps={:.2}, spread_bps={:.2} <= max_spread_bps={:.2} | entry(mid)={:.8} tp={:.8} sl={:.8}",
-                  symbol, edge_bps, config.hft.min_edge_bps, spread_bps, config.hft.max_spread_bps, mid, tp, sl);
+            info!("[HFT] BUY trigger {}: edge_bps={:.2} >= min_edge_bps={:.2}, net_edge_bps={:.2} >= min_net_edge_bps={:.2}, spread_bps={:.2} <= max_spread_bps={:.2} | entry(mid)={:.8} tp={:.8} sl={:.8}",
+                  symbol, edge_bps, config.hft.min_edge_bps, net_edge_bps, config.hft.min_net_edge_bps, spread_bps, config.hft.max_spread_bps, mid, tp, sl);
         }
 
         let thesis = format!(
-            "HFT momentum: edge_bps={:.2}, spread_bps={:.2}, mid={:.8}, past={:.8}",
-            edge_bps, spread_bps, mid, past
+            "HFT momentum: edge_bps={:.2}, net_edge_bps={:.2}, spread_bps={:.2}, mid={:.8}, past={:.8}",
+            edge_bps, net_edge_bps, spread_bps, mid, past
         );
 
         let signal = AnalysisSignal {

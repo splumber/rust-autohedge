@@ -6,7 +6,6 @@ pub mod position_monitor;
 pub mod reporting;
 pub mod risk;
 pub mod strategy;
-pub mod websocket_service;
 
 #[cfg(test)]
 mod execution_utils_tests;

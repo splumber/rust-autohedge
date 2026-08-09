@@ -159,19 +159,26 @@ impl RateLimiter {
 
     /// Returns true if order is allowed for this symbol, false if rate limited.
     /// Each symbol has independent rate limiting.
+    ///
+    /// Uses `DashMap::entry()` so the check-and-set is atomic under the shard lock -
+    /// a separate get() + insert() would let two concurrent callers for the same symbol
+    /// both observe "not in cooldown" and both proceed, allowing duplicate orders.
     pub async fn try_acquire(&self, symbol: &str) -> bool {
         let now = Instant::now();
 
-        // Check if this symbol is rate limited
-        if let Some(entry) = self.last_order_per_symbol.get(symbol) {
-            let last_order_time = *entry.value(); // Get the actual Instant value
-            if now.duration_since(last_order_time) < self.min_interval {
-                return false; // Still in cooldown
+        match self.last_order_per_symbol.entry(symbol.to_string()) {
+            dashmap::mapref::entry::Entry::Occupied(mut e) => {
+                if now.duration_since(*e.get()) < self.min_interval {
+                    false // Still in cooldown
+                } else {
+                    e.insert(now);
+                    true
+                }
+            }
+            dashmap::mapref::entry::Entry::Vacant(e) => {
+                e.insert(now);
+                true
             }
         }
-
-        // Update last order time for this symbol
-        self.last_order_per_symbol.insert(symbol.to_string(), now);
-        true
     }
 }

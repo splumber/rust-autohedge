@@ -16,6 +16,7 @@ use crate::services::execution_utils::{
 };
 use crate::services::position_monitor::{PendingOrder, PositionInfo, PositionTracker};
 use std::sync::Arc;
+use tokio::sync::broadcast::error::RecvError;
 use tracing::{error, info, warn};
 
 /// High-performance execution engine optimized for frequent small trades.
@@ -83,7 +84,18 @@ impl ExecutionEngine {
                 config.defaults.max_order_amount
             );
 
-            while let Ok(event) = rx.recv().await {
+            loop {
+                let event = match rx.recv().await {
+                    Ok(event) => event,
+                    Err(RecvError::Lagged(n)) => {
+                        warn!("[EXECUTION] Event bus lagged, dropped {} events", n);
+                        continue;
+                    }
+                    Err(RecvError::Closed) => {
+                        info!("[EXECUTION] Event bus closed, shutting down");
+                        break;
+                    }
+                };
                 if let Event::Order(req) = event {
                     // Skip verbose logging for performance
                     if config.chatter_level != "low" {
@@ -191,11 +203,49 @@ impl ExecutionEngine {
                     info!("[EXECUTION] Removed ghost position, proceeding with order...");
                 }
             } else {
-                // Multiple positions allowed - just log and continue
+                // Multiple positions allowed - but still bounded, so a sustained signal on
+                // one symbol can't consume unlimited capital or leave concentration risk
+                // uncapped.
+                let current_stack = tracker.stack_count(&req.symbol);
+                if current_stack >= config.micro_trade.max_positions_per_symbol {
+                    if config.chatter_level != "low" {
+                        info!(
+                            "[EXECUTION] Skip {}: stacking cap reached ({}/{})",
+                            req.symbol, current_stack, config.micro_trade.max_positions_per_symbol
+                        );
+                    }
+                    return;
+                }
+                if tracker.total_open_position_count() >= config.micro_trade.max_open_positions {
+                    if config.chatter_level != "low" {
+                        info!(
+                            "[EXECUTION] Skip {}: portfolio-wide open-position cap reached ({}/{})",
+                            req.symbol,
+                            tracker.total_open_position_count(),
+                            config.micro_trade.max_open_positions
+                        );
+                    }
+                    return;
+                }
                 if config.chatter_level != "low" {
-                    info!("[EXECUTION] Position exists for {} but multiple positions allowed - proceeding", req.symbol);
+                    info!(
+                        "[EXECUTION] Position exists for {} but multiple positions allowed ({}/{} stacked) - proceeding",
+                        req.symbol, current_stack, config.micro_trade.max_positions_per_symbol
+                    );
                 }
             }
+        } else if tracker.total_open_position_count() >= config.micro_trade.max_open_positions {
+            // No position in this symbol yet, but the portfolio-wide cap still applies to
+            // opening a brand new one.
+            if config.chatter_level != "low" {
+                info!(
+                    "[EXECUTION] Skip {}: portfolio-wide open-position cap reached ({}/{})",
+                    req.symbol,
+                    tracker.total_open_position_count(),
+                    config.micro_trade.max_open_positions
+                );
+            }
+            return;
         }
 
         // Check for pending orders on this symbol
@@ -383,7 +433,18 @@ impl ExecutionEngine {
                         trailing_stop_active: false,
                         trailing_stop_price: stop_loss,
                     };
-                    tracker.add_position(position);
+                    // record_fill blends into any existing tracked position (stacking) instead
+                    // of overwriting it; if that leaves a now-mis-sized exit order behind,
+                    // cancel it so the monitor's self-healing loop recreates it at full qty.
+                    if let Some(stale_order_id) = tracker.record_fill(position, tp_pct, sl_pct) {
+                        if let Err(e) = exchange.cancel_order(&stale_order_id).await {
+                            error!(
+                                "[EXECUTION] Failed to cancel stale exit order {} while stacking {}: {}",
+                                stale_order_id, req.symbol, e
+                            );
+                        }
+                        tracker.remove_pending_order(&stale_order_id);
+                    }
                 }
 
                 // Publish execution report

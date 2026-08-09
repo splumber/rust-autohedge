@@ -258,6 +258,32 @@ mod execution_utils_tests {
     }
 
     #[tokio::test]
+    async fn test_rate_limiter_concurrent_same_symbol_only_one_wins() {
+        // Regression test for the get()+insert() TOCTOU race: many concurrent callers for
+        // the same symbol, within the cooldown window, must yield exactly one acquisition.
+        use std::sync::Arc;
+
+        let limiter = Arc::new(RateLimiter::new(1000)); // long interval so all calls race
+        let mut handles = Vec::new();
+
+        for _ in 0..50 {
+            let limiter = limiter.clone();
+            handles.push(tokio::spawn(
+                async move { limiter.try_acquire("BTC/USD").await },
+            ));
+        }
+
+        let mut acquired = 0;
+        for handle in handles {
+            if handle.await.unwrap() {
+                acquired += 1;
+            }
+        }
+
+        assert_eq!(acquired, 1);
+    }
+
+    #[tokio::test]
     async fn test_rate_limiter_per_symbol() {
         let limiter = RateLimiter::new(100); // 100ms interval
 

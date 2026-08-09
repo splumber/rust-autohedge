@@ -230,6 +230,89 @@ mod position_tracker_tests {
         assert_eq!(pos.qty, 2000.0);
     }
 
+    // ============= record_fill (stacking) Tests =============
+
+    #[test]
+    fn test_record_fill_fresh_position() {
+        let tracker = PositionTracker::new();
+        let pos = test_pos("BTC/USD", 50000.0, 0.1);
+
+        let stale = tracker.record_fill(pos, 1.0, 0.5);
+
+        assert!(stale.is_none());
+        assert!(tracker.has_position("BTC/USD"));
+        assert_eq!(tracker.stack_count("BTC/USD"), 1);
+        let tracked = tracker.get_position("BTC/USD").unwrap();
+        assert_eq!(tracked.qty, 0.1);
+        assert_eq!(tracked.entry_price, 50000.0);
+    }
+
+    #[test]
+    fn test_record_fill_blends_stacked_lot() {
+        let tracker = PositionTracker::new();
+
+        // First lot: 10 units @ 100
+        let lot1 = test_pos("SOL/USD", 100.0, 10.0);
+        tracker.record_fill(lot1, 2.0, 1.0);
+
+        // Second lot: 10 units @ 110 (stacked fill while the first is still open)
+        let lot2 = test_pos("SOL/USD", 110.0, 10.0);
+        tracker.record_fill(lot2, 2.0, 1.0);
+
+        let blended = tracker.get_position("SOL/USD").unwrap();
+        // qty-weighted average entry: (100*10 + 110*10) / 20 = 105
+        assert_eq!(blended.qty, 20.0);
+        assert!((blended.entry_price - 105.0).abs() < 1e-9);
+        // SL/TP recomputed from the blended entry, not blended themselves
+        assert!((blended.take_profit - 105.0 * 1.02).abs() < 1e-9);
+        assert!((blended.stop_loss - 105.0 * 0.99).abs() < 1e-9);
+        assert_eq!(tracker.stack_count("SOL/USD"), 2);
+    }
+
+    #[test]
+    fn test_record_fill_returns_stale_order_id_to_cancel() {
+        let tracker = PositionTracker::new();
+
+        let mut lot1 = test_pos("DOGE/USD", 0.08, 1000.0);
+        lot1.open_order_id = Some("tp_order_1".to_string());
+        tracker.record_fill(lot1, 1.0, 0.5);
+
+        let lot2 = test_pos("DOGE/USD", 0.09, 1000.0);
+        let stale = tracker.record_fill(lot2, 1.0, 0.5);
+
+        // Caller is expected to cancel this order - it was sized for lot1's qty only.
+        assert_eq!(stale, Some("tp_order_1".to_string()));
+        // Blended position is orphaned again (open_order_id cleared) so the monitor's
+        // self-healing loop recreates an exit order sized to the full blended qty.
+        let blended = tracker.get_position("DOGE/USD").unwrap();
+        assert!(blended.open_order_id.is_none());
+    }
+
+    #[test]
+    fn test_remove_position_clears_stack_count() {
+        let tracker = PositionTracker::new();
+        let pos = test_pos("ETH/USD", 3000.0, 1.0);
+        tracker.record_fill(pos, 1.0, 0.5);
+        assert_eq!(tracker.stack_count("ETH/USD"), 1);
+
+        tracker.remove_position("ETH/USD");
+        assert_eq!(tracker.stack_count("ETH/USD"), 0);
+    }
+
+    #[test]
+    fn test_total_open_position_count() {
+        let tracker = PositionTracker::new();
+        assert_eq!(tracker.total_open_position_count(), 0);
+
+        tracker.add_position(test_pos("BTC/USD", 50000.0, 0.1));
+        tracker.add_position(test_pos("ETH/USD", 3000.0, 1.0));
+        assert_eq!(tracker.total_open_position_count(), 2);
+
+        // A second stacked lot on an existing symbol doesn't increase the distinct-symbol count.
+        tracker.record_fill(test_pos("BTC/USD", 51000.0, 0.1), 1.0, 0.5);
+        assert_eq!(tracker.total_open_position_count(), 2);
+    }
+
     // ============= Pending Order Tests =============
 
     #[test]

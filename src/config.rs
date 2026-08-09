@@ -20,6 +20,8 @@ pub struct SymbolConfig {
 #[derive(Clone, Debug, Deserialize)]
 pub struct HftConfig {
     pub evaluate_every_quotes: usize,
+    /// Raw momentum threshold in bps. Kept as a coarse pre-filter, but entry is actually
+    /// gated on `min_net_edge_bps` below, which nets out spread and fees.
     pub min_edge_bps: f64,
     pub take_profit_bps: f64,
     pub stop_loss_bps: f64,
@@ -33,6 +35,11 @@ pub struct HftConfig {
     /// Lookback window for momentum calculation
     #[serde(default = "default_momentum_lookback")]
     pub momentum_lookback: usize,
+    /// Minimum edge in bps *after* subtracting spread and round-trip fees
+    /// (`edge_bps - spread_bps - fees.round_trip_fee_bps`). This is the real
+    /// profitability gate - raw `min_edge_bps` alone ignores trading costs entirely.
+    #[serde(default = "default_min_net_edge_bps")]
+    pub min_net_edge_bps: f64,
 }
 
 fn default_volume_ratio() -> f64 {
@@ -41,6 +48,32 @@ fn default_volume_ratio() -> f64 {
 
 fn default_momentum_lookback() -> usize {
     20
+}
+
+fn default_min_net_edge_bps() -> f64 {
+    5.0
+}
+
+/// Trading cost assumptions used to compute net edge. Alpaca's crypto taker fee is tiered
+/// by 30-day trailing volume - the default here is a conservative worst-tier estimate.
+/// Confirm your actual tier in the Alpaca dashboard and tune this down if it's lower;
+/// erring conservative (too high) only costs skipped marginal trades, not losses.
+#[derive(Clone, Debug, Deserialize)]
+pub struct FeeConfig {
+    #[serde(default = "default_round_trip_fee_bps")]
+    pub round_trip_fee_bps: f64,
+}
+
+fn default_round_trip_fee_bps() -> f64 {
+    50.0
+}
+
+impl Default for FeeConfig {
+    fn default() -> Self {
+        Self {
+            round_trip_fee_bps: default_round_trip_fee_bps(),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -77,6 +110,14 @@ pub struct MicroTradeConfig {
     /// Trail the stop by this % below the highest price reached
     #[serde(default = "default_trailing_distance")]
     pub trailing_stop_distance_pct: f64,
+    /// Max concurrent lots per symbol when `allow_multiple_positions` is enabled.
+    /// Default of 1 matches pre-stacking behavior (no stacking) even if
+    /// `allow_multiple_positions` is mistakenly left on without setting this.
+    #[serde(default = "default_max_positions_per_symbol")]
+    pub max_positions_per_symbol: u32,
+    /// Portfolio-wide cap on distinct symbols with an open position at once.
+    #[serde(default = "default_max_open_positions")]
+    pub max_open_positions: u32,
 }
 
 fn default_trailing_activation() -> f64 {
@@ -85,6 +126,14 @@ fn default_trailing_activation() -> f64 {
 
 fn default_trailing_distance() -> f64 {
     0.25
+}
+
+fn default_max_positions_per_symbol() -> u32 {
+    1
+}
+
+fn default_max_open_positions() -> u32 {
+    10
 }
 
 fn default_true() -> bool {
@@ -108,6 +157,8 @@ impl Default for MicroTradeConfig {
             use_trailing_stop: true,
             trailing_stop_activation_pct: 0.4,
             trailing_stop_distance_pct: 0.2,
+            max_positions_per_symbol: default_max_positions_per_symbol(),
+            max_open_positions: default_max_open_positions(),
         }
     }
 }
@@ -174,6 +225,8 @@ pub struct AppConfig {
     pub hybrid: HybridConfig,
     #[serde(default)]
     pub micro_trade: MicroTradeConfig,
+    #[serde(default)]
+    pub fees: FeeConfig,
     pub llm: LlmConfig,
     pub alpaca: AlpacaConfig,
     pub binance: Option<BinanceConfig>,

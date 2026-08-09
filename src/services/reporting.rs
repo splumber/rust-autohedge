@@ -6,7 +6,8 @@ use std::{
 
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
-use tracing::{error, info};
+use tokio::sync::broadcast::error::RecvError;
+use tracing::{error, info, warn};
 
 use crate::{
     bus::EventBus,
@@ -191,7 +192,18 @@ impl TradeReporter {
                 reporter.log_path.display()
             );
 
-            while let Ok(event) = rx.recv().await {
+            loop {
+                let event = match rx.recv().await {
+                    Ok(event) => event,
+                    Err(RecvError::Lagged(n)) => {
+                        warn!("[REPORTING] Event bus lagged, dropped {} events", n);
+                        continue;
+                    }
+                    Err(RecvError::Closed) => {
+                        info!("[REPORTING] Event bus closed, shutting down");
+                        break;
+                    }
+                };
                 match event {
                     Event::Order(order) => {
                         reporter.on_order(&order);

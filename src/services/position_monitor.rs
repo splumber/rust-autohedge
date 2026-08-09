@@ -6,9 +6,11 @@ use crate::exchange::types::{
     OrderType as ExOrderType, PlaceOrderRequest as ExPlaceOrderRequest, Side as ExSide,
     TimeInForce as ExTimeInForce,
 };
+use dashmap::DashMap;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
+use tokio::sync::broadcast::error::RecvError;
 use tokio::time::{sleep, Duration};
 use tracing::{error, info, warn};
 
@@ -48,6 +50,9 @@ pub struct PendingOrder {
 pub struct PositionTracker {
     positions: Arc<Mutex<HashMap<String, PositionInfo>>>,
     pending_orders: Arc<Mutex<HashMap<String, PendingOrder>>>,
+    /// Number of fills blended into each symbol's tracked position (1 = single lot).
+    /// Only touched by `record_fill`/`remove_position` - never by plain in-place updates.
+    stack_count: Arc<DashMap<String, u32>>,
 }
 
 impl PositionTracker {
@@ -55,7 +60,18 @@ impl PositionTracker {
         Self {
             positions: Arc::new(Mutex::new(HashMap::new())),
             pending_orders: Arc::new(Mutex::new(HashMap::new())),
+            stack_count: Arc::new(DashMap::new()),
         }
+    }
+
+    /// Number of fills currently blended into this symbol's tracked position.
+    pub fn stack_count(&self, symbol: &str) -> u32 {
+        self.stack_count.get(symbol).map(|c| *c).unwrap_or(0)
+    }
+
+    /// Number of distinct symbols with an open tracked position.
+    pub fn total_open_position_count(&self) -> u32 {
+        self.positions.lock().unwrap().len() as u32
     }
 
     pub fn add_pending_order(&self, mut order: PendingOrder) {
@@ -96,6 +112,63 @@ impl PositionTracker {
         positions.insert(info.symbol.clone(), info);
     }
 
+    /// Records a new fill for `symbol`, blending it into any existing tracked position
+    /// (summed qty, qty-weighted average entry price) instead of overwriting.
+    ///
+    /// A plain overwrite (as `add_position` does) is correct for the many call sites that
+    /// re-save a mutated clone of the *same* tracked position (retry counters, order-id
+    /// links, quantity corrections). But when stacking (`allow_multiple_positions`) is
+    /// enabled, a second fill for a symbol that already has a tracked position is a *new*
+    /// lot, not an update - overwriting would silently discard the first lot's entry price
+    /// and qty, orphaning it from all stop-loss/take-profit monitoring forever (it's never
+    /// picked up later since `sync_positions` skips any symbol already tracked).
+    ///
+    /// Returns the previous `open_order_id`, if any. The caller must cancel that order and
+    /// remove it from pending orders - it was sized for the pre-blend qty. Clearing
+    /// `open_order_id` here makes the position "orphaned" again so the existing self-healing
+    /// loop (`recreate_limit_sell_order`) creates a fresh exit order sized to the full
+    /// blended qty on its next pass.
+    pub fn record_fill(&self, mut info: PositionInfo, tp_pct: f64, sl_pct: f64) -> Option<String> {
+        let mut positions = self.positions.lock().unwrap();
+        info.is_closing = false;
+
+        let stale_order_id = if let Some(existing) = positions.get(&info.symbol) {
+            let total_qty = existing.qty + info.qty;
+            let blended_entry = (existing.entry_price * existing.qty
+                + info.entry_price * info.qty)
+                / total_qty;
+
+            info.qty = total_qty;
+            info.entry_price = blended_entry;
+            info.stop_loss = blended_entry * (1.0 - sl_pct / 100.0);
+            info.take_profit = blended_entry * (1.0 + tp_pct / 100.0);
+            info.highest_price = blended_entry;
+            info.trailing_stop_active = false;
+            info.trailing_stop_price = info.stop_loss;
+            info.open_order_id = None;
+            info.recreate_attempts = 0;
+            info.last_recreate_attempt = None;
+
+            info!(
+                "📊 [TRACKER] Stacked fill for {}: qty {}+{}={}, entry blended to ${:.8} (SL: ${:.8}, TP: ${:.8})",
+                info.symbol, existing.qty, total_qty - existing.qty, total_qty,
+                info.entry_price, info.stop_loss, info.take_profit
+            );
+
+            existing.open_order_id.clone()
+        } else {
+            info!(
+                "📊 [TRACKER] Added position: {} @ ${:.8} (SL: ${:.8}, TP: ${:.8})",
+                info.symbol, info.entry_price, info.stop_loss, info.take_profit
+            );
+            None
+        };
+
+        *self.stack_count.entry(info.symbol.clone()).or_insert(0) += 1;
+        positions.insert(info.symbol.clone(), info);
+        stale_order_id
+    }
+
     pub fn mark_closing(&self, symbol: &str) {
         let mut positions = self.positions.lock().unwrap();
         if let Some(pos) = positions.get_mut(symbol) {
@@ -110,6 +183,7 @@ impl PositionTracker {
         if removed.is_some() {
             info!("📊 [TRACKER] Removed position: {}", symbol);
         }
+        self.stack_count.remove(symbol);
         removed
     }
 
@@ -226,7 +300,18 @@ impl PositionMonitor {
             // Initial sync with exchange positions
             Self::sync_positions(&*exchange, &tracker, &config).await;
 
-            while let Ok(event) = rx.recv().await {
+            loop {
+                let event = match rx.recv().await {
+                    Ok(event) => event,
+                    Err(RecvError::Lagged(n)) => {
+                        warn!("[MONITOR] Event bus lagged, dropped {} events", n);
+                        continue;
+                    }
+                    Err(RecvError::Closed) => {
+                        info!("[MONITOR] Event bus closed, shutting down");
+                        break;
+                    }
+                };
                 let (symbol, current_price) = match event {
                     Event::Market(MarketEvent::Quote { symbol, bid, .. }) => (symbol, bid),
                     Event::Market(MarketEvent::Trade { symbol, price, .. }) => (symbol, price),
@@ -591,7 +676,7 @@ impl PositionMonitor {
                           fill_price, take_profit_price, tp_pct, stop_loss_price, sl_pct);
 
                     // Create Position with ACTUAL filled quantity
-                    let mut pos_info = PositionInfo {
+                    let pos_info = PositionInfo {
                         symbol: order.symbol.clone(),
                         entry_price: fill_price,
                         qty: filled_qty, // Use actual filled qty
@@ -608,49 +693,74 @@ impl PositionMonitor {
                         trailing_stop_price: stop_loss_price,
                     };
 
-                    // Submit Limit Sell (TP) with ACTUAL filled quantity
-                    let tp_req = ExPlaceOrderRequest {
-                        symbol: order.symbol.clone(),
-                        side: ExSide::Sell,
-                        order_type: ExOrderType::Limit,
-                        qty: Some(filled_qty), // Use actual filled qty
-                        notional: None,
-                        limit_price: Some(pos_info.take_profit),
-                        time_in_force: ExTimeInForce::Gtc, // Crypto usually GTC
-                    };
-
-                    info!(
-                        "🚀 [MONITOR] Submitting Take Profit Limit Sell for {} @ ${:.2}",
-                        order.symbol, pos_info.take_profit
-                    );
-                    match exchange.submit_order(tp_req).await {
-                        Ok(res) => {
-                            info!("✅ [MONITOR] TP Limit Sell Placed: {}", res.id);
-                            pos_info.open_order_id = Some(res.id.clone());
-
-                            // Add TP to Pending Orders
-                            // NOTE: We don't set stop_loss on the sell order itself.
-                            // The position is monitored separately for SL conditions.
-                            // This prevents the TP sell from being cancelled due to SL.
-                            let tp_pending = PendingOrder {
-                                order_id: res.id,
-                                symbol: order.symbol.clone(),
-                                side: "sell".to_string(),
-                                limit_price: pos_info.take_profit,
-                                qty: filled_qty, // Use actual filled qty
-                                created_at: chrono::Utc::now().to_rfc3339(),
-                                stop_loss: None, // Don't attach SL to the sell order
-                                take_profit: None,
-                                last_check_time: None,
-                            };
-                            tracker.add_pending_order(tp_pending);
+                    if tracker.has_position(&order.symbol) {
+                        // Stacking: this fill adds to an already-tracked position rather
+                        // than opening a fresh one. Blend it into the tracker instead of
+                        // submitting an independent TP order sized only for this lot (which
+                        // would leave two live exit orders, neither covering the full qty).
+                        // Cancel whatever exit order the prior lot had; the monitor's
+                        // self-healing loop recreates one sized to the full blended qty.
+                        if let Some(stale_order_id) =
+                            tracker.record_fill(pos_info, tp_pct, sl_pct)
+                        {
+                            if let Err(e) = exchange.cancel_order(&stale_order_id).await {
+                                error!(
+                                    "❌ [MONITOR] Failed to cancel stale exit order {} while stacking {}: {}",
+                                    stale_order_id, order.symbol, e
+                                );
+                            }
+                            tracker.remove_pending_order(&stale_order_id);
                         }
-                        Err(e) => {
-                            error!("❌ [MONITOR] Failed to place TP Limit Sell: {}", e);
+                    } else {
+                        let mut pos_info = pos_info;
+                        // Submit Limit Sell (TP) with ACTUAL filled quantity
+                        let tp_req = ExPlaceOrderRequest {
+                            symbol: order.symbol.clone(),
+                            side: ExSide::Sell,
+                            order_type: ExOrderType::Limit,
+                            qty: Some(filled_qty), // Use actual filled qty
+                            notional: None,
+                            limit_price: Some(pos_info.take_profit),
+                            time_in_force: ExTimeInForce::Gtc, // Crypto usually GTC
+                        };
+
+                        info!(
+                            "🚀 [MONITOR] Submitting Take Profit Limit Sell for {} @ ${:.2}",
+                            order.symbol, pos_info.take_profit
+                        );
+                        match exchange.submit_order(tp_req).await {
+                            Ok(res) => {
+                                info!("✅ [MONITOR] TP Limit Sell Placed: {}", res.id);
+                                pos_info.open_order_id = Some(res.id.clone());
+
+                                // Add TP to Pending Orders
+                                // NOTE: We don't set stop_loss on the sell order itself.
+                                // The position is monitored separately for SL conditions.
+                                // This prevents the TP sell from being cancelled due to SL.
+                                let tp_pending = PendingOrder {
+                                    order_id: res.id,
+                                    symbol: order.symbol.clone(),
+                                    side: "sell".to_string(),
+                                    limit_price: pos_info.take_profit,
+                                    qty: filled_qty, // Use actual filled qty
+                                    created_at: chrono::Utc::now().to_rfc3339(),
+                                    stop_loss: None, // Don't attach SL to the sell order
+                                    take_profit: None,
+                                    last_check_time: None,
+                                };
+                                tracker.add_pending_order(tp_pending);
+                            }
+                            Err(e) => {
+                                error!("❌ [MONITOR] Failed to place TP Limit Sell: {}", e);
+                            }
                         }
+
+                        // No existing position, so this always takes the "fresh" branch of
+                        // record_fill (stale_order_id will be None) - used instead of
+                        // add_position purely to keep stack_count bookkeeping consistent
+                        // across both the market-buy and limit-buy fill paths.
+                        tracker.record_fill(pos_info, tp_pct, sl_pct);
                     }
-
-                    tracker.add_position(pos_info);
                 } else if ack.status.eq_ignore_ascii_case("canceled")
                     || ack.status.eq_ignore_ascii_case("expired")
                 {

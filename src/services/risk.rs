@@ -5,7 +5,8 @@ use crate::events::{AnalysisSignal, Event, OrderRequest};
 use crate::exchange::traits::TradingApi;
 use crate::llm::LLMQueue;
 use std::sync::Arc;
-use tracing::{error, info};
+use tokio::sync::broadcast::error::RecvError;
+use tracing::{error, info, warn};
 
 pub struct RiskEngine {
     event_bus: EventBus,
@@ -38,7 +39,18 @@ impl RiskEngine {
 
         tokio::spawn(async move {
             info!("🛡️ Risk Engine Started");
-            while let Ok(event) = rx.recv().await {
+            loop {
+                let event = match rx.recv().await {
+                    Ok(event) => event,
+                    Err(RecvError::Lagged(n)) => {
+                        warn!("[RISK] Event bus lagged, dropped {} events", n);
+                        continue;
+                    }
+                    Err(RecvError::Closed) => {
+                        info!("[RISK] Event bus closed, shutting down");
+                        break;
+                    }
+                };
                 if let Event::Signal(signal) = event {
                     let exchange = exchange_clone.clone();
                     let llm = llm_clone.clone();

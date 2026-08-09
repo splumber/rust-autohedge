@@ -13,7 +13,8 @@ use crate::exchange::{
 use crate::llm::LLMQueue;
 use crate::services::position_monitor::{PositionInfo, PositionTracker};
 use std::sync::Arc;
-use tracing::{error, info};
+use tokio::sync::broadcast::error::RecvError;
+use tracing::{error, info, warn};
 
 pub struct ExecutionEngine {
     event_bus: EventBus,
@@ -68,7 +69,18 @@ impl ExecutionEngine {
                 config_clone.defaults.min_order_amount,
                 config_clone.defaults.max_order_amount
             );
-            while let Ok(event) = rx.recv().await {
+            loop {
+                let event = match rx.recv().await {
+                    Ok(event) => event,
+                    Err(RecvError::Lagged(n)) => {
+                        warn!("[EXECUTION] Event bus lagged, dropped {} events", n);
+                        continue;
+                    }
+                    Err(RecvError::Closed) => {
+                        info!("[EXECUTION] Event bus closed, shutting down");
+                        break;
+                    }
+                };
                 if let Event::Order(req) = event {
                     info!("[EXECUTION] Received OrderRequest: symbol={} action={} order_type={} limit_price={:?} sl={:?} tp={:?}",
                           req.symbol, req.action, req.order_type, req.limit_price, req.stop_loss, req.take_profit);

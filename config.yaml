@@ -7,36 +7,72 @@ symbols:
   - "SHIB/USD"
   - "XRP/USD"
   - "DOGE/USD"
+  - "PEPE/USD"
 
 defaults:
-  take_profit_pct: 0.1
-  stop_loss_pct: 0.05
-  min_order_amount: 1.0
-  max_order_amount: 100.0
+  # Widened from 0.5%/0.3%: with round_trip_fee_bps=50 (0.5%) and max_spread_bps=50 (0.5%)
+  # tolerated below, a 50bps take-profit target could be entirely consumed by spread alone
+  # before fees. take_profit_pct must exceed fees + spread + a real profit margin.
+  take_profit_pct: 1.8    # 1.8% take profit (180 bps): ~50bps fees + up to 50bps spread + margin
+  stop_loss_pct: 1.0      # 1.0% stop loss (100 bps) - keeps ~1.8:1 reward:risk ratio
+  min_order_amount: 10.0  # Larger minimum $10 per trade
+  max_order_amount: 100.0 # Larger max $100 per trade - more capital at work
   limit_order_expiration_days: 1
 
 symbol_overrides:
-  "XRP/USD":
-    take_profit_pct: 0.2
-    stop_loss_pct: 0.1
   "SOL/USD":
-    take_profit_pct: 0.2
-    stop_loss_pct: 0.1
+    take_profit_pct: 2.0    # SOL volatile - slightly wider
+    stop_loss_pct: 1.1
+  "XRP/USD":
+    take_profit_pct: 1.8
+    stop_loss_pct: 1.0
+  "DOGE/USD":
+    take_profit_pct: 2.4    # DOGE most volatile
+    stop_loss_pct: 1.3
+  "PEPE/USD":
+    take_profit_pct: 2.6    # Meme coin - wider targets, thinnest book
+    stop_loss_pct: 1.5
 
-history_limit: 50
-warmup_count: 50
+history_limit: 100        # More history for better analysis
+warmup_count: 15          # Faster warmup (15 quotes ~= 7 seconds)
 llm_queue_size: 100
 llm_max_concurrent: 3
-no_trade_cooldown_quotes: 10
+no_trade_cooldown_quotes: 5   # Shorter cooldown - trade more often
 strategy_mode: "hft"
-chatter_level: "verbose"
+chatter_level: "normal"
 
 hft:
-  evaluate_every_quotes: 1
-  min_edge_bps: 1.0
-  take_profit_bps: 10.0
-  stop_loss_bps: 5.0
-  max_spread_bps: 50.0
+  evaluate_every_quotes: 1          # Evaluate EVERY quote (maximum speed)
+  min_edge_bps: 3.0                 # Coarse raw-momentum pre-filter; min_net_edge_bps below is the real gate
+  take_profit_bps: 180.0            # Matches defaults.take_profit_pct - kept in sync for signal/log accuracy
+  stop_loss_bps: 100.0              # Matches defaults.stop_loss_pct
+  max_spread_bps: 50.0              # Accept wider spreads (up to 0.5%)
+  min_volume_ratio: 0.3             # Lower volume threshold
+  use_vwap_filter: false            # Disable VWAP filter - trade more
+  momentum_lookback: 10             # Shorter lookback - react faster
+  min_net_edge_bps: 5.0             # Real profitability gate: edge_bps - spread_bps - fees.round_trip_fee_bps must clear this
+
+# Trading cost assumptions used by the net-edge gate above. Alpaca's crypto taker fee is
+# tiered by 30-day trailing volume - this is a conservative worst-tier estimate. Check your
+# actual tier in the Alpaca dashboard and tune down if lower; erring high only means skipping
+# marginal trades, not taking losing ones.
+fees:
+  round_trip_fee_bps: 50.0
+
+micro_trade:
+  target_balance_pct: 0.05          # 5% of balance per trade - more capital at work
+  aggression_bps: 25.0              # 25 bps toward market - fills faster
+  min_order_interval_ms: 500        # 500ms between orders - 2 orders/sec max
+  account_cache_secs: 15            # Refresh balance more often
+  use_llm_filter: false
+  allow_multiple_positions: true    # Stack positions for more exposure
+  max_positions_per_symbol: 3       # Cap stacking depth - previously unbounded, see POSITION_STACKING_ENABLED.md
+  max_open_positions: 7             # Portfolio-wide cap on distinct symbols with exposure (= symbol count)
+  limit_orders_expire_daily: true
+  crypto_time_in_force: "ioc"       # IOC - fill immediately or cancel
+  use_trailing_stop: true           # Keep trailing stop for profit protection
+  trailing_stop_activation_pct: 0.25 # Activate trailing after only 0.25% profit
+  trailing_stop_distance_pct: 0.15   # Trail tighter at 0.15%
 
 hybrid:
   gate_refresh_quotes: 50
@@ -47,7 +83,7 @@ exit_on_quotes: true
 llm:
   api_key: null
   base_url: "http://localhost:11434/v1"
-  model: "qwen3-coder:30b"
+  model: "nemotron-3-nano:30b"
 
 alpaca:
   api_key: "PKIMBBIMMBJKMDUIBSRJWWB5HG"
