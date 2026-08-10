@@ -2,6 +2,10 @@
 name = "rust_autohedge"
 version = "0.1.0"
 edition = "2021"
+# Without this, `cargo run` (no --bin) is ambiguous once src/bin/*.rs adds more than one
+# binary target to the crate - which is exactly what broke the Render deploy (Render's
+# start command is `cargo run --release`, not `cargo run --release --bin rust_autohedge`).
+default-run = "rust_autohedge"
 
 [lib]
 name = "rust_autohedge"
