@@ -1,0 +1,1140 @@
+{
+  "asset_class": "stocks",
+  "buy_and_hold_final_value": 525.402786183771,
+  "buy_and_hold_return_pct": 5.080557236754203,
+  "entries_blocked_by_pdt": 1863,
+  "equity_curve": [
+    {
+      "equity": 500.0,
+      "timestamp": "2026-06-11T12:07:00Z"
+    },
+    {
+      "equity": 500.15610741465736,
+      "timestamp": "2026-06-12T12:00:00Z"
+    },
+    {
+      "equity": 500.7047574452375,
+      "timestamp": "2026-06-15T12:00:00Z"
+    },
+    {
+      "equity": 500.36636178610286,
+      "timestamp": "2026-06-16T12:05:00Z"
+    },
+    {
+      "equity": 500.36636178610286,
+      "timestamp": "2026-06-17T12:01:00Z"
+    },
+    {
+      "equity": 500.36636178610286,
+      "timestamp": "2026-06-18T12:03:00Z"
+    },
+    {
+      "equity": 498.51609289535605,
+      "timestamp": "2026-06-22T12:05:00Z"
+    },
+    {
+      "equity": 498.39081099350426,
+      "timestamp": "2026-06-23T12:09:00Z"
+    },
+    {
+      "equity": 498.4444523392899,
+      "timestamp": "2026-06-24T12:07:00Z"
+    },
+    {
+      "equity": 498.6657228906557,
+      "timestamp": "2026-06-25T12:01:00Z"
+    },
+    {
+      "equity": 498.8099664697367,
+      "timestamp": "2026-06-26T12:02:00Z"
+    },
+    {
+      "equity": 498.5066484205702,
+      "timestamp": "2026-06-29T12:09:00Z"
+    },
+    {
+      "equity": 499.60973176827645,
+      "timestamp": "2026-06-30T12:01:00Z"
+    },
+    {
+      "equity": 499.6320076784745,
+      "timestamp": "2026-07-01T12:00:00Z"
+    },
+    {
+      "equity": 499.63169829083284,
+      "timestamp": "2026-07-02T12:05:00Z"
+    },
+    {
+      "equity": 499.7695919015802,
+      "timestamp": "2026-07-06T12:00:00Z"
+    },
+    {
+      "equity": 498.1737714144365,
+      "timestamp": "2026-07-07T12:06:00Z"
+    },
+    {
+      "equity": 498.5133264861105,
+      "timestamp": "2026-07-08T12:07:00Z"
+    },
+    {
+      "equity": 498.5133264861105,
+      "timestamp": "2026-07-09T12:02:00Z"
+    },
+    {
+      "equity": 498.5133264861105,
+      "timestamp": "2026-07-10T12:00:00Z"
+    },
+    {
+      "equity": 498.5133264861105,
+      "timestamp": "2026-07-13T12:00:00Z"
+    },
+    {
+      "equity": 496.7803293435757,
+      "timestamp": "2026-07-14T12:00:00Z"
+    },
+    {
+      "equity": 496.71785784962725,
+      "timestamp": "2026-07-15T12:01:00Z"
+    },
+    {
+      "equity": 496.8949183122739,
+      "timestamp": "2026-07-16T12:06:00Z"
+    },
+    {
+      "equity": 496.6989257000749,
+      "timestamp": "2026-07-17T12:01:00Z"
+    },
+    {
+      "equity": 496.1381124207123,
+      "timestamp": "2026-07-20T12:04:00Z"
+    },
+    {
+      "equity": 496.6532207245549,
+      "timestamp": "2026-07-21T12:03:00Z"
+    },
+    {
+      "equity": 496.34200425781285,
+      "timestamp": "2026-07-22T12:09:00Z"
+    },
+    {
+      "equity": 496.06209891400306,
+      "timestamp": "2026-07-23T12:00:00Z"
+    },
+    {
+      "equity": 496.06209891400306,
+      "timestamp": "2026-07-24T12:15:00Z"
+    },
+    {
+      "equity": 496.06209891400306,
+      "timestamp": "2026-07-27T12:03:00Z"
+    },
+    {
+      "equity": 496.51894548029446,
+      "timestamp": "2026-07-28T12:02:00Z"
+    },
+    {
+      "equity": 496.99303012286066,
+      "timestamp": "2026-07-29T12:00:00Z"
+    },
+    {
+      "equity": 496.99303012286066,
+      "timestamp": "2026-07-30T12:00:00Z"
+    },
+    {
+      "equity": 496.99303012286066,
+      "timestamp": "2026-07-31T12:01:00Z"
+    },
+    {
+      "equity": 496.99303012286066,
+      "timestamp": "2026-08-03T12:01:00Z"
+    },
+    {
+      "equity": 496.72636325682976,
+      "timestamp": "2026-08-04T12:00:00Z"
+    },
+    {
+      "equity": 496.4711717893908,
+      "timestamp": "2026-08-05T12:04:00Z"
+    },
+    {
+      "equity": 496.4711717893908,
+      "timestamp": "2026-08-06T12:00:00Z"
+    },
+    {
+      "equity": 496.4711717893908,
+      "timestamp": "2026-08-07T12:27:00Z"
+    }
+  ],
+  "excess_vs_buy_and_hold": -28.931614394380233,
+  "final_value": 496.4711717893908,
+  "leverage_multiplier": 1.0,
+  "min_agree": null,
+  "mode": "bollinger",
+  "pdt_enforced": true,
+  "starting_cash": 500.0,
+  "total_return_pct": -0.7057656421218439,
+  "total_trades": 80,
+  "trades": [
+    {
+      "cash_after": 499.745,
+      "direction": "long",
+      "entry_price": 474.437439,
+      "entry_time": "2026-06-11T14:10:00Z",
+      "exit_price": 469.69306460999996,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-11T14:15:00Z",
+      "pnl": -0.254999999999999,
+      "qty": 0.0526939864878581,
+      "symbol": "AMD"
+    },
+    {
+      "cash_after": 431.20584780375,
+      "direction": "long",
+      "entry_price": 289.734486,
+      "entry_time": "2026-06-11T14:58:00Z",
+      "exit_price": 294.949706748,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-06-11T17:28:00Z",
+      "pnl": 0.422534397499998,
+      "qty": 0.08192979657934127,
+      "symbol": "AAPL"
+    },
+    {
+      "cash_after": 410.5036550506919,
+      "direction": "long",
+      "entry_price": 149.35493400000001,
+      "entry_time": "2026-06-11T17:28:00Z",
+      "exit_price": 147.86138466,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-11T17:39:00Z",
+      "pnl": -0.2199149823799189,
+      "qty": 0.14435607725009938,
+      "symbol": "XOM"
+    },
+    {
+      "cash_after": 430.7770135881091,
+      "direction": "long",
+      "entry_price": 189.09890800000002,
+      "entry_time": "2026-06-11T17:28:00Z",
+      "exit_price": 187.20791892000003,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-11T17:40:00Z",
+      "pnl": -0.208919233260918,
+      "qty": 0.10831515627090835,
+      "symbol": "CVX"
+    },
+    {
+      "cash_after": 453.7294143907341,
+      "direction": "long",
+      "entry_price": 54.523627499999996,
+      "entry_time": "2026-06-11T16:59:00Z",
+      "exit_price": 55.505052795,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-06-12T13:30:00Z",
+      "pnl": 0.4014076776250022,
+      "qty": 0.41360038132092375,
+      "symbol": "BAC"
+    },
+    {
+      "cash_after": 479.1614374407341,
+      "direction": "long",
+      "entry_price": 281.67540125,
+      "entry_time": "2026-06-11T14:23:00Z",
+      "exit_price": 286.7455584725,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-06-12T13:34:00Z",
+      "pnl": 0.444773050000002,
+      "qty": 0.08870937926816924,
+      "symbol": "MCD"
+    },
+    {
+      "cash_after": 500.36636178610286,
+      "direction": "long",
+      "entry_price": 239.49985999999998,
+      "entry_time": "2026-06-11T17:06:00Z",
+      "exit_price": 237.10486139999998,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-15T13:31:00Z",
+      "pnl": -0.21851912338125246,
+      "qty": 0.08945075570712234,
+      "symbol": "JNJ"
+    },
+    {
+      "cash_after": 355.47824222122983,
+      "direction": "long",
+      "entry_price": 152.47310875,
+      "entry_time": "2026-06-18T13:30:00Z",
+      "exit_price": 150.94837766249998,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-18T13:35:00Z",
+      "pnl": -0.24242750228536636,
+      "qty": 0.15587930474881126,
+      "symbol": "CRM"
+    },
+    {
+      "cash_after": 340.9888387731151,
+      "direction": "long",
+      "entry_price": 137.553754,
+      "entry_time": "2026-06-18T13:30:00Z",
+      "exit_price": 136.17821646,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-18T13:45:00Z",
+      "pnl": -0.2078512797719192,
+      "qty": 0.14814264137223834,
+      "symbol": "XOM"
+    },
+    {
+      "cash_after": 360.1500776831475,
+      "direction": "long",
+      "entry_price": 175.027501,
+      "entry_time": "2026-06-18T13:30:00Z",
+      "exit_price": 173.27722599,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-18T13:45:00Z",
+      "pnl": -0.19745871578331986,
+      "qty": 0.11060374806937191,
+      "symbol": "CVX"
+    },
+    {
+      "cash_after": 384.91320892794175,
+      "direction": "long",
+      "entry_price": 25.506375,
+      "entry_time": "2026-06-18T13:05:00Z",
+      "exit_price": 25.251311249999997,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-18T13:50:00Z",
+      "pnl": -0.2551868445109129,
+      "qty": 0.9808652969818387,
+      "symbol": "PFE"
+    },
+    {
+      "cash_after": 406.1444985789472,
+      "direction": "long",
+      "entry_price": 958.415832,
+      "entry_time": "2026-06-18T13:30:00Z",
+      "exit_price": 948.83167368,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-18T13:59:00Z",
+      "pnl": -0.21879082081254353,
+      "qty": 0.022380766005353298,
+      "symbol": "COST"
+    },
+    {
+      "cash_after": 428.493224527374,
+      "direction": "long",
+      "entry_price": 231.31281375,
+      "entry_time": "2026-06-18T13:30:00Z",
+      "exit_price": 228.9996856125,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-18T14:10:00Z",
+      "pnl": -0.23030612717109733,
+      "qty": 0.0976125434192376,
+      "symbol": "JNJ"
+    },
+    {
+      "cash_after": 445.20621182452624,
+      "direction": "long",
+      "entry_price": 223.97097875,
+      "entry_time": "2026-06-18T13:43:00Z",
+      "exit_price": 221.7312689625,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-18T14:11:00Z",
+      "pnl": -0.17222920835618183,
+      "qty": 0.07539019831830968,
+      "symbol": "BA"
+    },
+    {
+      "cash_after": 462.4992299408305,
+      "direction": "long",
+      "entry_price": 282.35056999999995,
+      "entry_time": "2026-06-18T13:34:00Z",
+      "exit_price": 279.52706429999995,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-18T17:39:00Z",
+      "pnl": -0.17820649099444452,
+      "qty": 0.06187777346190131,
+      "symbol": "MCD"
+    },
+    {
+      "cash_after": 480.0918481483592,
+      "direction": "long",
+      "entry_price": 490.97909300000003,
+      "entry_time": "2026-06-18T13:35:00Z",
+      "exit_price": 486.06930207000005,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-22T16:21:00Z",
+      "pnl": -0.18129390353282915,
+      "qty": 0.036200955121039116,
+      "symbol": "MA"
+    },
+    {
+      "cash_after": 498.8099664697367,
+      "direction": "long",
+      "entry_price": 329.13291000000004,
+      "entry_time": "2026-06-18T13:31:00Z",
+      "exit_price": 335.05730238000007,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-06-25T14:01:00Z",
+      "pnl": 0.3273555768525469,
+      "qty": 0.05587640186004174,
+      "symbol": "V"
+    },
+    {
+      "cash_after": 452.35330024257775,
+      "direction": "long",
+      "entry_price": 371.997196,
+      "entry_time": "2026-06-26T12:28:00Z",
+      "exit_price": 368.27722403999996,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-26T13:05:00Z",
+      "pnl": -0.2543930828995684,
+      "qty": 0.06704485569156504,
+      "symbol": "AVGO"
+    },
+    {
+      "cash_after": 337.1627971580409,
+      "direction": "long",
+      "entry_price": 1034.2585,
+      "entry_time": "2026-06-26T13:24:00Z",
+      "exit_price": 1023.9159149999999,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-26T13:30:00Z",
+      "pnl": -0.2191651739675251,
+      "qty": 0.02077505938942967,
+      "symbol": "CAT"
+    },
+    {
+      "cash_after": 323.48344840540017,
+      "direction": "long",
+      "entry_price": 512.681263,
+      "entry_time": "2026-06-26T13:30:00Z",
+      "exit_price": 507.5544503699999,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-26T13:32:00Z",
+      "pnl": -0.19779656950569446,
+      "qty": 0.037824320760819395,
+      "symbol": "AMD"
+    },
+    {
+      "cash_after": 340.8060550385673,
+      "direction": "long",
+      "entry_price": 218.76967875,
+      "entry_time": "2026-06-26T13:30:00Z",
+      "exit_price": 216.5819819625,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-26T13:33:00Z",
+      "pnl": -0.17851140397888798,
+      "qty": 0.07999791441457259,
+      "symbol": "MS"
+    },
+    {
+      "cash_after": 359.0403778103222,
+      "direction": "long",
+      "entry_price": 1048.10196,
+      "entry_time": "2026-06-26T13:30:00Z",
+      "exit_price": 1037.6209403999999,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-26T13:34:00Z",
+      "pnl": -0.18790674103041027,
+      "qty": 0.01757675323189483,
+      "symbol": "GS"
+    },
+    {
+      "cash_after": 375.72656464167363,
+      "direction": "long",
+      "entry_price": 1024.7511237499998,
+      "entry_time": "2026-06-26T13:30:00Z",
+      "exit_price": 1014.5036125124998,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-26T13:39:00Z",
+      "pnl": -0.17195302655060374,
+      "qty": 0.016450960108451453,
+      "symbol": "CAT"
+    },
+    {
+      "cash_after": 392.6485706829705,
+      "direction": "long",
+      "entry_price": 40.15503625,
+      "entry_time": "2026-06-26T13:30:00Z",
+      "exit_price": 40.877826902500004,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-06-26T14:01:00Z",
+      "pnl": 0.2959439060081408,
+      "qty": 0.4140467470076991,
+      "symbol": "NKE"
+    },
+    {
+      "cash_after": 413.42435483600417,
+      "direction": "long",
+      "entry_price": 369.9684975,
+      "entry_time": "2026-06-26T13:27:00Z",
+      "exit_price": 376.627930455,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-06-26T14:12:00Z",
+      "pnl": 0.3633414795873442,
+      "qty": 0.05517346155518638,
+      "symbol": "TSLA"
+    },
+    {
+      "cash_after": 436.3338112082687,
+      "direction": "long",
+      "entry_price": 276.0638025,
+      "entry_time": "2026-06-26T13:04:00Z",
+      "exit_price": 281.03295094500004,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-06-26T18:12:00Z",
+      "pnl": 0.4006566353176595,
+      "qty": 0.08153477396569175,
+      "symbol": "AAPL"
+    },
+    {
+      "cash_after": 459.3540706576135,
+      "direction": "long",
+      "entry_price": 367.156712,
+      "entry_time": "2026-06-26T13:05:00Z",
+      "exit_price": 373.765532816,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-06-29T13:31:00Z",
+      "pnl": 0.4025944372158925,
+      "qty": 0.0616022103720356,
+      "symbol": "AVGO"
+    },
+    {
+      "cash_after": 483.46928789157613,
+      "direction": "long",
+      "entry_price": 705.70764225,
+      "entry_time": "2026-06-26T12:52:00Z",
+      "exit_price": 718.4103798105001,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-06-29T13:52:00Z",
+      "pnl": 0.42174382665016097,
+      "qty": 0.0335740638032073,
+      "symbol": "QQQ"
+    },
+    {
+      "cash_after": 499.7695919015802,
+      "direction": "long",
+      "entry_price": 517.64294075,
+      "entry_time": "2026-06-26T13:30:00Z",
+      "exit_price": 526.9605136835,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-02T13:51:00Z",
+      "pnl": 0.28507114499712216,
+      "qty": 0.030938764163967677,
+      "symbol": "DIA"
+    },
+    {
+      "cash_after": 320.4364835959298,
+      "direction": "long",
+      "entry_price": 43.640907500000004,
+      "entry_time": "2026-07-06T13:30:00Z",
+      "exit_price": 43.204498425000004,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-06T13:32:00Z",
+      "pnl": -0.21852987646687083,
+      "qty": 0.4909269518016065,
+      "symbol": "NKE"
+    },
+    {
+      "cash_after": 323.55304537040183,
+      "direction": "long",
+      "entry_price": 24.051011250000002,
+      "entry_time": "2026-07-06T13:31:00Z",
+      "exit_price": 23.8105011375,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-06T13:33:00Z",
+      "pnl": -0.19722321351135363,
+      "qty": 0.8039416291811786,
+      "symbol": "PFE"
+    },
+    {
+      "cash_after": 332.10899020509095,
+      "direction": "long",
+      "entry_price": 386.719335,
+      "entry_time": "2026-07-06T13:06:00Z",
+      "exit_price": 382.85214165,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-06T13:36:00Z",
+      "pnl": -0.25488249186980383,
+      "qty": 0.06461657676122921,
+      "symbol": "MSFT"
+    },
+    {
+      "cash_after": 352.25465963063675,
+      "direction": "long",
+      "entry_price": 536.3986345000001,
+      "entry_time": "2026-07-06T13:31:00Z",
+      "exit_price": 531.034648155,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-06T13:36:00Z",
+      "pnl": -0.20760338264352995,
+      "qty": 0.037944303917107236,
+      "symbol": "MA"
+    },
+    {
+      "cash_after": 370.4361262871918,
+      "direction": "long",
+      "entry_price": 355.905587,
+      "entry_time": "2026-07-06T13:31:00Z",
+      "exit_price": 352.34653113,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-06T13:36:00Z",
+      "pnl": -0.18736205283578755,
+      "qty": 0.05161152108969524,
+      "symbol": "HD"
+    },
+    {
+      "cash_after": 386.8448999447328,
+      "direction": "long",
+      "entry_price": 143.61089375,
+      "entry_time": "2026-07-06T13:31:00Z",
+      "exit_price": 142.1747848125,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-06T13:36:00Z",
+      "pnl": -0.16909425268429956,
+      "qty": 0.11543600542647033,
+      "symbol": "PEP"
+    },
+    {
+      "cash_after": 402.4332349193967,
+      "direction": "long",
+      "entry_price": 357.53575,
+      "entry_time": "2026-07-06T13:32:00Z",
+      "exit_price": 353.9603925,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-06T13:37:00Z",
+      "pnl": -0.16063954005008263,
+      "qty": 0.044048670698563684,
+      "symbol": "V"
+    },
+    {
+      "cash_after": 424.755306305043,
+      "direction": "long",
+      "entry_price": 260.7351675,
+      "entry_time": "2026-07-06T13:30:00Z",
+      "exit_price": 258.12781582499997,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-06T13:41:00Z",
+      "pnl": -0.23003144891250216,
+      "qty": 0.08649428863315421,
+      "symbol": "JNJ"
+    },
+    {
+      "cash_after": 440.61370787820556,
+      "direction": "long",
+      "entry_price": 150.28256125000001,
+      "entry_time": "2026-07-06T13:32:00Z",
+      "exit_price": 148.7797356375,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-06T13:51:00Z",
+      "pnl": -0.16342260663392416,
+      "qty": 0.10661133298855387,
+      "symbol": "PG"
+    },
+    {
+      "cash_after": 457.8861012019329,
+      "direction": "long",
+      "entry_price": 278.94471875,
+      "entry_time": "2026-07-06T13:31:00Z",
+      "exit_price": 276.1552715625,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-06T14:00:00Z",
+      "pnl": -0.17799395019400066,
+      "qty": 0.06255858634685593,
+      "symbol": "MCD"
+    },
+    {
+      "cash_after": 482.04771200721075,
+      "direction": "long",
+      "entry_price": 163.780935,
+      "entry_time": "2026-07-06T13:30:00Z",
+      "exit_price": 166.72899183,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-06T15:32:00Z",
+      "pnl": 0.4225551899527886,
+      "qty": 0.14494394976634528,
+      "symbol": "CRM"
+    },
+    {
+      "cash_after": 498.5133264861105,
+      "direction": "long",
+      "entry_price": 23.815952499999998,
+      "entry_time": "2026-07-06T13:33:00Z",
+      "exit_price": 24.244639645,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-07T13:36:00Z",
+      "pnl": 0.2879622103796571,
+      "qty": 0.6792779868250112,
+      "symbol": "PFE"
+    },
+    {
+      "cash_after": 350.818955535055,
+      "direction": "long",
+      "entry_price": 542.484243,
+      "entry_time": "2026-07-13T12:28:00Z",
+      "exit_price": 537.05940057,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-13T13:30:00Z",
+      "pnl": -0.20708153226692616,
+      "qty": 0.037424333090834816,
+      "symbol": "AMD"
+    },
+    {
+      "cash_after": 303.8799960023251,
+      "direction": "long",
+      "entry_price": 403.500174,
+      "entry_time": "2026-07-13T12:40:00Z",
+      "exit_price": 399.46517226000003,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-13T13:35:00Z",
+      "pnl": -0.1868910828709005,
+      "qty": 0.04540928694474774,
+      "symbol": "TSLA"
+    },
+    {
+      "cash_after": 321.1089718978483,
+      "direction": "long",
+      "entry_price": 394.43944,
+      "entry_time": "2026-07-13T12:50:00Z",
+      "exit_price": 390.49504559999997,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-13T13:35:00Z",
+      "pnl": -0.17754652872735477,
+      "qty": 0.044129771668498866,
+      "symbol": "AVGO"
+    },
+    {
+      "cash_after": 337.60290050180663,
+      "direction": "long",
+      "entry_price": 220.3050625,
+      "entry_time": "2026-07-13T13:30:00Z",
+      "exit_price": 218.102011875,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-13T14:06:00Z",
+      "pnl": -0.16997178395673274,
+      "qty": 0.07564011556890625,
+      "symbol": "BA"
+    },
+    {
+      "cash_after": 361.04075380321433,
+      "direction": "long",
+      "entry_price": 208.090404,
+      "entry_time": "2026-07-13T12:07:00Z",
+      "exit_price": 206.00949996,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-13T16:05:00Z",
+      "pnl": -0.24152970668252038,
+      "qty": 0.11379372884532556,
+      "symbol": "NVDA"
+    },
+    {
+      "cash_after": 378.4027839126442,
+      "direction": "long",
+      "entry_price": 938.5845875,
+      "entry_time": "2026-07-13T13:30:00Z",
+      "exit_price": 929.198741625,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-13T16:31:00Z",
+      "pnl": -0.17891766732287806,
+      "qty": 0.01868872343565172,
+      "symbol": "CAT"
+    },
+    {
+      "cash_after": 399.5554465171647,
+      "direction": "long",
+      "entry_price": 717.42793525,
+      "entry_time": "2026-07-13T12:24:00Z",
+      "exit_price": 710.2536558975,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-13T19:38:00Z",
+      "pnl": -0.21798056028097434,
+      "qty": 0.029787860375627112,
+      "symbol": "QQQ"
+    },
+    {
+      "cash_after": 418.6457245177444,
+      "direction": "long",
+      "entry_price": 355.3277655,
+      "entry_time": "2026-07-13T12:38:00Z",
+      "exit_price": 351.774487845,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-14T13:03:00Z",
+      "pnl": -0.19672745565357985,
+      "qty": 0.0542794775102744,
+      "symbol": "GOOGL"
+    },
+    {
+      "cash_after": 433.53149508281683,
+      "direction": "long",
+      "entry_price": 246.841695,
+      "entry_time": "2026-07-13T13:32:00Z",
+      "exit_price": 244.37327804999998,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-14T14:02:00Z",
+      "pnl": -0.15339953502095405,
+      "qty": 0.06092637672129657,
+      "symbol": "ABBV"
+    },
+    {
+      "cash_after": 458.20291961061446,
+      "direction": "long",
+      "entry_price": 752.4488107499999,
+      "entry_time": "2026-07-13T12:00:00Z",
+      "exit_price": 744.9243226424999,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-17T12:04:00Z",
+      "pnl": -0.25424179650791956,
+      "qty": 0.03312606248850467,
+      "symbol": "SPY"
+    },
+    {
+      "cash_after": 473.8721517843749,
+      "direction": "long",
+      "entry_price": 295.582389375,
+      "entry_time": "2026-07-13T13:30:00Z",
+      "exit_price": 292.62656548125,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-17T13:11:00Z",
+      "pnl": -0.16147319475889788,
+      "qty": 0.05355767439999691,
+      "symbol": "IWM"
+    },
+    {
+      "cash_after": 496.1381124207123,
+      "direction": "long",
+      "entry_price": 525.42313525,
+      "entry_time": "2026-07-13T12:10:00Z",
+      "exit_price": 520.1689038975,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-17T13:30:00Z",
+      "pnl": -0.22945322134839685,
+      "qty": 0.04281390054699868,
+      "symbol": "DIA"
+    },
+    {
+      "cash_after": 319.84295772861776,
+      "direction": "long",
+      "entry_price": 167.101765,
+      "entry_time": "2026-07-20T13:30:00Z",
+      "exit_price": 170.10959677,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-20T13:38:00Z",
+      "pnl": 0.39851053534912495,
+      "qty": 0.1339796280606889,
+      "symbol": "CRM"
+    },
+    {
+      "cash_after": 320.9976966465961,
+      "direction": "long",
+      "entry_price": 43.45086,
+      "entry_time": "2026-07-20T13:31:00Z",
+      "exit_price": 43.0163514,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-20T14:00:00Z",
+      "pnl": -0.17670059143763694,
+      "qty": 0.39869377489529223,
+      "symbol": "NKE"
+    },
+    {
+      "cash_after": 328.27399323878234,
+      "direction": "long",
+      "entry_price": 331.36656750000003,
+      "entry_time": "2026-07-20T12:07:00Z",
+      "exit_price": 328.05290182500005,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-20T14:11:00Z",
+      "pnl": -0.24037891546783285,
+      "qty": 0.0711193060838397,
+      "symbol": "AAPL"
+    },
+    {
+      "cash_after": 344.5635357029711,
+      "direction": "long",
+      "entry_price": 336.593656,
+      "entry_time": "2026-07-20T13:32:00Z",
+      "exit_price": 333.22771944,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-20T15:02:00Z",
+      "pnl": -0.16786556186575652,
+      "qty": 0.04889399349242196,
+      "symbol": "HD"
+    },
+    {
+      "cash_after": 369.81200424406114,
+      "direction": "long",
+      "entry_price": 391.17955800000004,
+      "entry_time": "2026-07-20T12:06:00Z",
+      "exit_price": 398.22079004400007,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-20T15:43:00Z",
+      "pnl": 0.4415629200544373,
+      "qty": 0.06341564919155518,
+      "symbol": "MSFT"
+    },
+    {
+      "cash_after": 388.8113248029633,
+      "direction": "long",
+      "entry_price": 114.051404,
+      "entry_time": "2026-07-20T13:30:00Z",
+      "exit_price": 112.91088996,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-20T16:00:00Z",
+      "pnl": -0.19579012901677117,
+      "qty": 0.16830227436673165,
+      "symbol": "WMT"
+    },
+    {
+      "cash_after": 404.64035278095264,
+      "direction": "long",
+      "entry_price": 24.96624,
+      "entry_time": "2026-07-20T13:55:00Z",
+      "exit_price": 24.716577599999997,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-21T13:30:00Z",
+      "pnl": -0.16311990844159752,
+      "qty": 0.6405509154134098,
+      "symbol": "PFE"
+    },
+    {
+      "cash_after": 423.2002972562084,
+      "direction": "long",
+      "entry_price": 146.574656,
+      "entry_time": "2026-07-20T13:30:00Z",
+      "exit_price": 149.212999808,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-21T13:31:00Z",
+      "pnl": 0.3245893217327094,
+      "qty": 0.1244100150132572,
+      "symbol": "XOM"
+    },
+    {
+      "cash_after": 438.6753625971877,
+      "direction": "long",
+      "entry_price": 149.4273475,
+      "entry_time": "2026-07-20T13:32:00Z",
+      "exit_price": 147.933074025,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-21T13:32:00Z",
+      "pnl": -0.1594722837724678,
+      "qty": 0.1046296938701384,
+      "symbol": "PG"
+    },
+    {
+      "cash_after": 455.01093537953295,
+      "direction": "long",
+      "entry_price": 1063.5758274999998,
+      "entry_time": "2026-07-20T14:09:00Z",
+      "exit_price": 1082.720192395,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-21T16:25:00Z",
+      "pnl": 0.28568795001547187,
+      "qty": 0.01509049417760466,
+      "symbol": "GS"
+    },
+    {
+      "cash_after": 475.0102201783774,
+      "direction": "long",
+      "entry_price": 539.7039649999999,
+      "entry_time": "2026-07-20T13:30:00Z",
+      "exit_price": 534.3069253499999,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-22T17:10:00Z",
+      "pnl": -0.20609487264923843,
+      "qty": 0.03743789370065799,
+      "symbol": "MA"
+    },
+    {
+      "cash_after": 496.06209891400306,
+      "direction": "long",
+      "entry_price": 357.26072250000004,
+      "entry_time": "2026-07-20T13:30:00Z",
+      "exit_price": 353.68811527500003,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-22T18:36:00Z",
+      "pnl": -0.21694197120972447,
+      "qty": 0.059533050703146934,
+      "symbol": "V"
+    },
+    {
+      "cash_after": 371.66326506392886,
+      "direction": "long",
+      "entry_price": 151.795178,
+      "entry_time": "2026-07-27T13:17:00Z",
+      "exit_price": 154.527491204,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-27T13:43:00Z",
+      "pnl": 0.4414952680334636,
+      "qty": 0.16339850364482697,
+      "symbol": "XOM"
+    },
+    {
+      "cash_after": 389.70985424649325,
+      "direction": "long",
+      "entry_price": 417.9744675,
+      "entry_time": "2026-07-27T13:32:00Z",
+      "exit_price": 413.794722825,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-27T13:53:00Z",
+      "pnl": -0.18597212534063345,
+      "qty": 0.04362123221774309,
+      "symbol": "UNH"
+    },
+    {
+      "cash_after": 410.7585076158642,
+      "direction": "long",
+      "entry_price": 881.2702625,
+      "entry_time": "2026-07-27T13:30:00Z",
+      "exit_price": 872.4575598749999,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-27T14:05:00Z",
+      "pnl": -0.21690873344876138,
+      "qty": 0.024130579468883046,
+      "symbol": "CAT"
+    },
+    {
+      "cash_after": 434.7408778189111,
+      "direction": "long",
+      "entry_price": 262.3955825,
+      "entry_time": "2026-07-27T13:30:00Z",
+      "exit_price": 267.11870298499997,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-27T14:14:00Z",
+      "pnl": 0.4194205046317876,
+      "qty": 0.0897993383650624,
+      "symbol": "JNJ"
+    },
+    {
+      "cash_after": 455.30276247174845,
+      "direction": "long",
+      "entry_price": 24.4561125,
+      "entry_time": "2026-07-27T13:31:00Z",
+      "exit_price": 24.896322525,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-28T13:30:00Z",
+      "pnl": 0.35960065515867967,
+      "qty": 0.8260627684665209,
+      "symbol": "PFE"
+    },
+    {
+      "cash_after": 474.83655289194394,
+      "direction": "long",
+      "entry_price": 257.764425,
+      "entry_time": "2026-07-27T13:31:00Z",
+      "exit_price": 262.40418465000005,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-28T13:31:00Z",
+      "pnl": 0.3416206224007503,
+      "qty": 0.07445623963739274,
+      "symbol": "ABBV"
+    },
+    {
+      "cash_after": 496.99303012286066,
+      "direction": "long",
+      "entry_price": 190.809079,
+      "entry_time": "2026-07-27T13:30:00Z",
+      "exit_price": 188.90098821,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-28T15:20:00Z",
+      "pnl": -0.228324982577643,
+      "qty": 0.11731518400911305,
+      "symbol": "CVX"
+    },
+    {
+      "cash_after": 405.65188694591944,
+      "direction": "long",
+      "entry_price": 464.756471,
+      "entry_time": "2026-08-03T12:36:00Z",
+      "exit_price": 460.10890629,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-08-03T13:30:00Z",
+      "pnl": -0.21731579359281028,
+      "qty": 0.045842223378271985,
+      "symbol": "AMD"
+    },
+    {
+      "cash_after": 405.4030390567857,
+      "direction": "long",
+      "entry_price": 309.8454915,
+      "entry_time": "2026-08-03T13:30:00Z",
+      "exit_price": 306.747036585,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-08-03T13:31:00Z",
+      "pnl": -0.2064500039131687,
+      "qty": 0.06532351451715546,
+      "symbol": "AAPL"
+    },
+    {
+      "cash_after": 389.2426185564904,
+      "direction": "long",
+      "entry_price": 384.13841,
+      "entry_time": "2026-08-03T12:05:00Z",
+      "exit_price": 380.2970259,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-08-03T13:32:00Z",
+      "pnl": -0.2407931230945266,
+      "qty": 0.06145485147094736,
+      "symbol": "AVGO"
+    },
+    {
+      "cash_after": 414.5345938594428,
+      "direction": "long",
+      "entry_price": 198.3599175,
+      "entry_time": "2026-08-03T12:02:00Z",
+      "exit_price": 201.93039601499999,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-08-03T13:58:00Z",
+      "pnl": 0.4423237968093474,
+      "qty": 0.12527556887163474,
+      "symbol": "NVDA"
+    },
+    {
+      "cash_after": 434.5979902623631,
+      "direction": "long",
+      "entry_price": 306.435321,
+      "entry_time": "2026-08-03T13:31:00Z",
+      "exit_price": 303.37096779,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-08-03T15:42:00Z",
+      "pnl": -0.20675554991895595,
+      "qty": 0.06614822301388451,
+      "symbol": "AAPL"
+    },
+    {
+      "cash_after": 454.67370214731665,
+      "direction": "long",
+      "entry_price": 194.56445449999998,
+      "entry_time": "2026-08-03T13:30:00Z",
+      "exit_price": 192.618809955,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-08-03T18:16:00Z",
+      "pnl": -0.20688246234241703,
+      "qty": 0.10424614505984173,
+      "symbol": "CVX"
+    },
+    {
+      "cash_after": 476.87175916467095,
+      "direction": "long",
+      "entry_price": 153.365335,
+      "entry_time": "2026-08-03T12:23:00Z",
+      "exit_price": 151.83168164999998,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-08-04T13:30:00Z",
+      "pnl": -0.22875346693979992,
+      "qty": 0.14623128808276065,
+      "symbol": "XOM"
+    },
+    {
+      "cash_after": 496.4711717893908,
+      "direction": "long",
+      "entry_price": 209.94247249999998,
+      "entry_time": "2026-08-03T13:31:00Z",
+      "exit_price": 213.72143700499998,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-08-04T13:31:00Z",
+      "pnl": 0.34276826952251227,
+      "qty": 0.09172343321429315,
+      "symbol": "MS"
+    }
+  ],
+  "win_rate_pct": 27.500000000000004
+}

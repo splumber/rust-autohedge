@@ -1,0 +1,57 @@
+{
+  "asset_class": "stocks",
+  "buy_and_hold_final_value": 515.2855544496273,
+  "buy_and_hold_return_pct": 3.057110889925457,
+  "equity_curve": [
+    {
+      "equity": 500.0,
+      "timestamp": "2026-07-27T12:03:00Z"
+    },
+    {
+      "equity": 500.0,
+      "timestamp": "2026-07-28T12:02:00Z"
+    },
+    {
+      "equity": 500.0,
+      "timestamp": "2026-07-29T12:00:00Z"
+    },
+    {
+      "equity": 500.0,
+      "timestamp": "2026-07-30T12:00:00Z"
+    },
+    {
+      "equity": 500.0,
+      "timestamp": "2026-07-31T12:01:00Z"
+    },
+    {
+      "equity": 500.0,
+      "timestamp": "2026-08-03T12:01:00Z"
+    },
+    {
+      "equity": 500.0,
+      "timestamp": "2026-08-04T12:00:00Z"
+    },
+    {
+      "equity": 500.0,
+      "timestamp": "2026-08-05T12:04:00Z"
+    },
+    {
+      "equity": 500.0,
+      "timestamp": "2026-08-06T12:00:00Z"
+    },
+    {
+      "equity": 500.0,
+      "timestamp": "2026-08-07T12:27:00Z"
+    }
+  ],
+  "excess_vs_buy_and_hold": -15.285554449627284,
+  "final_value": 500.0,
+  "leverage_multiplier": 1.0,
+  "min_agree": null,
+  "mode": "ml-signal",
+  "starting_cash": 500.0,
+  "total_return_pct": 0.0,
+  "total_trades": 0,
+  "trades": [],
+  "win_rate_pct": 0.0
+}

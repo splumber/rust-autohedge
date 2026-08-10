@@ -1,0 +1,13 @@
+{
+  "avg_profit_per_trade": "$0.0000",
+  "losing_trades": 0,
+  "open_positions": 0,
+  "profit_factor": "0.00",
+  "runtime_minutes": "11.2",
+  "total_closed_trades": 0,
+  "total_notional_traded": "$0.00",
+  "total_realized_pnl": "$0.0000",
+  "trades_per_hour": "0.00",
+  "win_rate_pct": "0.0%",
+  "winning_trades": 0
+}

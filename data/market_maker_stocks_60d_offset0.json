@@ -1,0 +1,377 @@
+{
+  "asset_class": "stocks",
+  "lookback_days": 60,
+  "results": [
+    {
+      "buy_fills": 6674,
+      "ending_inventory_value": -150.731937571481,
+      "fills": 13354,
+      "inventory_mtm_pnl": -30.731937571481012,
+      "realized_pnl": 93.29200000002626,
+      "sell_fills": 6680,
+      "symbol": "NVDA",
+      "total_pnl": 62.56006242854525
+    },
+    {
+      "buy_fills": 1731,
+      "ending_inventory_value": -102.28557703739968,
+      "fills": 3466,
+      "inventory_mtm_pnl": -22.285577037399676,
+      "realized_pnl": 73.0680000000081,
+      "sell_fills": 1735,
+      "symbol": "JNJ",
+      "total_pnl": 50.78242296260842
+    },
+    {
+      "buy_fills": 2763,
+      "ending_inventory_value": -73.96655750729714,
+      "fills": 5529,
+      "inventory_mtm_pnl": -13.96655750729714,
+      "realized_pnl": 48.94200000001156,
+      "sell_fills": 2766,
+      "symbol": "IWM",
+      "total_pnl": 34.97544249271442
+    },
+    {
+      "buy_fills": 2404,
+      "ending_inventory_value": -119.13870169746224,
+      "fills": 4812,
+      "inventory_mtm_pnl": -39.13870169746224,
+      "realized_pnl": 70.37600000001048,
+      "sell_fills": 2408,
+      "symbol": "HD",
+      "total_pnl": 31.23729830254824
+    },
+    {
+      "buy_fills": 935,
+      "ending_inventory_value": -49.693148104204234,
+      "fills": 1872,
+      "inventory_mtm_pnl": -9.693148104204234,
+      "realized_pnl": 36.25600000000412,
+      "sell_fills": 937,
+      "symbol": "DIA",
+      "total_pnl": 26.562851895799888
+    },
+    {
+      "buy_fills": 2843,
+      "ending_inventory_value": -83.34448917427912,
+      "fills": 5689,
+      "inventory_mtm_pnl": -23.34448917427912,
+      "realized_pnl": 48.62200000001154,
+      "sell_fills": 2846,
+      "symbol": "XOM",
+      "total_pnl": 25.27751082573242
+    },
+    {
+      "buy_fills": 3421,
+      "ending_inventory_value": -83.40746305410494,
+      "fills": 6845,
+      "inventory_mtm_pnl": -23.407463054104937,
+      "realized_pnl": 46.310000000013886,
+      "sell_fills": 3424,
+      "symbol": "QQQ",
+      "total_pnl": 22.90253694590895
+    },
+    {
+      "buy_fills": 1822,
+      "ending_inventory_value": -59.00762082567127,
+      "fills": 3646,
+      "inventory_mtm_pnl": -19.007620825671268,
+      "realized_pnl": 32.70800000000777,
+      "sell_fills": 1824,
+      "symbol": "PFE",
+      "total_pnl": 13.700379174336504
+    },
+    {
+      "buy_fills": 1818,
+      "ending_inventory_value": -61.93302183336589,
+      "fills": 3638,
+      "inventory_mtm_pnl": -21.933021833365892,
+      "realized_pnl": 32.724000000007464,
+      "sell_fills": 1820,
+      "symbol": "COST",
+      "total_pnl": 10.790978166641572
+    },
+    {
+      "buy_fills": 1417,
+      "ending_inventory_value": -27.830277189021206,
+      "fills": 2835,
+      "inventory_mtm_pnl": -7.830277189021206,
+      "realized_pnl": 14.330000000005885,
+      "sell_fills": 1418,
+      "symbol": "SPY",
+      "total_pnl": 6.499722810984679
+    },
+    {
+      "buy_fills": 2157,
+      "ending_inventory_value": -66.74076034870328,
+      "fills": 4316,
+      "inventory_mtm_pnl": -26.740760348703276,
+      "realized_pnl": 31.36800000000903,
+      "sell_fills": 2159,
+      "symbol": "UNH",
+      "total_pnl": 4.627239651305754
+    },
+    {
+      "buy_fills": 6078,
+      "ending_inventory_value": -171.06132174871314,
+      "fills": 12161,
+      "inventory_mtm_pnl": -71.06132174871314,
+      "realized_pnl": 75.67800000002394,
+      "sell_fills": 6083,
+      "symbol": "AVGO",
+      "total_pnl": 4.616678251310802
+    },
+    {
+      "buy_fills": 2150,
+      "ending_inventory_value": -69.68927920013627,
+      "fills": 4302,
+      "inventory_mtm_pnl": -29.68927920013627,
+      "realized_pnl": 31.396000000008655,
+      "sell_fills": 2152,
+      "symbol": "CVX",
+      "total_pnl": 1.706720799872386
+    },
+    {
+      "buy_fills": 2171,
+      "ending_inventory_value": -110.78640063744871,
+      "fills": 4345,
+      "inventory_mtm_pnl": -50.78640063744871,
+      "realized_pnl": 51.31000000000891,
+      "sell_fills": 2174,
+      "symbol": "MS",
+      "total_pnl": 0.5235993625602049
+    },
+    {
+      "buy_fills": 3003,
+      "ending_inventory_value": -70.15263712993297,
+      "fills": 6008,
+      "inventory_mtm_pnl": -30.15263712993297,
+      "realized_pnl": 27.984000000012845,
+      "sell_fills": 3005,
+      "symbol": "WMT",
+      "total_pnl": -2.168637129920125
+    },
+    {
+      "buy_fills": 2424,
+      "ending_inventory_value": -40.69372884693512,
+      "fills": 4849,
+      "inventory_mtm_pnl": -20.693728846935123,
+      "realized_pnl": 10.302000000010118,
+      "sell_fills": 2425,
+      "symbol": "JPM",
+      "total_pnl": -10.391728846925005
+    },
+    {
+      "buy_fills": 2402,
+      "ending_inventory_value": -10.990379809343116,
+      "fills": 4804,
+      "inventory_mtm_pnl": -10.990379809343116,
+      "realized_pnl": -9.607999999988657,
+      "sell_fills": 2402,
+      "symbol": "V",
+      "total_pnl": -20.598379809331774
+    },
+    {
+      "buy_fills": 1727,
+      "ending_inventory_value": -14.561539118800699,
+      "fills": 3454,
+      "inventory_mtm_pnl": -14.561539118800699,
+      "realized_pnl": -6.907999999992732,
+      "sell_fills": 1727,
+      "symbol": "BAC",
+      "total_pnl": -21.46953911879343
+    },
+    {
+      "buy_fills": 1789,
+      "ending_inventory_value": -18.446181603203478,
+      "fills": 3578,
+      "inventory_mtm_pnl": -18.446181603203478,
+      "realized_pnl": -7.155999999991749,
+      "sell_fills": 1789,
+      "symbol": "KO",
+      "total_pnl": -25.602181603195227
+    },
+    {
+      "buy_fills": 1891,
+      "ending_inventory_value": -21.981426234180095,
+      "fills": 3782,
+      "inventory_mtm_pnl": -21.981426234180095,
+      "realized_pnl": -7.563999999991445,
+      "sell_fills": 1891,
+      "symbol": "DIS",
+      "total_pnl": -29.54542623417154
+    },
+    {
+      "buy_fills": 5025,
+      "ending_inventory_value": -94.88686829549944,
+      "fills": 10052,
+      "inventory_mtm_pnl": -54.88686829549944,
+      "realized_pnl": 19.89600000002049,
+      "sell_fills": 5027,
+      "symbol": "AMZN",
+      "total_pnl": -34.99086829547895
+    },
+    {
+      "buy_fills": 6803,
+      "ending_inventory_value": -131.17761932545736,
+      "fills": 13609,
+      "inventory_mtm_pnl": -71.17761932545736,
+      "realized_pnl": 32.78200000002683,
+      "sell_fills": 6806,
+      "symbol": "TSLA",
+      "total_pnl": -38.39561932543053
+    },
+    {
+      "buy_fills": 2272,
+      "ending_inventory_value": -72.1210808453306,
+      "fills": 4545,
+      "inventory_mtm_pnl": -52.121080845330596,
+      "realized_pnl": 10.910000000009461,
+      "sell_fills": 2273,
+      "symbol": "BA",
+      "total_pnl": -41.211080845321135
+    },
+    {
+      "buy_fills": 1501,
+      "ending_inventory_value": 0.8007833930194245,
+      "fills": 3001,
+      "inventory_mtm_pnl": -19.199216606980574,
+      "realized_pnl": -26.001999999992197,
+      "sell_fills": 1500,
+      "symbol": "MCD",
+      "total_pnl": -45.20121660697277
+    },
+    {
+      "buy_fills": 2329,
+      "ending_inventory_value": 4.102062402167352,
+      "fills": 4657,
+      "inventory_mtm_pnl": -15.897937597832648,
+      "realized_pnl": -29.313999999990035,
+      "sell_fills": 2328,
+      "symbol": "MA",
+      "total_pnl": -45.21193759782268
+    },
+    {
+      "buy_fills": 3141,
+      "ending_inventory_value": -35.06705787555772,
+      "fills": 6282,
+      "inventory_mtm_pnl": -35.06705787555772,
+      "realized_pnl": -12.563999999987818,
+      "sell_fills": 3141,
+      "symbol": "NKE",
+      "total_pnl": -47.63105787554554
+    },
+    {
+      "buy_fills": 4948,
+      "ending_inventory_value": -33.67294780188413,
+      "fills": 9896,
+      "inventory_mtm_pnl": -33.67294780188413,
+      "realized_pnl": -19.791999999978454,
+      "sell_fills": 4948,
+      "symbol": "MSFT",
+      "total_pnl": -53.46494780186258
+    },
+    {
+      "buy_fills": 1731,
+      "ending_inventory_value": -10.817325865234578,
+      "fills": 3461,
+      "inventory_mtm_pnl": -30.81732586523458,
+      "realized_pnl": -26.92199999999212,
+      "sell_fills": 1730,
+      "symbol": "PEP",
+      "total_pnl": -57.739325865226704
+    },
+    {
+      "buy_fills": 1967,
+      "ending_inventory_value": 17.857612422855805,
+      "fills": 3932,
+      "inventory_mtm_pnl": -22.142387577144195,
+      "realized_pnl": -47.86399999999179,
+      "sell_fills": 1965,
+      "symbol": "ABBV",
+      "total_pnl": -70.00638757713598
+    },
+    {
+      "buy_fills": 1567,
+      "ending_inventory_value": 45.605627385284826,
+      "fills": 3131,
+      "inventory_mtm_pnl": -14.394372614715174,
+      "realized_pnl": -66.26199999999265,
+      "sell_fills": 1564,
+      "symbol": "PG",
+      "total_pnl": -80.65637261470783
+    },
+    {
+      "buy_fills": 7162,
+      "ending_inventory_value": -254.24665500099724,
+      "fills": 14329,
+      "inventory_mtm_pnl": -154.24665500099724,
+      "realized_pnl": 71.34200000002119,
+      "sell_fills": 7167,
+      "symbol": "AMD",
+      "total_pnl": -82.90465500097605
+    },
+    {
+      "buy_fills": 5171,
+      "ending_inventory_value": -29.796602605502528,
+      "fills": 10341,
+      "inventory_mtm_pnl": -49.79660260550253,
+      "realized_pnl": -40.681999999978906,
+      "sell_fills": 5170,
+      "symbol": "GOOGL",
+      "total_pnl": -90.47860260548143
+    },
+    {
+      "buy_fills": 3291,
+      "ending_inventory_value": -80.46076224072816,
+      "fills": 6582,
+      "inventory_mtm_pnl": -80.46076224072816,
+      "realized_pnl": -13.16399999998826,
+      "sell_fills": 3291,
+      "symbol": "CRM",
+      "total_pnl": -93.62476224071642
+    },
+    {
+      "buy_fills": 2215,
+      "ending_inventory_value": -32.08824553255891,
+      "fills": 4428,
+      "inventory_mtm_pnl": -72.08824553255891,
+      "realized_pnl": -48.85599999999158,
+      "sell_fills": 2213,
+      "symbol": "GS",
+      "total_pnl": -120.9442455325505
+    },
+    {
+      "buy_fills": 4566,
+      "ending_inventory_value": 11.987740321357636,
+      "fills": 9129,
+      "inventory_mtm_pnl": -48.012259678642366,
+      "realized_pnl": -78.25799999998186,
+      "sell_fills": 4563,
+      "symbol": "AAPL",
+      "total_pnl": -126.27025967862423
+    },
+    {
+      "buy_fills": 3274,
+      "ending_inventory_value": -44.156450784578574,
+      "fills": 6546,
+      "inventory_mtm_pnl": -84.15645078457857,
+      "realized_pnl": -53.09199999999035,
+      "sell_fills": 3272,
+      "symbol": "CAT",
+      "total_pnl": -137.24845078456892
+    },
+    {
+      "buy_fills": 5481,
+      "ending_inventory_value": -49.74902449470241,
+      "fills": 10960,
+      "inventory_mtm_pnl": -89.74902449470241,
+      "realized_pnl": -61.91999999997958,
+      "sell_fills": 5479,
+      "symbol": "META",
+      "total_pnl": -151.669024494682
+    }
+  ],
+  "total_pnl": -1130.6612634145724
+}

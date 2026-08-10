@@ -1,0 +1,18 @@
+{
+  "asset_class": "stocks",
+  "buy_and_hold_final_value": -0.0,
+  "buy_and_hold_return_pct": -100.0,
+  "entries_blocked_by_pdt": 0,
+  "equity_curve": [],
+  "excess_vs_buy_and_hold": 500.0,
+  "final_value": 500.0,
+  "leverage_multiplier": 1.0,
+  "min_agree": null,
+  "mode": "momentum",
+  "pdt_enforced": false,
+  "starting_cash": 500.0,
+  "total_return_pct": 0.0,
+  "total_trades": 0,
+  "trades": [],
+  "win_rate_pct": 0.0
+}

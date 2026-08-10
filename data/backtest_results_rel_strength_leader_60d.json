@@ -1,0 +1,1635 @@
+{
+  "config_snapshot": {
+    "max_spread_bps": 50.0,
+    "min_edge_bps": 3.0,
+    "min_net_edge_bps": 5.0,
+    "round_trip_fee_bps": 50.0
+  },
+  "end": "2026-08-09T17:29:37.591002+00:00",
+  "lookback_days": 60,
+  "mode": "rel-strength-leader",
+  "portfolio": {
+    "max_drawdown": 120.30000000000001,
+    "overall_win_rate_pct": 26.451612903225808,
+    "total_pnl": -117.70000000000002,
+    "total_trades": 155
+  },
+  "start": "2026-06-10T17:29:37.591002+00:00",
+  "summaries": [
+    {
+      "avg_pnl": -0.7533333333333321,
+      "losses": 11,
+      "symbol": "SOL/USD",
+      "total_pnl": -11.299999999999981,
+      "trades": 15,
+      "win_rate_pct": 26.666666666666668,
+      "wins": 4
+    },
+    {
+      "avg_pnl": -0.877777777777778,
+      "losses": 7,
+      "symbol": "DOT/USD",
+      "total_pnl": -7.900000000000002,
+      "trades": 9,
+      "win_rate_pct": 22.22222222222222,
+      "wins": 2
+    },
+    {
+      "avg_pnl": -1.100000000000002,
+      "losses": 6,
+      "symbol": "LTC/USD",
+      "total_pnl": -7.700000000000015,
+      "trades": 7,
+      "win_rate_pct": 14.285714285714285,
+      "wins": 1
+    },
+    {
+      "avg_pnl": -0.48181818181818153,
+      "losses": 42,
+      "symbol": "SHIB/USD",
+      "total_pnl": -31.799999999999983,
+      "trades": 66,
+      "win_rate_pct": 36.36363636363637,
+      "wins": 24
+    },
+    {
+      "avg_pnl": -1.4999999999999951,
+      "losses": 2,
+      "symbol": "XRP/USD",
+      "total_pnl": -2.9999999999999902,
+      "trades": 2,
+      "win_rate_pct": 0.0,
+      "wins": 0
+    },
+    {
+      "avg_pnl": -0.3800000000000022,
+      "losses": 3,
+      "symbol": "DOGE/USD",
+      "total_pnl": -1.900000000000011,
+      "trades": 5,
+      "win_rate_pct": 40.0,
+      "wins": 2
+    },
+    {
+      "avg_pnl": -1.0607843137254904,
+      "losses": 43,
+      "symbol": "PEPE/USD",
+      "total_pnl": -54.10000000000001,
+      "trades": 51,
+      "win_rate_pct": 15.686274509803921,
+      "wins": 8
+    }
+  ],
+  "trades": [
+    {
+      "entry_price": 0.08852601937499999,
+      "entry_time": "2026-06-12T14:19:00Z",
+      "exit_price": 0.09011948772374999,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-06-12T14:34:00Z",
+      "pnl": 1.3000000000000023,
+      "qty": 1129.611392289037,
+      "symbol": "DOGE/USD"
+    },
+    {
+      "entry_price": 0.090279208125,
+      "entry_time": "2026-06-12T14:34:00Z",
+      "exit_price": 0.09190423387124999,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-06-12T14:37:00Z",
+      "pnl": 1.2999999999999938,
+      "qty": 1107.6747578638556,
+      "symbol": "DOGE/USD"
+    },
+    {
+      "entry_price": 0.09194478749999999,
+      "entry_time": "2026-06-12T14:37:00Z",
+      "exit_price": 0.09102533962499998,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-12T14:40:00Z",
+      "pnl": -1.5000000000000075,
+      "qty": 1087.6092350531565,
+      "symbol": "DOGE/USD"
+    },
+    {
+      "entry_price": 0.09103365,
+      "entry_time": "2026-06-12T14:40:00Z",
+      "exit_price": 0.0901233135,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-12T14:43:00Z",
+      "pnl": -1.4999999999999971,
+      "qty": 1098.4948972165787,
+      "symbol": "DOGE/USD"
+    },
+    {
+      "entry_price": 68.688978125,
+      "entry_time": "2026-06-12T15:13:00Z",
+      "exit_price": 68.00208834375,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-12T15:31:00Z",
+      "pnl": -1.5000000000000033,
+      "qty": 1.455837642802318,
+      "symbol": "SOL/USD"
+    },
+    {
+      "entry_price": 5.0601e-6,
+      "entry_time": "2026-06-13T11:46:00Z",
+      "exit_price": 5.009499e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-13T12:26:00Z",
+      "pnl": -1.5000000000000044,
+      "qty": 19762455.287444912,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 1.2861971249,
+      "entry_time": "2026-06-15T16:24:00Z",
+      "exit_price": 1.273335153651,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-15T17:09:00Z",
+      "pnl": -1.4999999999999927,
+      "qty": 77.74857995252856,
+      "symbol": "XRP/USD"
+    },
+    {
+      "entry_price": 3.12200875e-6,
+      "entry_time": "2026-06-15T17:51:00Z",
+      "exit_price": 3.0907886625e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-15T17:55:00Z",
+      "pnl": -1.5000000000000029,
+      "qty": 32030659.747510314,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 45.616686875000006,
+      "entry_time": "2026-06-15T10:28:00Z",
+      "exit_price": 45.16052000625,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-16T13:11:00Z",
+      "pnl": -1.5000000000000067,
+      "qty": 2.1921802491711535,
+      "symbol": "LTC/USD"
+    },
+    {
+      "entry_price": 73.372488125,
+      "entry_time": "2026-06-17T18:15:00Z",
+      "exit_price": 72.63876324375,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-17T19:19:00Z",
+      "pnl": -1.4999999999999971,
+      "qty": 1.3629086672055664,
+      "symbol": "SOL/USD"
+    },
+    {
+      "entry_price": 71.8916283125,
+      "entry_time": "2026-06-20T05:10:00Z",
+      "exit_price": 71.172712029375,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-20T09:19:00Z",
+      "pnl": -1.4999999999999962,
+      "qty": 1.390982543409894,
+      "symbol": "SOL/USD"
+    },
+    {
+      "entry_price": 4.6092e-6,
+      "entry_time": "2026-06-23T12:09:00Z",
+      "exit_price": 4.563108e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-23T12:17:00Z",
+      "pnl": -1.5000000000000016,
+      "qty": 21695738.956868872,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 69.07476725,
+      "entry_time": "2026-06-24T13:32:00Z",
+      "exit_price": 68.3840195775,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-24T15:09:00Z",
+      "pnl": -1.4999999999999933,
+      "qty": 1.4477066515196981,
+      "symbol": "SOL/USD"
+    },
+    {
+      "entry_price": 0.8590807224999999,
+      "entry_time": "2026-06-24T17:01:00Z",
+      "exit_price": 0.8504899152749998,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-24T17:20:00Z",
+      "pnl": -1.5000000000000062,
+      "qty": 116.40349664579979,
+      "symbol": "DOT/USD"
+    },
+    {
+      "entry_price": 1.05684704125,
+      "entry_time": "2026-06-24T16:52:00Z",
+      "exit_price": 1.0462785708375,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-24T17:47:00Z",
+      "pnl": -1.4999999999999978,
+      "qty": 94.62107201598792,
+      "symbol": "XRP/USD"
+    },
+    {
+      "entry_price": 68.565485575,
+      "entry_time": "2026-06-25T12:30:00Z",
+      "exit_price": 67.87983071925,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-25T13:31:00Z",
+      "pnl": -1.5000000000000029,
+      "qty": 1.4584597361396285,
+      "symbol": "SOL/USD"
+    },
+    {
+      "entry_price": 64.6864785,
+      "entry_time": "2026-06-25T13:56:00Z",
+      "exit_price": 64.039613715,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-25T13:59:00Z",
+      "pnl": -1.500000000000008,
+      "qty": 1.5459181318704802,
+      "symbol": "SOL/USD"
+    },
+    {
+      "entry_price": 39.7289744,
+      "entry_time": "2026-06-25T13:56:00Z",
+      "exit_price": 39.331684656,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-25T13:59:00Z",
+      "pnl": -1.4999999999999956,
+      "qty": 2.5170546562108083,
+      "symbol": "LTC/USD"
+    },
+    {
+      "entry_price": 64.7585325,
+      "entry_time": "2026-06-25T14:00:00Z",
+      "exit_price": 65.924186085,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-06-25T14:09:00Z",
+      "pnl": 1.3000000000000018,
+      "qty": 1.544198056063114,
+      "symbol": "SOL/USD"
+    },
+    {
+      "entry_price": 0.8399736345,
+      "entry_time": "2026-06-25T14:05:00Z",
+      "exit_price": 0.855093159921,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-06-25T14:33:00Z",
+      "pnl": 1.3000000000000043,
+      "qty": 119.05135577204835,
+      "symbol": "DOT/USD"
+    },
+    {
+      "entry_price": 39.79482375,
+      "entry_time": "2026-06-25T14:00:00Z",
+      "exit_price": 40.5111305775,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-06-25T14:33:00Z",
+      "pnl": 1.2999999999999965,
+      "qty": 2.512889631782827,
+      "symbol": "LTC/USD"
+    },
+    {
+      "entry_price": 66.841993925,
+      "entry_time": "2026-06-25T14:33:00Z",
+      "exit_price": 66.17357398575,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-25T14:37:00Z",
+      "pnl": -1.5000000000000009,
+      "qty": 1.4960654841057692,
+      "symbol": "SOL/USD"
+    },
+    {
+      "entry_price": 66.66496124999999,
+      "entry_time": "2026-06-25T14:51:00Z",
+      "exit_price": 65.9983116375,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-25T15:01:00Z",
+      "pnl": -1.499999999999993,
+      "qty": 1.5000383728566258,
+      "symbol": "SOL/USD"
+    },
+    {
+      "entry_price": 4.23345e-6,
+      "entry_time": "2026-06-25T16:05:00Z",
+      "exit_price": 4.1911155e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-25T16:30:00Z",
+      "pnl": -1.4999999999999951,
+      "qty": 23621396.26073297,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 68.62843275,
+      "entry_time": "2026-06-25T23:30:00Z",
+      "exit_price": 67.9421484225,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-25T23:40:00Z",
+      "pnl": -1.5000000000000067,
+      "qty": 1.4571220118675958,
+      "symbol": "SOL/USD"
+    },
+    {
+      "entry_price": 69.2406916,
+      "entry_time": "2026-06-26T06:22:00Z",
+      "exit_price": 70.48702404880001,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-06-26T07:03:00Z",
+      "pnl": 1.3000000000000056,
+      "qty": 1.4442374518396635,
+      "symbol": "SOL/USD"
+    },
+    {
+      "entry_price": 2.37032125e-6,
+      "entry_time": "2026-06-26T06:53:00Z",
+      "exit_price": 2.3466180375000004e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-26T08:50:00Z",
+      "pnl": -1.4999999999999927,
+      "qty": 42188374.25517743,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 70.5628825,
+      "entry_time": "2026-06-26T13:55:00Z",
+      "exit_price": 71.833014385,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-06-26T14:28:00Z",
+      "pnl": 1.299999999999997,
+      "qty": 1.4171756659742465,
+      "symbol": "SOL/USD"
+    },
+    {
+      "entry_price": 71.2707630125,
+      "entry_time": "2026-06-26T15:09:00Z",
+      "exit_price": 72.553636746725,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-06-26T16:00:00Z",
+      "pnl": 1.3000000000000091,
+      "qty": 1.4030998936051977,
+      "symbol": "SOL/USD"
+    },
+    {
+      "entry_price": 73.27541537500001,
+      "entry_time": "2026-06-26T16:00:00Z",
+      "exit_price": 72.54266122125001,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-26T16:02:00Z",
+      "pnl": -1.4999999999999916,
+      "qty": 1.3647142017309921,
+      "symbol": "SOL/USD"
+    },
+    {
+      "entry_price": 4.35369e-6,
+      "entry_time": "2026-06-27T16:02:00Z",
+      "exit_price": 4.3101530999999995e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-27T16:15:00Z",
+      "pnl": -1.5000000000000027,
+      "qty": 22969021.680459566,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 2.36029875e-6,
+      "entry_time": "2026-06-30T04:47:00Z",
+      "exit_price": 2.3366957625e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-30T05:15:00Z",
+      "pnl": -1.500000000000007,
+      "qty": 42367518.09490218,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.3502762500000002e-6,
+      "entry_time": "2026-06-30T14:01:00Z",
+      "exit_price": 2.3267734875e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-06-30T14:36:00Z",
+      "pnl": -1.5000000000000036,
+      "qty": 42548189.81385698,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.36029875e-6,
+      "entry_time": "2026-07-01T15:06:00Z",
+      "exit_price": 2.3366957625e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-01T15:08:00Z",
+      "pnl": -1.500000000000007,
+      "qty": 42367518.09490218,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.39036625e-6,
+      "entry_time": "2026-07-01T21:45:00Z",
+      "exit_price": 2.3664625875e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-01T22:27:00Z",
+      "pnl": -1.4999999999999996,
+      "qty": 41834593.338991456,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.3803437500000004e-6,
+      "entry_time": "2026-07-02T03:38:00Z",
+      "exit_price": 2.3565403125000005e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-02T05:46:00Z",
+      "pnl": -1.4999999999999962,
+      "qty": 42010738.99515563,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.49059125e-6,
+      "entry_time": "2026-07-02T13:44:00Z",
+      "exit_price": 2.4656853375e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-02T13:59:00Z",
+      "pnl": -1.499999999999999,
+      "qty": 40151108.697583355,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.4805687500000004e-6,
+      "entry_time": "2026-07-03T03:01:00Z",
+      "exit_price": 2.4557630625000005e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-03T03:08:00Z",
+      "pnl": -1.4999999999999953,
+      "qty": 40313335.39939176,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.54070375e-6,
+      "entry_time": "2026-07-03T11:20:00Z",
+      "exit_price": 2.5864364175e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-03T15:08:00Z",
+      "pnl": 1.3000000000000005,
+      "qty": 39359173.61479078,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.7010637500000003e-6,
+      "entry_time": "2026-07-03T20:26:00Z",
+      "exit_price": 2.7496828975000004e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-03T21:03:00Z",
+      "pnl": 1.3000000000000038,
+      "qty": 37022450.87699244,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.7611987500000003e-6,
+      "entry_time": "2026-07-03T21:03:00Z",
+      "exit_price": 2.7335867625e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-03T21:05:00Z",
+      "pnl": -1.5000000000000029,
+      "qty": 36216154.306168646,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.7411537500000003e-6,
+      "entry_time": "2026-07-03T21:05:00Z",
+      "exit_price": 2.7137422125000003e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-03T21:09:00Z",
+      "pnl": -1.499999999999997,
+      "qty": 36480989.07257573,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.7712212500000005e-6,
+      "entry_time": "2026-07-03T21:28:00Z",
+      "exit_price": 2.8211032325000004e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-03T21:54:00Z",
+      "pnl": 1.2999999999999983,
+      "qty": 36085173.639600225,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.8313562500000004e-6,
+      "entry_time": "2026-07-03T21:54:00Z",
+      "exit_price": 2.8030426875e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-03T22:03:00Z",
+      "pnl": -1.5000000000000082,
+      "qty": 35318762.87203349,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.7712212500000005e-6,
+      "entry_time": "2026-07-03T23:40:00Z",
+      "exit_price": 2.7435090375000003e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-04T01:02:00Z",
+      "pnl": -1.5000000000000058,
+      "qty": 36085173.639600225,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.8614237500000006e-6,
+      "entry_time": "2026-07-04T04:08:00Z",
+      "exit_price": 2.8328095125000006e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-04T04:14:00Z",
+      "pnl": -1.5000000000000018,
+      "qty": 34947637.51786151,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.84639e-6,
+      "entry_time": "2026-07-04T04:53:00Z",
+      "exit_price": 2.8179261e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-04T05:06:00Z",
+      "pnl": -1.500000000000005,
+      "qty": 35132220.11038543,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 4.58415e-6,
+      "entry_time": "2026-07-04T19:00:00Z",
+      "exit_price": 4.5383085e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-04T19:05:00Z",
+      "pnl": -1.4999999999999962,
+      "qty": 21814294.907452855,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 2.7411537500000003e-6,
+      "entry_time": "2026-07-05T15:06:00Z",
+      "exit_price": 2.7137422125000003e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-05T15:09:00Z",
+      "pnl": -1.499999999999997,
+      "qty": 36480989.07257573,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 45.5850131375,
+      "entry_time": "2026-07-05T15:26:00Z",
+      "exit_price": 45.129163006125,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-05T16:29:00Z",
+      "pnl": -1.500000000000003,
+      "qty": 2.193703437100386,
+      "symbol": "LTC/USD"
+    },
+    {
+      "entry_price": 2.81131125e-6,
+      "entry_time": "2026-07-05T23:21:00Z",
+      "exit_price": 2.7831981375e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-05T23:24:00Z",
+      "pnl": -1.5000000000000027,
+      "qty": 35570590.05828686,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 0.9024615599999999,
+      "entry_time": "2026-07-06T21:09:00Z",
+      "exit_price": 0.8934369443999999,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-06T21:30:00Z",
+      "pnl": -1.5000000000000009,
+      "qty": 110.80804372432219,
+      "symbol": "DOT/USD"
+    },
+    {
+      "entry_price": 2.7712212500000005e-6,
+      "entry_time": "2026-07-06T21:19:00Z",
+      "exit_price": 2.7435090375000003e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-06T22:28:00Z",
+      "pnl": -1.5000000000000058,
+      "qty": 36085173.639600225,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 0.8735276549999998,
+      "entry_time": "2026-07-10T09:37:00Z",
+      "exit_price": 0.8892511527899999,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-10T09:47:00Z",
+      "pnl": 1.300000000000005,
+      "qty": 114.47834470678552,
+      "symbol": "DOT/USD"
+    },
+    {
+      "entry_price": 0.8892103219999998,
+      "entry_time": "2026-07-10T09:47:00Z",
+      "exit_price": 0.8803182187799998,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-10T09:55:00Z",
+      "pnl": -1.5000000000000004,
+      "qty": 112.45933332744198,
+      "symbol": "DOT/USD"
+    },
+    {
+      "entry_price": 2.6609737500000003e-6,
+      "entry_time": "2026-07-10T02:00:00Z",
+      "exit_price": 2.7088712775000005e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-10T10:24:00Z",
+      "pnl": 1.3000000000000067,
+      "qty": 37580227.91468724,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 0.8895391504999999,
+      "entry_time": "2026-07-10T10:16:00Z",
+      "exit_price": 0.8806437589949999,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-10T10:41:00Z",
+      "pnl": -1.4999999999999958,
+      "qty": 112.41776142600484,
+      "symbol": "DOT/USD"
+    },
+    {
+      "entry_price": 2.75117625e-6,
+      "entry_time": "2026-07-10T13:49:00Z",
+      "exit_price": 2.7236644875e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-10T14:07:00Z",
+      "pnl": -1.5,
+      "qty": 36348089.294533566,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.75117625e-6,
+      "entry_time": "2026-07-10T14:31:00Z",
+      "exit_price": 2.7236644875e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-10T14:32:00Z",
+      "pnl": -1.5,
+      "qty": 36348089.294533566,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.7611987500000003e-6,
+      "entry_time": "2026-07-10T15:59:00Z",
+      "exit_price": 2.8109003275000002e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-10T16:16:00Z",
+      "pnl": 1.299999999999999,
+      "qty": 36216154.306168646,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.8163225000000003e-6,
+      "entry_time": "2026-07-10T16:16:00Z",
+      "exit_price": 2.7881592750000004e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-10T16:17:00Z",
+      "pnl": -1.4999999999999964,
+      "qty": 35507297.19341446,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.8012887500000002e-6,
+      "entry_time": "2026-07-10T16:18:00Z",
+      "exit_price": 2.8517119475e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-10T16:43:00Z",
+      "pnl": 1.299999999999996,
+      "qty": 35697855.13899629,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.85140125e-6,
+      "entry_time": "2026-07-10T17:03:00Z",
+      "exit_price": 2.8228872375e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-10T17:13:00Z",
+      "pnl": -1.4999999999999996,
+      "qty": 35070476.31405787,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.81131125e-6,
+      "entry_time": "2026-07-11T09:06:00Z",
+      "exit_price": 2.7831981375e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-11T09:57:00Z",
+      "pnl": -1.5000000000000027,
+      "qty": 35570590.05828686,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 48.9998723625,
+      "entry_time": "2026-07-11T12:45:00Z",
+      "exit_price": 48.509873638875,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-11T12:48:00Z",
+      "pnl": -1.4999999999999996,
+      "qty": 2.0408216425586203,
+      "symbol": "LTC/USD"
+    },
+    {
+      "entry_price": 0.8783459684999999,
+      "entry_time": "2026-07-11T13:04:00Z",
+      "exit_price": 0.8695625088149999,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-11T22:21:00Z",
+      "pnl": -1.5000000000000058,
+      "qty": 113.85035462822871,
+      "symbol": "DOT/USD"
+    },
+    {
+      "entry_price": 78.1365585,
+      "entry_time": "2026-07-11T13:14:00Z",
+      "exit_price": 77.355192915,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-11T23:20:00Z",
+      "pnl": -1.500000000000004,
+      "qty": 1.2798106535495801,
+      "symbol": "SOL/USD"
+    },
+    {
+      "entry_price": 0.0745922739375,
+      "entry_time": "2026-07-11T13:13:00Z",
+      "exit_price": 0.073846351198125,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-11T23:21:00Z",
+      "pnl": -1.5000000000000024,
+      "qty": 1340.6214172233017,
+      "symbol": "DOGE/USD"
+    },
+    {
+      "entry_price": 2.7812437500000003e-6,
+      "entry_time": "2026-07-12T12:17:00Z",
+      "exit_price": 2.7534313125000004e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-12T14:14:00Z",
+      "pnl": -1.4999999999999936,
+      "qty": 35955136.9778359,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.8213337500000002e-6,
+      "entry_time": "2026-07-12T18:00:00Z",
+      "exit_price": 2.7931204125e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-12T20:22:00Z",
+      "pnl": -1.5000000000000056,
+      "qty": 35444229.16998033,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.8614237500000006e-6,
+      "entry_time": "2026-07-14T13:21:00Z",
+      "exit_price": 2.8328095125000006e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-14T16:04:00Z",
+      "pnl": -1.5000000000000018,
+      "qty": 34947637.51786151,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.89149125e-6,
+      "entry_time": "2026-07-15T13:21:00Z",
+      "exit_price": 2.8625763375e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-15T13:53:00Z",
+      "pnl": -1.499999999999996,
+      "qty": 34584230.541939214,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 46.563196225000006,
+      "entry_time": "2026-07-18T14:53:00Z",
+      "exit_price": 46.097564262750005,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-18T16:20:00Z",
+      "pnl": -1.5000000000000013,
+      "qty": 2.147618894475923,
+      "symbol": "LTC/USD"
+    },
+    {
+      "entry_price": 2.7812437500000003e-6,
+      "entry_time": "2026-07-18T17:51:00Z",
+      "exit_price": 2.7534313125000004e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-18T18:06:00Z",
+      "pnl": -1.4999999999999936,
+      "qty": 35955136.9778359,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 47.08028375,
+      "entry_time": "2026-07-18T16:51:00Z",
+      "exit_price": 46.6094809125,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-19T04:19:00Z",
+      "pnl": -1.5000000000000056,
+      "qty": 2.1240313786341614,
+      "symbol": "LTC/USD"
+    },
+    {
+      "entry_price": 2.8413787500000002e-6,
+      "entry_time": "2026-07-19T07:36:00Z",
+      "exit_price": 2.8129649625000003e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-19T07:50:00Z",
+      "pnl": -1.4999999999999964,
+      "qty": 35194181.697881706,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.85140125e-6,
+      "entry_time": "2026-07-19T08:14:00Z",
+      "exit_price": 2.8228872375e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-19T08:35:00Z",
+      "pnl": -1.4999999999999996,
+      "qty": 35070476.31405787,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.8714462500000004e-6,
+      "entry_time": "2026-07-19T12:21:00Z",
+      "exit_price": 2.8427317875000003e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-19T12:42:00Z",
+      "pnl": -1.5000000000000049,
+      "qty": 34825656.23507666,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.9115362500000004e-6,
+      "entry_time": "2026-07-20T02:54:00Z",
+      "exit_price": 2.8824208875000004e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-20T03:34:00Z",
+      "pnl": -1.5000000000000016,
+      "qty": 34346129.12684841,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.9516262500000004e-6,
+      "entry_time": "2026-07-20T21:20:00Z",
+      "exit_price": 2.9221099875000004e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-20T21:56:00Z",
+      "pnl": -1.4999999999999984,
+      "qty": 33879628.2218997,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.92657e-6,
+      "entry_time": "2026-07-22T17:09:00Z",
+      "exit_price": 2.8973043e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-22T17:26:00Z",
+      "pnl": -1.499999999999999,
+      "qty": 34169693.53201871,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 4.208399999999999e-6,
+      "entry_time": "2026-07-24T17:01:00Z",
+      "exit_price": 4.166315999999999e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-24T17:04:00Z",
+      "pnl": -1.5000000000000095,
+      "qty": 23761999.809904005,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.37373e-6,
+      "entry_time": "2026-07-25T14:18:00Z",
+      "exit_price": 4.45245714e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-25T14:47:00Z",
+      "pnl": 1.300000000000009,
+      "qty": 22863779.885818284,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.478940000000001e-6,
+      "entry_time": "2026-07-25T14:52:00Z",
+      "exit_price": 4.559560920000001e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-25T15:26:00Z",
+      "pnl": 1.3000000000000043,
+      "qty": 22326711.23078228,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.58415e-6,
+      "entry_time": "2026-07-25T15:27:00Z",
+      "exit_price": 4.6666647e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-25T15:43:00Z",
+      "pnl": 1.3000000000000005,
+      "qty": 21814294.907452855,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.6793400000000005e-6,
+      "entry_time": "2026-07-25T15:43:00Z",
+      "exit_price": 4.763568120000001e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-25T15:53:00Z",
+      "pnl": 1.300000000000007,
+      "qty": 21370535.160941496,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.78455e-6,
+      "entry_time": "2026-07-25T15:53:00Z",
+      "exit_price": 4.7367045e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-25T15:58:00Z",
+      "pnl": -1.5000000000000018,
+      "qty": 20900607.162638076,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.77954e-6,
+      "entry_time": "2026-07-25T16:01:00Z",
+      "exit_price": 4.86557172e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-25T16:07:00Z",
+      "pnl": 1.3000000000000083,
+      "qty": 20922515.555890314,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.849680000000001e-6,
+      "entry_time": "2026-07-25T16:07:00Z",
+      "exit_price": 4.801183200000001e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-25T16:08:00Z",
+      "pnl": -1.4999999999999973,
+      "qty": 20619917.190412562,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.80459e-6,
+      "entry_time": "2026-07-25T16:08:00Z",
+      "exit_price": 4.89107262e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-25T16:14:00Z",
+      "pnl": 1.3,
+      "qty": 20813430.490426864,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.9098e-6,
+      "entry_time": "2026-07-25T16:14:00Z",
+      "exit_price": 4.8607019999999995e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-25T16:20:00Z",
+      "pnl": -1.5000000000000093,
+      "qty": 20367428.408489145,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.79958e-6,
+      "entry_time": "2026-07-25T16:44:00Z",
+      "exit_price": 4.88597244e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-25T16:53:00Z",
+      "pnl": 1.300000000000005,
+      "qty": 20835156.409519166,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.9098e-6,
+      "entry_time": "2026-07-25T16:53:00Z",
+      "exit_price": 4.8607019999999995e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-25T16:54:00Z",
+      "pnl": -1.5000000000000093,
+      "qty": 20367428.408489145,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.86972e-6,
+      "entry_time": "2026-07-25T16:54:00Z",
+      "exit_price": 4.95737496e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-25T17:04:00Z",
+      "pnl": 1.3000000000000025,
+      "qty": 20535061.56411457,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.97493e-6,
+      "entry_time": "2026-07-25T17:04:00Z",
+      "exit_price": 4.9251807e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-25T17:06:00Z",
+      "pnl": -1.5000000000000053,
+      "qty": 20100785.337683145,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.94988e-6,
+      "entry_time": "2026-07-25T17:06:00Z",
+      "exit_price": 4.9003812e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-25T17:11:00Z",
+      "pnl": -1.5,
+      "qty": 20202509.95983741,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.97994e-6,
+      "entry_time": "2026-07-25T17:26:00Z",
+      "exit_price": 4.9301405999999995e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-25T17:31:00Z",
+      "pnl": -1.500000000000006,
+      "qty": 20080563.219637185,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.0500800000000004e-6,
+      "entry_time": "2026-07-25T17:49:00Z",
+      "exit_price": 4.9995792e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-25T18:09:00Z",
+      "pnl": -1.5000000000000024,
+      "qty": 19801666.508253332,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.9599e-6,
+      "entry_time": "2026-07-25T18:57:00Z",
+      "exit_price": 5.0491781999999996e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-25T19:43:00Z",
+      "pnl": 1.2999999999999967,
+      "qty": 20161696.808403395,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.0500800000000004e-6,
+      "entry_time": "2026-07-25T19:43:00Z",
+      "exit_price": 5.140981440000001e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-25T20:01:00Z",
+      "pnl": 1.3000000000000078,
+      "qty": 19801666.508253332,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.14026e-6,
+      "entry_time": "2026-07-25T20:01:00Z",
+      "exit_price": 5.0888574e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-25T20:04:00Z",
+      "pnl": -1.500000000000003,
+      "qty": 19454268.8502138,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.97994e-6,
+      "entry_time": "2026-07-25T20:27:00Z",
+      "exit_price": 4.9301405999999995e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-25T20:30:00Z",
+      "pnl": -1.500000000000006,
+      "qty": 20080563.219637185,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.94988e-6,
+      "entry_time": "2026-07-25T21:33:00Z",
+      "exit_price": 4.9003812e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-25T21:54:00Z",
+      "pnl": -1.5,
+      "qty": 20202509.95983741,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.9398600000000005e-6,
+      "entry_time": "2026-07-26T00:34:00Z",
+      "exit_price": 5.0287774800000005e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-26T01:52:00Z",
+      "pnl": 1.2999999999999998,
+      "qty": 20243488.681865476,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.08014e-6,
+      "entry_time": "2026-07-26T01:52:00Z",
+      "exit_price": 5.17158252e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-26T01:59:00Z",
+      "pnl": 1.299999999999995,
+      "qty": 19684496.883944143,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.2104e-6,
+      "entry_time": "2026-07-26T01:59:00Z",
+      "exit_price": 5.3041872e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-26T02:02:00Z",
+      "pnl": 1.3,
+      "qty": 19192384.46184554,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.3106000000000005e-6,
+      "entry_time": "2026-07-26T02:02:00Z",
+      "exit_price": 5.257494e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T02:04:00Z",
+      "pnl": -1.5000000000000024,
+      "qty": 18830264.000301283,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.280540000000001e-6,
+      "entry_time": "2026-07-26T02:04:00Z",
+      "exit_price": 5.227734600000001e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T02:05:00Z",
+      "pnl": -1.499999999999997,
+      "qty": 18937457.154003188,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.2605e-6,
+      "entry_time": "2026-07-26T02:05:00Z",
+      "exit_price": 5.207895e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T02:08:00Z",
+      "pnl": -1.4999999999999933,
+      "qty": 19009599.8479232,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.280540000000001e-6,
+      "entry_time": "2026-07-26T02:18:00Z",
+      "exit_price": 5.375589720000001e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-26T03:36:00Z",
+      "pnl": 1.2999999999999976,
+      "qty": 18937457.154003188,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.43084e-6,
+      "entry_time": "2026-07-26T03:36:00Z",
+      "exit_price": 5.3765315999999995e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T03:38:00Z",
+      "pnl": -1.5000000000000084,
+      "qty": 18413357.786272474,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 2.85140125e-6,
+      "entry_time": "2026-07-26T02:37:00Z",
+      "exit_price": 2.9027264725000002e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-26T03:56:00Z",
+      "pnl": 1.3000000000000078,
+      "qty": 35070476.31405787,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 5.38074e-6,
+      "entry_time": "2026-07-26T03:39:00Z",
+      "exit_price": 5.3269326e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T04:09:00Z",
+      "pnl": -1.4999999999999996,
+      "qty": 18584804.32059531,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 2.9165475000000003e-6,
+      "entry_time": "2026-07-26T03:57:00Z",
+      "exit_price": 2.8873820250000004e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T04:43:00Z",
+      "pnl": -1.4999999999999956,
+      "qty": 34287115.1592765,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 5.40078e-6,
+      "entry_time": "2026-07-26T04:24:00Z",
+      "exit_price": 5.3467722e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T04:44:00Z",
+      "pnl": -1.500000000000003,
+      "qty": 18515844.007717405,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.42583e-6,
+      "entry_time": "2026-07-26T04:59:00Z",
+      "exit_price": 5.52349494e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-26T05:07:00Z",
+      "pnl": 1.300000000000004,
+      "qty": 18430359.963360444,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.55108e-6,
+      "entry_time": "2026-07-26T05:07:00Z",
+      "exit_price": 5.65099944e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-26T05:11:00Z",
+      "pnl": 1.2999999999999978,
+      "qty": 18014512.49126296,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.65128e-6,
+      "entry_time": "2026-07-26T05:11:00Z",
+      "exit_price": 5.5947672e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T05:13:00Z",
+      "pnl": -1.500000000000001,
+      "qty": 17695106.241417874,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.6112e-6,
+      "entry_time": "2026-07-26T05:13:00Z",
+      "exit_price": 5.555088e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T05:33:00Z",
+      "pnl": -1.4999999999999942,
+      "qty": 17821499.857428003,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.67132e-6,
+      "entry_time": "2026-07-26T05:39:00Z",
+      "exit_price": 5.6146068e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T06:26:00Z",
+      "pnl": -1.5000000000000047,
+      "qty": 17632579.36423972,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.66631e-6,
+      "entry_time": "2026-07-26T06:38:00Z",
+      "exit_price": 5.76830358e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-26T06:56:00Z",
+      "pnl": 1.3000000000000007,
+      "qty": 17648169.62008785,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.80158e-6,
+      "entry_time": "2026-07-26T06:56:00Z",
+      "exit_price": 5.7435642e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T06:58:00Z",
+      "pnl": -1.4999999999999973,
+      "qty": 17236683.799930364,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 2.96164875e-6,
+      "entry_time": "2026-07-26T06:53:00Z",
+      "exit_price": 3.0149584275e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-26T06:58:00Z",
+      "pnl": 1.2999999999999994,
+      "qty": 33764976.34974438,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 3.02178375e-6,
+      "entry_time": "2026-07-26T06:58:00Z",
+      "exit_price": 2.9915659125e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T06:59:00Z",
+      "pnl": -1.5000000000000036,
+      "qty": 33093036.521888766,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 2.9967275000000003e-6,
+      "entry_time": "2026-07-26T06:59:00Z",
+      "exit_price": 2.966760225e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T09:17:00Z",
+      "pnl": -1.5000000000000038,
+      "qty": 33369734.151670445,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 5.4609000000000005e-6,
+      "entry_time": "2026-07-26T09:43:00Z",
+      "exit_price": 5.406291000000001e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T09:46:00Z",
+      "pnl": -1.4999999999999982,
+      "qty": 18311999.853504,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.44086e-6,
+      "entry_time": "2026-07-26T12:29:00Z",
+      "exit_price": 5.3864514e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T12:47:00Z",
+      "pnl": -1.4999999999999947,
+      "qty": 18379447.366776578,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.2104e-6,
+      "entry_time": "2026-07-26T13:35:00Z",
+      "exit_price": 5.158296e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T13:38:00Z",
+      "pnl": -1.5,
+      "qty": 19192384.46184554,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 2.99171625e-6,
+      "entry_time": "2026-07-26T11:22:00Z",
+      "exit_price": 2.9617990875e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T13:52:00Z",
+      "pnl": -1.4999999999999956,
+      "qty": 33425629.85376705,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 5.17032e-6,
+      "entry_time": "2026-07-26T15:17:00Z",
+      "exit_price": 5.26338576e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-26T17:21:00Z",
+      "pnl": 1.300000000000006,
+      "qty": 19341162.635968372,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.2705199999999995e-6,
+      "entry_time": "2026-07-26T17:21:00Z",
+      "exit_price": 5.2178148e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T17:36:00Z",
+      "pnl": -1.4999999999999951,
+      "qty": 18973459.92425795,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.3556899999999995e-6,
+      "entry_time": "2026-07-26T19:31:00Z",
+      "exit_price": 5.3021331e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-26T19:35:00Z",
+      "pnl": -1.499999999999995,
+      "qty": 18671730.439961985,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 3.0117612500000004e-6,
+      "entry_time": "2026-07-27T05:14:00Z",
+      "exit_price": 2.9816436375000003e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-27T05:19:00Z",
+      "pnl": -1.5000000000000009,
+      "qty": 33203163.099332653,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 3.0518512500000004e-6,
+      "entry_time": "2026-07-27T05:56:00Z",
+      "exit_price": 3.0213327375000004e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-27T07:40:00Z",
+      "pnl": -1.4999999999999978,
+      "qty": 32766996.753200207,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 5.22042e-6,
+      "entry_time": "2026-07-27T07:55:00Z",
+      "exit_price": 5.1682158e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-27T08:08:00Z",
+      "pnl": -1.500000000000002,
+      "qty": 19155546.87170764,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.110200000000001e-6,
+      "entry_time": "2026-07-27T08:48:00Z",
+      "exit_price": 5.059098000000001e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-27T09:00:00Z",
+      "pnl": -1.4999999999999973,
+      "qty": 19568705.725803293,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 2.986705e-6,
+      "entry_time": "2026-07-27T12:57:00Z",
+      "exit_price": 2.95683795e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-27T14:21:00Z",
+      "pnl": -1.500000000000001,
+      "qty": 33481713.12533377,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 4.805091e-6,
+      "entry_time": "2026-07-29T12:05:00Z",
+      "exit_price": 4.75704009e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-29T12:18:00Z",
+      "pnl": -1.5000000000000093,
+      "qty": 20811260.39028189,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.71942e-6,
+      "entry_time": "2026-07-29T16:47:00Z",
+      "exit_price": 4.80436956e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-07-29T18:00:00Z",
+      "pnl": 1.3000000000000007,
+      "qty": 21189044.41647491,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.82964e-6,
+      "entry_time": "2026-07-31T00:54:00Z",
+      "exit_price": 4.7813436e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-31T01:19:00Z",
+      "pnl": -1.4999999999999933,
+      "qty": 20705477.012779422,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.81962e-6,
+      "entry_time": "2026-07-31T18:16:00Z",
+      "exit_price": 4.7714238e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-07-31T18:24:00Z",
+      "pnl": -1.5000000000000089,
+      "qty": 20748523.742535718,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.77954e-6,
+      "entry_time": "2026-08-01T00:37:00Z",
+      "exit_price": 4.86557172e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-08-01T00:52:00Z",
+      "pnl": 1.3000000000000083,
+      "qty": 20922515.555890314,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.88475e-6,
+      "entry_time": "2026-08-01T00:52:00Z",
+      "exit_price": 4.9726755e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-08-01T01:35:00Z",
+      "pnl": 1.3000000000000043,
+      "qty": 20471876.75930191,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.99998e-6,
+      "entry_time": "2026-08-01T01:35:00Z",
+      "exit_price": 4.9499802e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-08-01T01:42:00Z",
+      "pnl": -1.499999999999993,
+      "qty": 20000080.000320002,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.96992e-6,
+      "entry_time": "2026-08-01T02:47:00Z",
+      "exit_price": 4.9202208e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-08-01T03:16:00Z",
+      "pnl": -1.500000000000004,
+      "qty": 20121048.22612839,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.02002e-6,
+      "entry_time": "2026-08-01T04:06:00Z",
+      "exit_price": 4.9698198e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-08-01T04:27:00Z",
+      "pnl": -1.499999999999997,
+      "qty": 19920239.36159617,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 4.92984e-6,
+      "entry_time": "2026-08-01T09:38:00Z",
+      "exit_price": 4.8805416e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-08-01T10:33:00Z",
+      "pnl": -1.499999999999996,
+      "qty": 20284633.984064393,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.02002e-6,
+      "entry_time": "2026-08-01T15:32:00Z",
+      "exit_price": 5.11038036e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-08-01T15:50:00Z",
+      "pnl": 1.3000000000000043,
+      "qty": 19920239.36159617,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 5.14527e-6,
+      "entry_time": "2026-08-01T15:53:00Z",
+      "exit_price": 5.0938173e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-08-01T15:59:00Z",
+      "pnl": -1.500000000000004,
+      "qty": 19435326.037311938,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 0.7806348549999998,
+      "entry_time": "2026-08-01T14:53:00Z",
+      "exit_price": 0.7728285064499999,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-08-01T17:50:00Z",
+      "pnl": -1.4999999999999942,
+      "qty": 128.1008647762724,
+      "symbol": "DOT/USD"
+    },
+    {
+      "entry_price": 2.9315812500000004e-6,
+      "entry_time": "2026-08-02T05:45:00Z",
+      "exit_price": 2.9022654375e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-08-02T08:38:00Z",
+      "pnl": -1.500000000000007,
+      "qty": 34111283.79948534,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 4.9599e-6,
+      "entry_time": "2026-08-02T04:19:00Z",
+      "exit_price": 5.0491781999999996e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-08-02T14:30:00Z",
+      "pnl": 1.2999999999999967,
+      "qty": 20161696.808403395,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 2.94160375e-6,
+      "entry_time": "2026-08-02T14:39:00Z",
+      "exit_price": 2.9121877125000003e-6,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-08-02T14:58:00Z",
+      "pnl": -1.4999999999999956,
+      "qty": 33995061.36745984,
+      "symbol": "PEPE/USD"
+    },
+    {
+      "entry_price": 4.96992e-6,
+      "entry_time": "2026-08-03T16:51:00Z",
+      "exit_price": 5.05937856e-6,
+      "exit_reason": "take_profit",
+      "exit_time": "2026-08-03T20:44:00Z",
+      "pnl": 1.3000000000000036,
+      "qty": 20121048.22612839,
+      "symbol": "SHIB/USD"
+    },
+    {
+      "entry_price": 0.8555657109999999,
+      "entry_time": "2026-08-04T21:47:00Z",
+      "exit_price": 0.8470100538899998,
+      "exit_reason": "stop_loss",
+      "exit_time": "2026-08-05T03:18:00Z",
+      "pnl": -1.500000000000007,
+      "qty": 116.88172949698777,
+      "symbol": "DOT/USD"
+    }
+  ]
+}

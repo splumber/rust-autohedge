@@ -1,0 +1,21 @@
+{
+  "asset_class": "stocks",
+  "config_snapshot": {
+    "max_spread_bps": 50.0,
+    "min_edge_bps": 3.0,
+    "min_net_edge_bps": 5.0,
+    "round_trip_fee_bps": 2.0
+  },
+  "end": "2026-08-09T20:42:52.825604+00:00",
+  "lookback_days": 1,
+  "mode": "momentum",
+  "portfolio": {
+    "max_drawdown": 0.0,
+    "overall_win_rate_pct": 0.0,
+    "total_pnl": -0.0,
+    "total_trades": 0
+  },
+  "start": "2026-08-08T20:42:52.825604+00:00",
+  "summaries": [],
+  "trades": []
+}

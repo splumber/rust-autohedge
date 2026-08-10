@@ -1,0 +1,24 @@
+{
+  "start_time": "2026-01-02T02:44:05.980649+00:00",
+  "total_orders": 149,
+  "total_exec_reports": 5,
+  "buys": 149,
+  "sells": 0,
+  "filled": 0,
+  "rejected": 0,
+  "total_notional": 0.0,
+  "per_symbol": {
+    "DOGE/USD": 23,
+    "XRP/USD": 15,
+    "SHIB/USD": 38,
+    "DOT/USD": 48,
+    "SOL/USD": 25
+  },
+  "history": {},
+  "open_positions": {},
+  "total_realized_pnl": 0.0,
+  "winning_trades": 0,
+  "losing_trades": 0,
+  "total_profit": 0.0,
+  "total_loss": 0.0
+}

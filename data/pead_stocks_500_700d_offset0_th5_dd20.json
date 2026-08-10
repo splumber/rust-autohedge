@@ -1,0 +1,2727 @@
+{
+  "allow_short": true,
+  "asset_class": "stocks",
+  "buy_and_hold_final_value": 735.881726691322,
+  "buy_and_hold_return_pct": 47.176345338264404,
+  "closed_trades": 14,
+  "drift_days": 20,
+  "equity_curve": [
+    {
+      "day": "2024-09-09",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-09-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-09-11",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-09-12",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-09-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-09-16",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-09-17",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-09-18",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-09-19",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-09-20",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-09-23",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-09-24",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-09-25",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-09-26",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-09-27",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-09-30",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-01",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-02",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-03",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-04",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-07",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-08",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-09",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-11",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-14",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-15",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-16",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-17",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-18",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-21",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-22",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-23",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-24",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-25",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-28",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-29",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-30",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-10-31",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-01",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-04",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-05",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-06",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-07",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-08",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-11",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-12",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-14",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-15",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-18",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-19",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-20",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-21",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-22",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-25",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-26",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-27",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-11-29",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-02",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-03",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-04",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-05",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-06",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-09",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-11",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-12",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-16",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-17",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-18",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-19",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-20",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-23",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-24",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-26",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-27",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-30",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2024-12-31",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-02",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-03",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-06",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-07",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-08",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-14",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-15",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-16",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-17",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-21",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-22",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-23",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-24",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-27",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-28",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-29",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-30",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-01-31",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-03",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-04",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-05",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-06",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-07",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-11",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-12",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-14",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-18",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-19",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-20",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-21",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-24",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-25",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-26",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-27",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-02-28",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-03",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-04",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-05",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-06",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-07",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-11",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-12",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-14",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-17",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-18",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-19",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-20",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-21",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-24",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-25",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-26",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-27",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-28",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-03-31",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-01",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-02",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-03",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-04",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-07",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-08",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-09",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-11",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-14",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-15",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-16",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-17",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-21",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-22",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-23",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-24",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-25",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-28",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-29",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-04-30",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-01",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-02",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-05",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-06",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-07",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-08",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-09",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-12",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-14",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-15",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-16",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-19",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-20",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-21",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-22",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-23",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-27",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-28",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-29",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-05-30",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-02",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-03",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-04",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-05",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-06",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-09",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-11",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-12",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-16",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-17",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-18",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-20",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-23",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-24",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-25",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-26",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-27",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-06-30",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-01",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-02",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-03",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-07",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-08",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-09",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-11",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-14",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-15",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-16",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-17",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-18",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-21",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-22",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-23",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-24",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-25",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-28",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-29",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-30",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-07-31",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-01",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-04",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-05",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-06",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-07",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-08",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-11",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-12",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-14",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-15",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-18",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-19",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-20",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-21",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-22",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-25",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-26",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-27",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-28",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-08-29",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-02",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-03",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-04",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-05",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-08",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-09",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-11",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-12",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-15",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-16",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-17",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-18",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-19",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-22",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-23",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-24",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-25",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-26",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-29",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-09-30",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-01",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-02",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-03",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-06",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-07",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-08",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-09",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-14",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-15",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-16",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-17",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-20",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-21",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-22",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-23",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-24",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-27",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-28",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-29",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-30",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-10-31",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-03",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-04",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-05",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-06",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-07",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-11",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-12",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-14",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-17",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-18",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-19",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-20",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-21",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-24",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-25",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-26",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-11-28",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-01",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-02",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-03",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-04",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-05",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-08",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-09",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-11",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-12",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-15",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-16",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-17",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-18",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-19",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-22",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-23",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-24",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-26",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-29",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-30",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2025-12-31",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-02",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-05",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-06",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-07",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-08",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-09",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-12",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-14",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-15",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-16",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-20",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-21",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-22",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-23",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-26",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-27",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-28",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-29",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-01-30",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-02",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-03",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-04",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-05",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-06",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-09",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-11",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-12",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-17",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-18",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-19",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-20",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-23",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-24",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-25",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-26",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-02-27",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-02",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-03",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-04",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-05",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-06",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-09",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-11",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-12",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-16",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-17",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-18",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-19",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-20",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-23",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-24",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-25",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-26",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-27",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-30",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-03-31",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-01",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-02",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-06",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-07",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-08",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-09",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-14",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-15",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-16",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-17",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-20",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-21",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-22",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-23",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-24",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-27",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-28",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-29",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-04-30",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-01",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-04",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-05",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-06",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-07",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-08",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-11",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-12",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-14",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-15",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-18",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-19",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-20",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-21",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-22",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-26",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-27",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-28",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-29",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-01",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-02",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-03",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-04",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-05",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-08",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-09",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-11",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-12",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-15",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-16",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-17",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-18",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-22",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-23",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-24",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-25",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-26",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-29",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-30",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-07-01",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-07-02",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-07-06",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-07-07",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-07-08",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-07-09",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-07-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-07-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-07-14",
+      "equity": 500.0,
+      "holdings": 2
+    },
+    {
+      "day": "2026-07-15",
+      "equity": 501.2177940011453,
+      "holdings": 3
+    },
+    {
+      "day": "2026-07-16",
+      "equity": 497.10780126386817,
+      "holdings": 4
+    },
+    {
+      "day": "2026-07-17",
+      "equity": 495.4586152250944,
+      "holdings": 4
+    },
+    {
+      "day": "2026-07-20",
+      "equity": 493.22127284400034,
+      "holdings": 4
+    },
+    {
+      "day": "2026-07-21",
+      "equity": 497.2601516969354,
+      "holdings": 4
+    },
+    {
+      "day": "2026-07-22",
+      "equity": 498.05195516282544,
+      "holdings": 4
+    },
+    {
+      "day": "2026-07-23",
+      "equity": 495.51716711609106,
+      "holdings": 5
+    },
+    {
+      "day": "2026-07-24",
+      "equity": 495.96414624746774,
+      "holdings": 5
+    },
+    {
+      "day": "2026-07-27",
+      "equity": 495.6555007197451,
+      "holdings": 5
+    },
+    {
+      "day": "2026-07-28",
+      "equity": 496.1256822422254,
+      "holdings": 6
+    },
+    {
+      "day": "2026-07-29",
+      "equity": 492.7335171392539,
+      "holdings": 6
+    },
+    {
+      "day": "2026-07-30",
+      "equity": 494.12415976905754,
+      "holdings": 8
+    },
+    {
+      "day": "2026-07-31",
+      "equity": 493.97066193295336,
+      "holdings": 11
+    },
+    {
+      "day": "2026-08-03",
+      "equity": 492.79536985518763,
+      "holdings": 11
+    },
+    {
+      "day": "2026-08-04",
+      "equity": 491.63909054564624,
+      "holdings": 13
+    },
+    {
+      "day": "2026-08-05",
+      "equity": 491.00267482877416,
+      "holdings": 14
+    },
+    {
+      "day": "2026-08-06",
+      "equity": 491.8449431144792,
+      "holdings": 14
+    },
+    {
+      "day": "2026-08-07",
+      "equity": 491.5405856503086,
+      "holdings": 14
+    }
+  ],
+  "excess_vs_buy_and_hold": -244.44765593239833,
+  "final_value": 491.43407075892367,
+  "starting_cash": 500.0,
+  "stop_loss_pct": 15.0,
+  "surprise_threshold_pct": 5.0,
+  "total_return_pct": -1.7131858482152664,
+  "trades": [
+    {
+      "direction": "long",
+      "entry_day": "2026-07-14",
+      "entry_price": 60.63,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 5.880294014700729,
+      "symbol": "BAC"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-14",
+      "entry_price": 1141.87,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 40.708101111312324,
+      "symbol": "GS"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-15",
+      "entry_price": 228.48,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 14.112331387487226,
+      "symbol": "MS"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-16",
+      "entry_price": 423.28,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 28.80302020874973,
+      "symbol": "UNH"
+    },
+    {
+      "direction": "short",
+      "entry_day": "2026-07-23",
+      "entry_price": 319.56,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": -36.428433827778846,
+      "symbol": "TSLA"
+    },
+    {
+      "direction": "short",
+      "entry_day": "2026-07-28",
+      "entry_price": 221.51,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": -142.1153233513858,
+      "symbol": "BA"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-30",
+      "entry_price": 451.545,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 9.534593520358651,
+      "symbol": "MSFT"
+    },
+    {
+      "direction": "short",
+      "entry_day": "2026-07-30",
+      "entry_price": 538.695,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": -16.025762969807325,
+      "symbol": "META"
+    },
+    {
+      "direction": "short",
+      "entry_day": "2026-07-31",
+      "entry_price": 308.725,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": -6.88377535101405,
+      "symbol": "AAPL"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-31",
+      "entry_price": 271.465,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 6.176565700118575,
+      "symbol": "AMZN"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-31",
+      "entry_price": 196.855,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 7.925200356188769,
+      "symbol": "CVX"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-08-04",
+      "entry_price": 25.4,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 11.3682383569569,
+      "symbol": "PFE"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-08-04",
+      "entry_price": 877.09,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 30.52160715712117,
+      "symbol": "CAT"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-08-05",
+      "entry_price": 101.745,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 9.6327833954231,
+      "symbol": "DIS"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-31",
+      "entry_price": 196.855,
+      "exit_day": "backtest_end",
+      "exit_price": 186.56,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": -2.0423651911946266,
+      "surprise_pct": 0.0,
+      "symbol": "CVX"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-30",
+      "entry_price": 451.545,
+      "exit_day": "backtest_end",
+      "exit_price": 499.875,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": 4.240615457016574,
+      "surprise_pct": 0.0,
+      "symbol": "MSFT"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-16",
+      "entry_price": 423.28,
+      "exit_day": "backtest_end",
+      "exit_price": 407.09,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": -1.4014628879228823,
+      "surprise_pct": 0.0,
+      "symbol": "UNH"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-31",
+      "entry_price": 271.465,
+      "exit_day": "backtest_end",
+      "exit_price": 274.365,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": 0.45313710991217704,
+      "surprise_pct": 0.0,
+      "symbol": "AMZN"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-08-04",
+      "entry_price": 25.4,
+      "exit_day": "backtest_end",
+      "exit_price": 26.745,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": 1.8470704652938892,
+      "surprise_pct": 0.0,
+      "symbol": "PFE"
+    },
+    {
+      "direction": "short",
+      "entry_day": "2026-07-28",
+      "entry_price": 221.51,
+      "exit_day": "backtest_end",
+      "exit_price": 234.52,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": -2.1266354332580946,
+      "surprise_pct": 0.0,
+      "symbol": "BA"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-15",
+      "entry_price": 228.48,
+      "exit_day": "backtest_end",
+      "exit_price": 216.34,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": -2.1600170168067194,
+      "surprise_pct": 0.0,
+      "symbol": "MS"
+    },
+    {
+      "direction": "short",
+      "entry_day": "2026-07-31",
+      "entry_price": 308.725,
+      "exit_day": "backtest_end",
+      "exit_price": 313.29,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": -0.588930941431947,
+      "surprise_pct": 0.0,
+      "symbol": "AAPL"
+    },
+    {
+      "direction": "short",
+      "entry_day": "2026-07-23",
+      "entry_price": 319.56,
+      "exit_day": "backtest_end",
+      "exit_price": 328.485,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": -0.9227727442733737,
+      "surprise_pct": 0.0,
+      "symbol": "TSLA"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-08-04",
+      "entry_price": 877.09,
+      "exit_day": "backtest_end",
+      "exit_price": 842.34,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": -1.2548108740685961,
+      "surprise_pct": 0.0,
+      "symbol": "CAT"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-08-05",
+      "entry_price": 101.745,
+      "exit_day": "backtest_end",
+      "exit_price": 104.91,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": 0.8765621368326535,
+      "surprise_pct": 0.0,
+      "symbol": "DIS"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-14",
+      "entry_price": 1141.87,
+      "exit_day": "backtest_end",
+      "exit_price": 1040.0,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": -4.023598859765116,
+      "surprise_pct": 0.0,
+      "symbol": "GS"
+    },
+    {
+      "direction": "short",
+      "entry_day": "2026-07-30",
+      "entry_price": 538.695,
+      "exit_day": "backtest_end",
+      "exit_price": 591.83,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": -3.530899580658172,
+      "surprise_pct": 0.0,
+      "symbol": "META"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-14",
+      "entry_price": 60.63,
+      "exit_day": "backtest_end",
+      "exit_price": 63.15,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": 2.068179119247894,
+      "surprise_pct": 0.0,
+      "symbol": "BAC"
+    }
+  ],
+  "win_rate_pct": 35.714285714285715
+}

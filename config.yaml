@@ -1,4 +1,4 @@
-﻿trading_mode: "crypto"
+﻿trading_mode: "stocks"
 exchange: "alpaca"
 symbols:
   - "SOL/USD"

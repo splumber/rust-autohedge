@@ -1,0 +1,544 @@
+{
+  "allow_short": false,
+  "asset_class": "stocks",
+  "buy_and_hold_final_value": 521.0428413061088,
+  "buy_and_hold_return_pct": 4.208568261221762,
+  "closed_trades": 10,
+  "drift_days": 20,
+  "equity_curve": [
+    {
+      "day": "2026-05-12",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-14",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-15",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-18",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-19",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-20",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-21",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-22",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-26",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-27",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-28",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-05-29",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-01",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-02",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-03",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-04",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-05",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-08",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-09",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-11",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-12",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-15",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-16",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-17",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-18",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-22",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-23",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-24",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-25",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-26",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-29",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-06-30",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-07-01",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-07-02",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-07-06",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-07-07",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-07-08",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-07-09",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-07-10",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-07-13",
+      "equity": 500.0,
+      "holdings": 0
+    },
+    {
+      "day": "2026-07-14",
+      "equity": 500.0,
+      "holdings": 2
+    },
+    {
+      "day": "2026-07-15",
+      "equity": 501.2177940011453,
+      "holdings": 3
+    },
+    {
+      "day": "2026-07-16",
+      "equity": 497.1078012638681,
+      "holdings": 4
+    },
+    {
+      "day": "2026-07-17",
+      "equity": 495.4586152250944,
+      "holdings": 4
+    },
+    {
+      "day": "2026-07-20",
+      "equity": 493.22127284400034,
+      "holdings": 4
+    },
+    {
+      "day": "2026-07-21",
+      "equity": 497.26015169693534,
+      "holdings": 4
+    },
+    {
+      "day": "2026-07-22",
+      "equity": 498.05195516282544,
+      "holdings": 4
+    },
+    {
+      "day": "2026-07-23",
+      "equity": 495.5171671160911,
+      "holdings": 4
+    },
+    {
+      "day": "2026-07-24",
+      "equity": 495.28353180886467,
+      "holdings": 4
+    },
+    {
+      "day": "2026-07-27",
+      "equity": 494.5981359056256,
+      "holdings": 4
+    },
+    {
+      "day": "2026-07-28",
+      "equity": 494.86711014308906,
+      "holdings": 4
+    },
+    {
+      "day": "2026-07-29",
+      "equity": 489.32449016721796,
+      "holdings": 4
+    },
+    {
+      "day": "2026-07-30",
+      "equity": 492.9029264301728,
+      "holdings": 5
+    },
+    {
+      "day": "2026-07-31",
+      "equity": 493.23309459084834,
+      "holdings": 7
+    },
+    {
+      "day": "2026-08-03",
+      "equity": 496.7705944332818,
+      "holdings": 7
+    },
+    {
+      "day": "2026-08-04",
+      "equity": 497.79382635989407,
+      "holdings": 9
+    },
+    {
+      "day": "2026-08-05",
+      "equity": 497.7916616711789,
+      "holdings": 10
+    },
+    {
+      "day": "2026-08-06",
+      "equity": 496.7640894240012,
+      "holdings": 10
+    },
+    {
+      "day": "2026-08-07",
+      "equity": 497.9706342249468,
+      "holdings": 10
+    }
+  ],
+  "excess_vs_buy_and_hold": -23.137339237151934,
+  "final_value": 497.9055020689569,
+  "starting_cash": 500.0,
+  "stop_loss_pct": 15.0,
+  "surprise_threshold_pct": 5.0,
+  "total_return_pct": -0.41889958620862444,
+  "trades": [
+    {
+      "direction": "long",
+      "entry_day": "2026-07-14",
+      "entry_price": 60.63,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 5.880294014700729,
+      "symbol": "BAC"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-14",
+      "entry_price": 1141.87,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 40.708101111312324,
+      "symbol": "GS"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-15",
+      "entry_price": 228.48,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 14.112331387487226,
+      "symbol": "MS"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-16",
+      "entry_price": 423.28,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 28.80302020874973,
+      "symbol": "UNH"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-30",
+      "entry_price": 451.545,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 9.534593520358651,
+      "symbol": "MSFT"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-31",
+      "entry_price": 271.465,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 6.176565700118575,
+      "symbol": "AMZN"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-31",
+      "entry_price": 196.855,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 7.925200356188769,
+      "symbol": "CVX"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-08-04",
+      "entry_price": 25.4,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 11.3682383569569,
+      "symbol": "PFE"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-08-04",
+      "entry_price": 877.09,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 30.52160715712117,
+      "symbol": "CAT"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-08-05",
+      "entry_price": 101.745,
+      "exit_day": "",
+      "exit_price": 0.0,
+      "exit_reason": "entry",
+      "pnl": 0.0,
+      "surprise_pct": 9.6327833954231,
+      "symbol": "DIS"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-08-05",
+      "entry_price": 101.745,
+      "exit_day": "backtest_end",
+      "exit_price": 104.91,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": 0.5987037339202601,
+      "surprise_pct": 0.0,
+      "symbol": "DIS"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-08-04",
+      "entry_price": 25.4,
+      "exit_day": "backtest_end",
+      "exit_price": 26.745,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": 1.2615739808031528,
+      "surprise_pct": 0.0,
+      "symbol": "PFE"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-31",
+      "entry_price": 196.855,
+      "exit_day": "backtest_end",
+      "exit_price": 186.56,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": -1.3949629063551825,
+      "surprise_pct": 0.0,
+      "symbol": "CVX"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-08-04",
+      "entry_price": 877.09,
+      "exit_day": "backtest_end",
+      "exit_price": 842.34,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": -0.8570527109272597,
+      "surprise_pct": 0.0,
+      "symbol": "CAT"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-15",
+      "entry_price": 228.48,
+      "exit_day": "backtest_end",
+      "exit_price": 216.34,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": -2.1600170168067194,
+      "surprise_pct": 0.0,
+      "symbol": "MS"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-16",
+      "entry_price": 423.28,
+      "exit_day": "backtest_end",
+      "exit_price": 407.09,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": -1.4014628879228823,
+      "surprise_pct": 0.0,
+      "symbol": "UNH"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-14",
+      "entry_price": 1141.87,
+      "exit_day": "backtest_end",
+      "exit_price": 1040.0,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": -4.023598859765116,
+      "surprise_pct": 0.0,
+      "symbol": "GS"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-30",
+      "entry_price": 451.545,
+      "exit_day": "backtest_end",
+      "exit_price": 499.875,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": 3.5046408735674177,
+      "surprise_pct": 0.0,
+      "symbol": "MSFT"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-31",
+      "entry_price": 271.465,
+      "exit_day": "backtest_end",
+      "exit_price": 274.365,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": 0.3094987431952596,
+      "surprise_pct": 0.0,
+      "symbol": "AMZN"
+    },
+    {
+      "direction": "long",
+      "entry_day": "2026-07-14",
+      "entry_price": 60.63,
+      "exit_day": "backtest_end",
+      "exit_price": 63.15,
+      "exit_reason": "still_open_at_backtest_end",
+      "pnl": 2.068179119247894,
+      "surprise_pct": 0.0,
+      "symbol": "BAC"
+    }
+  ],
+  "win_rate_pct": 50.0
+}
