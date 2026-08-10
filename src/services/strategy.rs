@@ -207,6 +207,16 @@ pub enum SignalDecision {
         stop_loss: f64,
         reasoning: String,
     },
+    /// Short entry: mirror of `Buy` with inverted risk - `take_profit` sits BELOW `mid`
+    /// (price falling is the win condition for a short) and `stop_loss` sits ABOVE `mid`.
+    /// Requires an account with shorting enabled (confirmed available on this account -
+    /// see `docs/STRATEGIES.md`).
+    Sell {
+        mid: f64,
+        take_profit: f64,
+        stop_loss: f64,
+        reasoning: String,
+    },
 }
 
 /// Shared spread/liquidity gate used by every signal below: even a textbook-perfect
@@ -368,6 +378,251 @@ pub fn evaluate_donchian_breakout_signal(
         take_profit: mid * (1.0 + tp_pct / 100.0),
         stop_loss: mid * (1.0 - sl_pct / 100.0),
         reasoning: format!("breakout above prior {}-period high {:.8}", period, prior_high),
+    }
+}
+
+/// VWAP mean-reversion: buy when price is `entry_bps` or more below its own rolling
+/// volume-weighted average price - a dip weighted toward where the real trading activity
+/// happened, unlike `evaluate_mean_reversion_signal`'s plain point-to-point price dip.
+pub fn evaluate_vwap_signal(
+    bid: f64,
+    ask: f64,
+    closes: &VecDeque<f64>,
+    volumes: &VecDeque<f64>,
+    period: usize,
+    entry_bps: f64,
+    max_spread_bps: f64,
+    tp_pct: f64,
+    sl_pct: f64,
+) -> SignalDecision {
+    let Some(mid) = passes_spread_gate(bid, ask, max_spread_bps) else {
+        return SignalDecision::NoSignal;
+    };
+    let closes_vec: Vec<f64> = closes.iter().copied().collect();
+    let volumes_vec: Vec<f64> = volumes.iter().copied().collect();
+    if closes_vec.len() != volumes_vec.len() {
+        return SignalDecision::NoSignal;
+    }
+    let Some(vw) = crate::services::indicators::vwap(&closes_vec, &volumes_vec, period) else {
+        return SignalDecision::NoSignal;
+    };
+    if vw <= 0.0 {
+        return SignalDecision::NoSignal;
+    }
+    let deviation_bps = (mid - vw) / vw * 10_000.0;
+    if deviation_bps > -entry_bps {
+        return SignalDecision::NoSignal;
+    }
+    SignalDecision::Buy {
+        mid,
+        take_profit: mid * (1.0 + tp_pct / 100.0),
+        stop_loss: mid * (1.0 - sl_pct / 100.0),
+        reasoning: format!("vwap={:.8}, deviation={:.1}bps", vw, deviation_bps),
+    }
+}
+
+/// Momentum, but only when a longer-horizon trend filter also agrees: price must be above
+/// its own `trend_period`-length moving average, not just showing short-term positive
+/// momentum. Standard "trade with the trend" filter (analogous to a 50-period MA filter in
+/// classical TA) - tests whether momentum entries perform better when an established
+/// uptrend backs them up, versus taking every momentum blip regardless of broader context.
+pub fn evaluate_trend_filtered_momentum_signal(
+    bid: f64,
+    ask: f64,
+    closes: &VecDeque<f64>,
+    momentum_lookback: usize,
+    min_edge_bps: f64,
+    trend_period: usize,
+    max_spread_bps: f64,
+    tp_pct: f64,
+    sl_pct: f64,
+) -> SignalDecision {
+    let Some(mid) = passes_spread_gate(bid, ask, max_spread_bps) else {
+        return SignalDecision::NoSignal;
+    };
+    let closes_vec: Vec<f64> = closes.iter().copied().collect();
+
+    let lookback = momentum_lookback.min(closes_vec.len().saturating_sub(1));
+    if lookback == 0 {
+        return SignalDecision::NoSignal;
+    }
+    let past = closes_vec[closes_vec.len() - 1 - lookback];
+    if past <= 0.0 {
+        return SignalDecision::NoSignal;
+    }
+    let edge_bps = (mid - past) / past * 10_000.0;
+    if edge_bps < min_edge_bps {
+        return SignalDecision::NoSignal;
+    }
+
+    let Some(trend_sma) = crate::services::indicators::sma(&closes_vec, trend_period) else {
+        return SignalDecision::NoSignal;
+    };
+    if mid <= trend_sma {
+        return SignalDecision::NoSignal; // momentum present, but against the broader trend
+    }
+
+    SignalDecision::Buy {
+        mid,
+        take_profit: mid * (1.0 + tp_pct / 100.0),
+        stop_loss: mid * (1.0 - sl_pct / 100.0),
+        reasoning: format!(
+            "edge={:.1}bps, price {:.8} > trend_sma({}) {:.8}",
+            edge_bps, mid, trend_period, trend_sma
+        ),
+    }
+}
+
+/// Standalone short strategy (breakdown momentum): the mirror image of
+/// `evaluate_trend_filtered_momentum_signal` for the downside - sells short when price has
+/// dropped at least `min_edge_bps` over `momentum_lookback` bars AND sits below its own
+/// `trend_period`-length moving average (confirms a genuine downtrend, not just a dip inside
+/// an uptrend). Every prior signal in this file only ever goes long; this is the first that
+/// trades the short side as its own strategy, not just as a pairs-trading hedge leg.
+pub fn evaluate_short_momentum_signal(
+    bid: f64,
+    ask: f64,
+    closes: &VecDeque<f64>,
+    momentum_lookback: usize,
+    min_edge_bps: f64,
+    trend_period: usize,
+    max_spread_bps: f64,
+    tp_pct: f64,
+    sl_pct: f64,
+) -> SignalDecision {
+    let Some(mid) = passes_spread_gate(bid, ask, max_spread_bps) else {
+        return SignalDecision::NoSignal;
+    };
+    let closes_vec: Vec<f64> = closes.iter().copied().collect();
+
+    let lookback = momentum_lookback.min(closes_vec.len().saturating_sub(1));
+    if lookback == 0 {
+        return SignalDecision::NoSignal;
+    }
+    let past = closes_vec[closes_vec.len() - 1 - lookback];
+    if past <= 0.0 {
+        return SignalDecision::NoSignal;
+    }
+    let edge_bps = (past - mid) / past * 10_000.0; // positive = downward move
+    if edge_bps < min_edge_bps {
+        return SignalDecision::NoSignal;
+    }
+
+    let Some(trend_sma) = crate::services::indicators::sma(&closes_vec, trend_period) else {
+        return SignalDecision::NoSignal;
+    };
+    if mid >= trend_sma {
+        return SignalDecision::NoSignal; // breakdown present, but not below the broader trend
+    }
+
+    SignalDecision::Sell {
+        mid,
+        take_profit: mid * (1.0 - tp_pct / 100.0),
+        stop_loss: mid * (1.0 + sl_pct / 100.0),
+        reasoning: format!(
+            "breakdown edge={:.1}bps, price {:.8} < trend_sma({}) {:.8}",
+            edge_bps, mid, trend_period, trend_sma
+        ),
+    }
+}
+
+/// Volatility squeeze breakout: buy when Bollinger bandwidth has dropped below
+/// `squeeze_threshold` (an unusually tight range - TA folklore treats this as energy
+/// building up for a sharp move) at some point within the last `lookback_period` bars, AND
+/// price has just broken above its own upper Bollinger band. A different shape of signal
+/// than `evaluate_bollinger_signal` (which buys ON a dip below the LOWER band, betting on
+/// reversion); this instead buys an upward breakout that follows a period of contraction,
+/// betting on continuation.
+pub fn evaluate_vol_squeeze_signal(
+    bid: f64,
+    ask: f64,
+    closes: &VecDeque<f64>,
+    period: usize,
+    num_sd: f64,
+    squeeze_threshold: f64,
+    lookback_period: usize,
+    max_spread_bps: f64,
+    tp_pct: f64,
+    sl_pct: f64,
+) -> SignalDecision {
+    let Some(mid) = passes_spread_gate(bid, ask, max_spread_bps) else {
+        return SignalDecision::NoSignal;
+    };
+    let closes_vec: Vec<f64> = closes.iter().copied().collect();
+    if closes_vec.len() < period + lookback_period {
+        return SignalDecision::NoSignal;
+    }
+
+    let mut had_squeeze = false;
+    for i in 0..lookback_period {
+        let end = closes_vec.len() - i;
+        if end < period {
+            break;
+        }
+        let window = &closes_vec[..end];
+        if let Some(bw) =
+            crate::services::indicators::bollinger_bandwidth(window, period, num_sd)
+        {
+            if bw < squeeze_threshold {
+                had_squeeze = true;
+                break;
+            }
+        }
+    }
+    if !had_squeeze {
+        return SignalDecision::NoSignal;
+    }
+
+    let (Some(mean), Some(sd)) = (
+        crate::services::indicators::sma(&closes_vec, period),
+        crate::services::indicators::stddev(&closes_vec, period),
+    ) else {
+        return SignalDecision::NoSignal;
+    };
+    let upper_band = mean + num_sd * sd;
+    if mid <= upper_band {
+        return SignalDecision::NoSignal;
+    }
+
+    SignalDecision::Buy {
+        mid,
+        take_profit: mid * (1.0 + tp_pct / 100.0),
+        stop_loss: mid * (1.0 - sl_pct / 100.0),
+        reasoning: format!(
+            "vol squeeze breakout: upper_band={:.8}, mid={:.8}",
+            upper_band, mid
+        ),
+    }
+}
+
+/// Opening-range breakout: buy when price breaks above the high of the first `range_bars`
+/// bars of the current trading session. `opening_range_high` is computed by the caller
+/// (`None` before the current day's opening range has been fully established yet) since
+/// tracking "the first N bars of today" needs day-boundary bookkeeping this file's other
+/// pure, state-free signals don't carry - keeping that bookkeeping in the caller (the
+/// backtester's per-symbol state) keeps this function itself pure and testable in isolation.
+pub fn evaluate_orb_signal(
+    bid: f64,
+    ask: f64,
+    opening_range_high: Option<f64>,
+    max_spread_bps: f64,
+    tp_pct: f64,
+    sl_pct: f64,
+) -> SignalDecision {
+    let Some(mid) = passes_spread_gate(bid, ask, max_spread_bps) else {
+        return SignalDecision::NoSignal;
+    };
+    let Some(or_high) = opening_range_high else {
+        return SignalDecision::NoSignal;
+    };
+    if mid <= or_high {
+        return SignalDecision::NoSignal;
+    }
+    SignalDecision::Buy {
+        mid,
+        take_profit: mid * (1.0 + tp_pct / 100.0),
+        stop_loss: mid * (1.0 - sl_pct / 100.0),
+        reasoning: format!("ORB: broke above opening range high {:.8}", or_high),
     }
 }
 

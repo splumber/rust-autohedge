@@ -106,13 +106,16 @@ impl GenericWsStream {
             Message,
         >,
         symbols: &[String],
-        is_crypto: bool,
     ) -> ExchangeResult<()> {
-        let sub = if is_crypto {
-            json!({"action":"subscribe","quotes":symbols,"trades":symbols})
-        } else {
-            json!({"action":"subscribe","bars":symbols})
-        };
+        // Quotes + trades for both asset classes: the strategy engine needs bid/ask to
+        // compute spread_bps/mid (see services::strategy::evaluate_hft_signal), which a
+        // bars-only subscription can't provide. Alpaca's stock (IEX) and crypto feeds use
+        // identical quote/trade message field names ("S"/"bp"/"ap"/... and "S"/"p"/"s"/...),
+        // so process_alpaca needs no asset-class-specific handling either - previously
+        // stocks subscribed to "bars" only, which process_alpaca doesn't even parse (it
+        // only handles Alpaca message-type codes "t" and "q"), so stock symbols received
+        // zero usable market data.
+        let sub = json!({"action":"subscribe","quotes":symbols,"trades":symbols});
         write.send(Message::Text(sub.to_string())).await?;
         Ok(())
     }
@@ -534,13 +537,13 @@ impl GenericWsStream {
                 let key = self.api_key.clone().unwrap_or_default();
                 let secret = self.api_secret.clone().unwrap_or_default();
                 Self::alpaca_auth(&mut write, &key, &secret).await?;
-                Self::alpaca_subscribe(&mut write, symbols, true).await?;
+                Self::alpaca_subscribe(&mut write, symbols).await?;
             }
             WsProvider::AlpacaStocks => {
                 let key = self.api_key.clone().unwrap_or_default();
                 let secret = self.api_secret.clone().unwrap_or_default();
                 Self::alpaca_auth(&mut write, &key, &secret).await?;
-                Self::alpaca_subscribe(&mut write, symbols, false).await?;
+                Self::alpaca_subscribe(&mut write, symbols).await?;
             }
             WsProvider::Binance => {
                 Self::binance_subscribe(&mut write, symbols).await?;

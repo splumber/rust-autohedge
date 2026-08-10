@@ -1,4 +1,5 @@
 pub mod alpaca;
+pub mod finnhub;
 pub mod store;
 
 #[cfg(test)]

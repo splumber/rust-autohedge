@@ -9,6 +9,7 @@
 ### For Developers
 - **[TECHNICAL_DESIGN.md](./TECHNICAL_DESIGN.md)** - Architecture and system design
 - **[HFT_PERFORMANCE.md](./HFT_PERFORMANCE.md)** - Performance characteristics and optimization
+- **[STRATEGIES.md](./STRATEGIES.md)** - Every backtestable strategy, how to configure and run each one
 
 ---
 

@@ -121,7 +121,12 @@ async fn start_trading(State(state): State<Arc<AppState>>) -> impl IntoResponse 
         let is_crypto = trading_mode.to_lowercase() == "crypto";
         info!("🔧 Trading Mode: {} (Crypto: {})", trading_mode, is_crypto);
 
-        let symbols = config.symbols.clone();
+        // active_symbols() picks stock_symbols when trading_mode is "stocks", falling back
+        // to the crypto `symbols` list otherwise - using the raw `config.symbols` field
+        // here would subscribe to crypto tickers on the stock feed whenever trading_mode
+        // is "stocks" (correct feed, wrong symbols - the bot would connect and sit idle,
+        // never receiving a quote for any of them).
+        let symbols = config.active_symbols().clone();
 
         // Create Event Bus
         let event_bus = crate::bus::EventBus::new(1000);

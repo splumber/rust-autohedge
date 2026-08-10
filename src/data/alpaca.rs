@@ -40,6 +40,20 @@ pub struct CryptoBar {
     pub volume: f64,
 }
 
+/// A single news article from Alpaca's News API. Only the fields the sentiment signal
+/// actually needs - the real payload carries more (author, images, url, ...).
+#[derive(Deserialize, Debug, Clone)]
+pub struct NewsArticle {
+    pub headline: String,
+    #[serde(default)]
+    pub summary: String,
+    /// RFC3339 publish timestamp - critical for the sentiment signal to only look at news
+    /// published strictly before the current backtest bar, never leaking future headlines.
+    pub created_at: String,
+    #[serde(default)]
+    pub symbols: Vec<String>,
+}
+
 #[derive(serde::Serialize, Debug)]
 pub struct OrderRequest {
     pub symbol: String,
@@ -262,6 +276,161 @@ impl AlpacaClient {
         }
 
         Ok(all_bars)
+    }
+
+    /// Stock equivalent of `get_crypto_bars_range`. Same pagination shape, but the stocks
+    /// endpoint is per-symbol in the URL path (`/v2/stocks/{symbol}/bars`) and returns
+    /// `{"bars": [...]}` directly rather than crypto's `{"bars": {symbol: [...]}}` -
+    /// different enough to need its own method rather than a shared helper.
+    ///
+    /// Explicitly requests the free `iex` feed - the default without a paid subscription
+    /// is `sip` for authorized accounts only; passing `iex` avoids relying on account
+    /// entitlement details and keeps this working on a plain paper account.
+    pub async fn get_stock_bars_range(
+        &self,
+        symbol: &str,
+        timeframe: &str,
+        start: &str,
+        end: &str,
+    ) -> Result<Vec<CryptoBar>, Box<dyn Error + Send + Sync>> {
+        let mut all_bars = Vec::new();
+        let mut page_token: Option<String> = None;
+
+        loop {
+            let mut query = vec![
+                ("timeframe", timeframe.to_string()),
+                ("start", start.to_string()),
+                ("end", end.to_string()),
+                ("limit", "10000".to_string()),
+                ("feed", "iex".to_string()),
+                ("adjustment", "split".to_string()),
+            ];
+            if let Some(token) = &page_token {
+                query.push(("page_token", token.clone()));
+            }
+
+            let url = format!("https://data.alpaca.markets/v2/stocks/{}/bars", symbol);
+            let resp = self
+                .client
+                .get(&url)
+                .header("APCA-API-KEY-ID", &self.api_key)
+                .header("APCA-API-SECRET-KEY", &self.secret_key)
+                .query(&query)
+                .send()
+                .await?;
+
+            let status = resp.status();
+            let body = resp.text().await?;
+            if !status.is_success() {
+                return Err(format!(
+                    "Alpaca get_stock_bars_range failed ({}): {}",
+                    status, body
+                )
+                .into());
+            }
+
+            let data: Value = serde_json::from_str(&body).map_err(|e| {
+                format!(
+                    "Alpaca get_stock_bars_range decode failed: {} (body: {})",
+                    e, body
+                )
+            })?;
+
+            let bars_for_symbol = data
+                .get("bars")
+                .and_then(|b| b.as_array())
+                .cloned()
+                .unwrap_or_default();
+
+            let got_any = !bars_for_symbol.is_empty();
+            for bar in bars_for_symbol {
+                let parsed: CryptoBar = serde_json::from_value(bar).map_err(|e| {
+                    format!("Alpaca get_stock_bars_range bar decode failed: {}", e)
+                })?;
+                all_bars.push(parsed);
+            }
+
+            page_token = data
+                .get("next_page_token")
+                .and_then(|t| t.as_str())
+                .map(String::from);
+
+            if page_token.is_none() || !got_any {
+                break;
+            }
+        }
+
+        Ok(all_bars)
+    }
+
+    /// Fetches news articles from Alpaca's News API (Benzinga-sourced, included with
+    /// standard market data access - no separate signup/API key needed, unlike PEAD's
+    /// earnings-surprise data). Used by `evaluate_news_sentiment` in `portfolio.rs` for a
+    /// keyword-based headline sentiment signal.
+    pub async fn get_news(
+        &self,
+        symbols: &[String],
+        start: &str,
+        end: &str,
+    ) -> Result<Vec<NewsArticle>, Box<dyn Error + Send + Sync>> {
+        let mut all_news = Vec::new();
+        let mut page_token: Option<String> = None;
+        let symbols_param = symbols.join(",");
+
+        loop {
+            let mut query = vec![
+                ("symbols", symbols_param.clone()),
+                ("start", start.to_string()),
+                ("end", end.to_string()),
+                ("limit", "50".to_string()),
+                ("include_content", "false".to_string()),
+            ];
+            if let Some(token) = &page_token {
+                query.push(("page_token", token.clone()));
+            }
+
+            let resp = self
+                .client
+                .get("https://data.alpaca.markets/v1beta1/news")
+                .header("APCA-API-KEY-ID", &self.api_key)
+                .header("APCA-API-SECRET-KEY", &self.secret_key)
+                .query(&query)
+                .send()
+                .await?;
+
+            let status = resp.status();
+            let body = resp.text().await?;
+            if !status.is_success() {
+                return Err(format!("Alpaca get_news failed ({}): {}", status, body).into());
+            }
+
+            let data: Value = serde_json::from_str(&body)
+                .map_err(|e| format!("Alpaca get_news decode failed: {} (body: {})", e, body))?;
+
+            let items = data
+                .get("news")
+                .and_then(|n| n.as_array())
+                .cloned()
+                .unwrap_or_default();
+
+            let got_any = !items.is_empty();
+            for item in items {
+                if let Ok(article) = serde_json::from_value::<NewsArticle>(item) {
+                    all_news.push(article);
+                }
+            }
+
+            page_token = data
+                .get("next_page_token")
+                .and_then(|t| t.as_str())
+                .map(String::from);
+
+            if page_token.is_none() || !got_any {
+                break;
+            }
+        }
+
+        Ok(all_news)
     }
 
     pub async fn get_order(&self, order_id: &str) -> Result<Value, Box<dyn Error + Send + Sync>> {

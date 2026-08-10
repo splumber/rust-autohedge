@@ -9,6 +9,50 @@ symbols:
   - "DOGE/USD"
   - "PEPE/USD"
 
+# Used instead of `symbols` when trading_mode is "stocks" (see AppConfig::active_symbols).
+# This is the exact 36-symbol liquid universe backtested throughout the stock strategy
+# research (single-symbol signals, cointegration pairs, portfolio simulation) - curated for
+# genuine liquidity across sectors (mega-cap tech, finance, healthcare, consumer,
+# industrial/energy, broad index ETFs), not for any expected edge.
+stock_symbols:
+  - "AAPL"
+  - "MSFT"
+  - "GOOGL"
+  - "AMZN"
+  - "META"
+  - "NVDA"
+  - "TSLA"
+  - "AMD"
+  - "AVGO"
+  - "CRM"
+  - "JPM"
+  - "BAC"
+  - "GS"
+  - "MS"
+  - "V"
+  - "MA"
+  - "JNJ"
+  - "UNH"
+  - "PFE"
+  - "ABBV"
+  - "WMT"
+  - "COST"
+  - "HD"
+  - "MCD"
+  - "NKE"
+  - "DIS"
+  - "PG"
+  - "KO"
+  - "PEP"
+  - "XOM"
+  - "CVX"
+  - "CAT"
+  - "BA"
+  - "SPY"
+  - "QQQ"
+  - "DIA"
+  - "IWM"
+
 defaults:
   # Widened from 0.5%/0.3%: with round_trip_fee_bps=50 (0.5%) and max_spread_bps=50 (0.5%)
   # tolerated below, a 50bps take-profit target could be entirely consumed by spread alone
@@ -52,12 +96,89 @@ hft:
   momentum_lookback: 10             # Shorter lookback - react faster
   min_net_edge_bps: 5.0             # Real profitability gate: edge_bps - spread_bps - fees.round_trip_fee_bps must clear this
 
-# Trading cost assumptions used by the net-edge gate above. Alpaca's crypto taker fee is
-# tiered by 30-day trailing volume - this is a conservative worst-tier estimate. Check your
-# actual tier in the Alpaca dashboard and tune down if lower; erring high only means skipping
-# marginal trades, not taking losing ones.
+# Trading cost assumptions used by the net-edge gate above. NOTE: unlike the backtest
+# binaries (src/bin/*.rs), which auto-switch this via AssetClass based on --asset-class,
+# the LIVE execution path (src/services/strategy.rs::evaluate_hft, etc.) has no such
+# switch - it reads this value directly regardless of trading_mode, so it must be kept in
+# sync by hand. 2.0 bps here matches AssetClass::Stocks::default_round_trip_fee_bps()
+# (backtest_support.rs) for trading_mode: "stocks" - Alpaca stock trading is
+# commission-free, the only real cost is negligible SEC/FINRA regulatory fees on sells.
+# Set this back to 50.0 (a conservative crypto taker-fee estimate, tiered by 30-day
+# trailing volume - check your actual tier on the Alpaca dashboard) if trading_mode is
+# switched back to "crypto" - leaving it at 2.0 there would let the net-edge gate pass on
+# trades that are actually unprofitable once real crypto fees are included.
 fees:
-  round_trip_fee_bps: 50.0
+  round_trip_fee_bps: 2.0
+
+# Tunable parameters for the strategies backtestable via `cargo run --bin portfolio --mode
+# <name>` beyond the original signal set. Every sub-section has built-in defaults (see
+# src/config.rs) so this whole block can be omitted entirely - it's here so every knob is
+# visible and overridable in one place. Full explanation of each strategy and how to run it
+# is in docs/STRATEGIES.md.
+strategies:
+  # portfolio --mode short_momentum: standalone short strategy (breakdown momentum + trend
+  # filter). Requires shorting enabled on the account.
+  short_momentum:
+    trend_period: 50
+
+  # portfolio --mode vol_squeeze: Bollinger-bandwidth squeeze followed by an upward breakout.
+  vol_squeeze:
+    period: 20
+    num_sd: 2.0
+    squeeze_threshold: 0.01   # bandwidth as a fraction of price - tune per how volatile
+                              # your universe typically is (crypto needs a wider threshold
+                              # than quiet mega-caps)
+    lookback_period: 20
+
+  # portfolio --mode orb: opening-range breakout, buys above the first `range_bars` bars'
+  # high of each trading session.
+  orb:
+    range_bars: 15
+
+  # Margin-leveraged sizing, applied via `--leverage N` on ANY portfolio mode (long
+  # positions only - see docs/STRATEGIES.md for why shorts are scoped out). Models a rough
+  # daily interest accrual on the borrowed portion - confirm your account's actual margin
+  # rate on the Alpaca dashboard and tune annual_margin_rate_pct if it differs.
+  margin:
+    leverage_multiplier: 1.0     # 1.0 = no leverage (today's default). Up to 4.0 given
+                                  # this account's confirmed 4x margin approval.
+    annual_margin_rate_pct: 11.5
+
+  # portfolio --mode basket_arb: long/short a single symbol against its sector peer
+  # group's average return (see `sector_group` in src/bin/portfolio.rs) - only the single
+  # symbol is ever actually traded, not a real basket order.
+  basket_arb:
+    z_period: 30
+    entry_z: 2.0
+
+  # portfolio --mode news_sentiment: keyword-scored headline sentiment via Alpaca's News
+  # API - no separate signup/API key needed (included with existing Alpaca market data
+  # access), unlike PEAD's earnings-surprise data.
+  news_sentiment:
+    lookback_hours: 24
+    sentiment_threshold: 0.3
+
+  # portfolio --mode ml_signal: logistic-regression signal trained on a window strictly
+  # BEFORE the backtest window (train_days), evaluated live during the backtest itself.
+  ml_signal:
+    train_days: 60
+    label_horizon_bars: 15
+    label_threshold_pct: 0.3
+    learning_rate: 0.1
+    epochs: 150
+    predict_threshold: 0.55   # may need tuning per universe/date range - if a run reports
+                              # 0 trades, the model's max predicted probability never
+                              # cleared this bar; try lowering it.
+    row_stride: 3             # subsample training rows every Nth bar to bound training time
+
+  # bin/market_maker: approximated market-making backtest. NOT realistically executable
+  # via a retail Alpaca account (no exchange queue priority or maker rebates) - see
+  # docs/STRATEGIES.md and the module doc in src/bin/market_maker.rs before drawing any
+  # deployment conclusion from this.
+  market_maker:
+    quote_offset_bps: 5.0
+    inventory_limit_usd: 200.0
+    skew_factor: 0.5
 
 micro_trade:
   target_balance_pct: 0.05          # 5% of balance per trade - more capital at work
@@ -67,7 +188,9 @@ micro_trade:
   use_llm_filter: false
   allow_multiple_positions: true    # Stack positions for more exposure
   max_positions_per_symbol: 3       # Cap stacking depth - previously unbounded, see POSITION_STACKING_ENABLED.md
-  max_open_positions: 7             # Portfolio-wide cap on distinct symbols with exposure (= symbol count)
+  max_open_positions: 37            # Portfolio-wide cap on distinct symbols with exposure (= stock_symbols count).
+                                     # Was 7 to match the crypto `symbols` list - stale for the 37-symbol stock
+                                     # universe now that trading_mode is "stocks"; set back to 7 if switching back.
   limit_orders_expire_daily: true
   crypto_time_in_force: "ioc"       # IOC - fill immediately or cancel
   use_trailing_stop: true           # Keep trailing stop for profit protection
